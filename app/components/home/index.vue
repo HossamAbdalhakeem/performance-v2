@@ -53,8 +53,9 @@ const getMediaUrl = (media) =>
   media?.url || media?.path || media?.location || "";
 
 // CRUD executes through useApi() internally (useFetch, SSR-friendly)
-// top-level await => Nuxt SSR waits and renders data server-side
-const { data: experiencesData, loading: pending } = await FeedsCrud.get({
+// No await => `loading` stays reactive (true while request in flight);
+// Nuxt still waits for the non-lazy requests during SSR before rendering
+const { data: experiencesData, loading: pending } = FeedsCrud.get({
   select:
     "type alias _id experience_id title summary about extra main_photo media fundraiser._id fundraiser.alias fundraiser.name",
   status: "published",
@@ -63,7 +64,7 @@ const { data: experiencesData, loading: pending } = await FeedsCrud.get({
 });
 
 const { data: contributorsData, loading: creatorsPending } =
-  await ContributorsCrud.get();
+  ContributorsCrud.get();
 
 const experiences = computed(() => experiencesData.value?.data || []);
 

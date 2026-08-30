@@ -11,13 +11,7 @@ import { useAuthStore } from "~/store/auth.js";
  *   const { data, loading, error } = await ContributorsCrud.get();
  */
 export default class ContributorsCrud {
-  /**
-   * Get contributors list
-   * @param {Object} params - optional query params overrides
-   *   e.g. { page, sort, contributor_type, cache_key }
-   * @returns {Promise<{data: Ref, pending: Ref, loading: Ref, error: Ref, ...}>}
-   */
-  static async get(params = {}) {
+  static get(params = {}) {
     const authStore = useAuthStore();
     const config = useRuntimeConfig();
     const { request } = useApi();
@@ -25,7 +19,7 @@ export default class ContributorsCrud {
     const fundRaiserId =
       authStore.user?.fund_raiser_id || config.public.fundraiserId;
 
-    return await request({
+    const { data, pending, error, ...rest } = request({
       endpoint: `/fundraisers/app-api/${fundRaiserId}/contributors`,
       method: "GET",
       params: {
@@ -36,6 +30,8 @@ export default class ContributorsCrud {
         ...params,
       },
     });
+
+    return { data, error, loading: pending, ...rest };
   }
 }
 

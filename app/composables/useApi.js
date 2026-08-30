@@ -16,7 +16,7 @@ export const useApi = () => {
   const config = useRuntimeConfig();
   const authStore = useAuthStore();
 
-  const request = async (requestConfig) => {
+  const request = (requestConfig) => {
     const {
       endpoint,
       method = "GET",
@@ -48,7 +48,10 @@ export const useApi = () => {
       JSON.stringify(body || {}),
     ].join("-");
 
-    const result = await useFetch(endpoint, {
+    // NOT async on purpose: useFetch returns live refs immediately,
+    // so `loading` stays reactive (true while the request is in flight).
+    // Nuxt still waits for non-lazy useFetch during SSR before rendering.
+    const result = useFetch(endpoint, {
       key,
       method,
       params: requestParams,
@@ -56,11 +59,8 @@ export const useApi = () => {
       body,
       baseURL: config.public.baseUrl,
     });
-    console.log("122resultresultresultresult", result);
-
     return {
       ...result,
-      // convenience alias
       loading: result.pending,
     };
   };

@@ -10,18 +10,10 @@
  *   const { data, loading, error } = await FeedsCrud.get(body, params);
  */
 export default class FeedsCrud {
-  /**
-   * Get feeds experiences list
-   * @param {Object} body - request body passed from the component
-   *   e.g. { select, status, page, sort }
-   * @param {Object} params - optional query params overrides
-   *   e.g. { cache_key, sort, organization_id, fund_raiser_id }
-   * @returns {Promise<{data: Ref, pending: Ref, loading: Ref, error: Ref, ...}>}
-   */
-  static async get(body = {}, params = {}) {
+  static get(body = {}, params = {}) {
     const { request } = useApi();
 
-    return await request({
+    const { data, pending, error, ...rest } = request({
       endpoint: "/feeds/app-api/experiences",
       method: "POST",
       params: {
@@ -31,6 +23,8 @@ export default class FeedsCrud {
       },
       body,
     });
+
+    return { data, error, loading: pending, ...rest };
   }
 }
 
