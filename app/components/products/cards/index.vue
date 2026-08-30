@@ -1,6 +1,6 @@
 <template>
   <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-    <SingleCard
+    <ProductsSingleCard
       v-for="(card, idx) in cards"
       :key="idx"
       :card="card"
@@ -10,7 +10,7 @@
 </template>
 
 <script setup>
-import SingleCard from "~/components/shared/single-card/index.vue";
+import ProductsSingleCard from "~/components/products/single-card/index.vue";
 
 defineProps({
   cards: { type: Array, default: () => [] },

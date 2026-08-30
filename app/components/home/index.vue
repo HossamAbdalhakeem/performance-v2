@@ -1,10 +1,7 @@
 <template>
   <div>
     <div class="p-6">
-      <SharedSectionTitle
-        title="Experiences"
-        :loading="pending"
-      />
+      <SharedSectionTitle title="Experiences" :loading="pending" />
 
       <!-- <div v-if="pending" class="py-10 text-center text-slate-500">Loading experiences...</div> -->
 
@@ -12,23 +9,20 @@
         Failed to load experiences. Please try again.
       </div> -->
 
-      <SharedCards
+      <ProductsCards
         :cards="pending ? skeletonCards : cards"
         :loading="pending"
       />
     </div>
 
     <div class="p-6">
-      <SharedSectionTitle
-        title="Creators"
-        :loading="creatorsPending"
-      />
+      <SharedSectionTitle title="Creators" :loading="creatorsPending" />
 
       <!-- <div v-if="creatorsError" class="py-10 text-center text-red-400">
         Failed to load creators. Please try again.
       </div> -->
 
-      <SharedCards
+      <CreatorsCards
         :cards="creatorsPending ? skeletonCards : creatorCards"
         :loading="creatorsPending"
       />
@@ -37,8 +31,9 @@
 </template>
 
 <script setup>
-import SharedCards from "~/components/shared/cards/index.vue";
 import SharedSectionTitle from "~/components/shared/section-title/index.vue";
+import ProductsCards from "~/components/products/cards/index.vue";
+import CreatorsCards from "~/components/creators/cards/index.vue";
 import FeedsCrud from "~/modules/feeds/feedsCrud.js";
 import ContributorsCrud from "~/modules/creators/contributorsCrud.js";
 
@@ -49,8 +44,7 @@ const skeletonCards = Array.from({ length: 6 }, () => ({
   cta: "",
 }));
 
-const getMediaUrl = (media) =>
-  media?.url || media?.path || media?.location || "";
+const getMediaUrl = (media) => media?.file_url || "";
 
 // CRUD executes through useApi() internally (useFetch, SSR-friendly)
 // No await => `loading` stays reactive (true while request in flight);
@@ -72,7 +66,7 @@ const contributors = computed(() => contributorsData.value?.data || []);
 
 const cards = computed(() =>
   (experiences.value || []).map((experience) => ({
-    image: experience.main_photo,
+    image: experience.main_photo?.file_url,
     title: experience.title,
     description: experience.summary,
     cta: "View",
@@ -81,7 +75,7 @@ const cards = computed(() =>
 
 const creatorCards = computed(() =>
   (contributors.value || []).map((contributor) => ({
-    image: getMediaUrl(contributor.main_photo),
+    image: getMediaUrl(contributor?.main_photo),
     title: contributor.name,
     description: contributor.description,
     cta: "View",
