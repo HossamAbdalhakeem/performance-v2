@@ -42,13 +42,7 @@ import SharedSectionTitle from "~/components/shared/section-title/index.vue";
 import FeedsCrud from "~/modules/feeds/feedsCrud.js";
 import ContributorsCrud from "~/modules/creators/contributorsCrud.js";
 
-const experiences = ref([]);
-const pending = ref(true);
-const error = ref(null);
-
-const contributors = ref([]);
-const creatorsPending = ref(true);
-const creatorsError = ref(null);
+const { request } = useApi();
 
 const skeletonCards = Array.from({ length: 6 }, () => ({
   image: "",
@@ -59,6 +53,26 @@ const skeletonCards = Array.from({ length: 6 }, () => ({
 
 const getMediaUrl = (media) =>
   media?.url || media?.path || media?.location || "";
+
+// CRUD returns config only - useApi() executes it with useFetch
+// (top-level await => Nuxt SSR waits and renders data server-side)
+const { data: experiencesData, pending } = await request(
+  FeedsCrud.get({
+    select:
+      "type alias _id experience_id title summary about extra main_photo media fundraiser._id fundraiser.alias fundraiser.name",
+    status: "published",
+    page: 1,
+    sort: { created_at: -1 },
+  })
+);
+
+const { data: contributorsData, pending: creatorsPending } = await request(
+  ContributorsCrud.get()
+);
+
+const experiences = computed(() => experiencesData.value?.data || []);
+
+const contributors = computed(() => contributorsData.value?.data || []);
 
 const cards = computed(() =>
   (experiences.value || []).map((experience) => ({
@@ -77,49 +91,6 @@ const creatorCards = computed(() =>
     cta: "View",
   }))
 );
-
-const fetchExperiences = async () => {
-  pending.value = true;
-  error.value = null;
-
-  const response = await FeedsCrud.get({
-    select:
-      "type alias _id experience_id title summary about extra main_photo media fundraiser._id fundraiser.alias fundraiser.name",
-    status: "published",
-    page: 1,
-    sort: { created_at: -1 },
-  });
-
-  if (response?.success) {
-    experiences.value = response.data?.data || [];
-  } else {
-    error.value = response?.error || "Request failed";
-  }
-
-  pending.value = false;
-};
-
-const fetchContributors = async () => {
-  creatorsPending.value = true;
-  creatorsError.value = null;
-
-  const response = await ContributorsCrud.get();
-
-  if (response?.success) {
-    contributors.value = response.data?.data || [];
-  } else {
-    creatorsError.value = response?.error || "Request failed";
-  }
-
-  creatorsPending.value = false;
-};
-
-// top-level await => Nuxt SSR waits for these requests
-// and renders the data server-side
-await Promise.all([
-  fetchExperiences(),
-  fetchContributors(),
-]);
 </script>
 
 <style lang="scss" scoped>
