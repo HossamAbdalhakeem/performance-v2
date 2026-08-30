@@ -2,13 +2,6 @@
   <div>
     <div class="p-6">
       <SharedSectionTitle title="Experiences" :loading="pending" />
-
-      <!-- <div v-if="pending" class="py-10 text-center text-slate-500">Loading experiences...</div> -->
-
-      <!-- <div v-if="error" class="py-10 text-center text-red-400">
-        Failed to load experiences. Please try again.
-      </div> -->
-
       <ProductsCards
         :cards="pending ? skeletonCards : cards"
         :loading="pending"
@@ -17,13 +10,8 @@
 
     <div class="p-6">
       <SharedSectionTitle title="Creators" :loading="creatorsPending" />
-
-      <!-- <div v-if="creatorsError" class="py-10 text-center text-red-400">
-        Failed to load creators. Please try again.
-      </div> -->
-
       <CreatorsCards
-        :cards="creatorsPending ? skeletonCards : creatorCards"
+        :cards="creatorsPending ? skeletonCreators : creatorCards"
         :loading="creatorsPending"
       />
     </div>
@@ -38,10 +26,22 @@ import FeedsCrud from "~/modules/feeds/feedsCrud.js";
 import ContributorsCrud from "~/modules/creators/contributorsCrud.js";
 
 const skeletonCards = Array.from({ length: 6 }, () => ({
-  image: "",
+  image: {
+    file_url: "",
+    location: "landscape",
+  },
   title: "",
   description: "",
   cta: "",
+}));
+const skeletonCreators = Array.from({ length: 6 }, () => ({
+  image: {
+    file_url: "",
+    location: "portrait",
+  },
+  title: "",
+  description: "",
+ 
 }));
 
 const getMediaUrl = (media) => media?.file_url || "";
@@ -66,7 +66,10 @@ const contributors = computed(() => contributorsData.value?.data || []);
 
 const cards = computed(() =>
   (experiences.value || []).map((experience) => ({
-    image: experience.main_photo?.file_url,
+    image: {
+      file_url: experience.main_photo?.file_url,
+      location: "landscape",
+    },
     title: experience.title,
     description: experience.summary,
     cta: "View",
@@ -75,7 +78,10 @@ const cards = computed(() =>
 
 const creatorCards = computed(() =>
   (contributors.value || []).map((contributor) => ({
-    image: getMediaUrl(contributor?.main_photo),
+    image: {
+      file_url: getMediaUrl(contributor?.main_photo),
+      location: "portrait",
+    },
     title: contributor.name,
     description: contributor.description,
     cta: "View",

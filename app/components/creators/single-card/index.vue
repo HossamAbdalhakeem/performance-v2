@@ -3,7 +3,7 @@
     class="overflow-hidden rounded-lg border border-forest/40 bg-forest/10 transition hover:shadow-lg"
   >
     <SharedWrapperImage
-      :src="card.image"
+      :image="card.image"
       :alt="card.title"
       :loading="loading"
     />
