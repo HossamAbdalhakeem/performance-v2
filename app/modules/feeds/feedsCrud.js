@@ -3,20 +3,25 @@
  * Handles all requests related to feeds / experiences API
  *
  * Endpoint: /feeds/app-api/experiences
- * Returns the request configuration only - execution is done by useApi()
- * (useFetch inside the component setup, SSR-friendly).
+ * Builds the request config and executes it through useApi()
+ * (useFetch inside component setup, SSR-friendly).
+ *
+ * Usage:
+ *   const { data, loading, error } = await FeedsCrud.get(body, params);
  */
 export default class FeedsCrud {
   /**
-   * Get feeds experiences request config
+   * Get feeds experiences list
    * @param {Object} body - request body passed from the component
    *   e.g. { select, status, page, sort }
    * @param {Object} params - optional query params overrides
    *   e.g. { cache_key, sort, organization_id, fund_raiser_id }
-   * @returns {Object} request config for useApi()
+   * @returns {Promise<{data: Ref, pending: Ref, loading: Ref, error: Ref, ...}>}
    */
-  static get(body = {}, params = {}) {
-    return {
+  static async get(body = {}, params = {}) {
+    const { request } = useApi();
+
+    return await request({
       endpoint: "/feeds/app-api/experiences",
       method: "POST",
       params: {
@@ -25,7 +30,7 @@ export default class FeedsCrud {
         ...params,
       },
       body,
-    };
+    });
   }
 }
 

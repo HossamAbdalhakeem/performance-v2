@@ -48,7 +48,7 @@ export const useApi = () => {
       JSON.stringify(body || {}),
     ].join("-");
 
-    return await useFetch(endpoint, {
+    const result = await useFetch(endpoint, {
       key,
       method,
       params: requestParams,
@@ -56,6 +56,13 @@ export const useApi = () => {
       body,
       baseURL: config.public.baseUrl,
     });
+    console.log("122resultresultresultresult", result);
+
+    return {
+      ...result,
+      // convenience alias
+      loading: result.pending,
+    };
   };
 
   return { request };

@@ -42,8 +42,6 @@ import SharedSectionTitle from "~/components/shared/section-title/index.vue";
 import FeedsCrud from "~/modules/feeds/feedsCrud.js";
 import ContributorsCrud from "~/modules/creators/contributorsCrud.js";
 
-const { request } = useApi();
-
 const skeletonCards = Array.from({ length: 6 }, () => ({
   image: "",
   title: "",
@@ -54,21 +52,18 @@ const skeletonCards = Array.from({ length: 6 }, () => ({
 const getMediaUrl = (media) =>
   media?.url || media?.path || media?.location || "";
 
-// CRUD returns config only - useApi() executes it with useFetch
-// (top-level await => Nuxt SSR waits and renders data server-side)
-const { data: experiencesData, pending } = await request(
-  FeedsCrud.get({
-    select:
-      "type alias _id experience_id title summary about extra main_photo media fundraiser._id fundraiser.alias fundraiser.name",
-    status: "published",
-    page: 1,
-    sort: { created_at: -1 },
-  })
-);
+// CRUD executes through useApi() internally (useFetch, SSR-friendly)
+// top-level await => Nuxt SSR waits and renders data server-side
+const { data: experiencesData, loading: pending } = await FeedsCrud.get({
+  select:
+    "type alias _id experience_id title summary about extra main_photo media fundraiser._id fundraiser.alias fundraiser.name",
+  status: "published",
+  page: 1,
+  sort: { created_at: -1 },
+});
 
-const { data: contributorsData, pending: creatorsPending } = await request(
-  ContributorsCrud.get()
-);
+const { data: contributorsData, loading: creatorsPending } =
+  await ContributorsCrud.get();
 
 const experiences = computed(() => experiencesData.value?.data || []);
 
