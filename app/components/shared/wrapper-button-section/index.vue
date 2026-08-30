@@ -1,6 +1,6 @@
 <template>
-  <div class="rounded-lg border border-forest/40 bg-forest/10 p-6">
-    <Skeleton v-if="loading" width="8rem" height="2.5rem" border-radius="8px"/>
+  <div class="">
+    <Skeleton v-if="loading" width="5rem" height="2.5rem" border-radius="8px"/>
     <slot v-else />
   </div>
 </template>

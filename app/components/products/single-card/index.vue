@@ -10,26 +10,26 @@
 
     <div class="p-4">
       <SharedContentTitle :title="card.title" :loading="loading" />
-      <SharedContentSubtitle
+      <!-- <SharedContentSubtitle
         v-if="loading || card.subtitle"
         class="mt-1"
         :subtitle="card.subtitle"
         :loading="loading"
-      />
+      /> -->
       <SharedContentDesc
         v-if="loading || card.description"
         class="mt-2"
         :description="card.description"
         :loading="loading"
       />
-
+<!-- 
       <SharedWrapperPrice
         v-if="loading || card.price"
         class="mt-2 border-0 p-0"
         :loading="loading"
       >
         <span class="text-lg font-bold text-mint">{{ card.price }}</span>
-      </SharedWrapperPrice>
+      </SharedWrapperPrice> -->
 
       <SharedWrapperButtonSection
         v-if="loading || card.cta"

@@ -5,10 +5,10 @@
     </h2>
     <h2 v-else class="font-serif text-3xl font-normal text-mint">{{ title }}</h2>
 
-    <p v-if="loading || subtitle" class="mt-2">
+    <!-- <p v-if="loading || subtitle" class="mt-2">
       <Skeleton v-if="loading" width="18rem" height="1rem" border-radius="4px" />
       <span v-else class="text-muted">{{ subtitle }}</span>
-    </p>
+    </p> -->
   </div>
 </template>
 
@@ -16,7 +16,7 @@
 
 defineProps({
   title: { type: String, default: "" },
-  subtitle: { type: String, default: "" },
+  // subtitle: { type: String, default: "" },
   loading: { type: Boolean, default: false },
 });
 </script>

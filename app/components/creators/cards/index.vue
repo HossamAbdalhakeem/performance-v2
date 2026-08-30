@@ -1,5 +1,5 @@
 <template>
-  <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+  <div class="grid gap-6 sm:grid-cols-3 lg:grid-cols-4">
     <CreatorsSingleCard
       v-for="(card, idx) in cards"
       :key="idx"
