@@ -25,6 +25,7 @@ export const useAuthStore = defineStore("authStore", {
         body: { ...data, organization_id: this.organizationId },
       });
       this.loading = false;
+      if (response?.status !== "SUCCESS") return;
       console.log("Login response:bbbbbbbbb", response.data);
       await this.setUser(response.data);
       return response;
