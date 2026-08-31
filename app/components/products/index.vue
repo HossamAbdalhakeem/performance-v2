@@ -89,10 +89,10 @@ const loadMore = async () => {
 
     // runWithContext restores the Nuxt instance so FeedsCrud.get (useFetch)
     // works correctly even when called from the observer callback
-    // const { data } = await nuxtApp.runWithContext(() =>
-    //   FeedsCrud.get({ ...requestBody, page: nextPage })
-    // );
-    const { data } = await FeedsCrud.get({ ...requestBody, page: nextPage });
+    const { data } = await nuxtApp.runWithContext(() =>
+      FeedsCrud.get({ ...requestBody, page: nextPage })
+    );
+    // const { data} = await FeedsCrud.get({ ...requestBody, page: nextPage });
 
     const items = data.value?.data || [];
     if (items.length === 0) {

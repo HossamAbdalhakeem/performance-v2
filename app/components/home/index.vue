@@ -49,12 +49,17 @@ const getMediaUrl = (media) => media?.file_url || "";
 // CRUD executes through useApi() internally (useFetch, SSR-friendly)
 // No await => `loading` stays reactive (true while request in flight);
 // Nuxt still waits for the non-lazy requests during SSR before rendering
-const { data: experiencesData, loading: pending } = FeedsCrud.get({
+const requestBody = {
   select:
     "type alias _id experience_id title summary about extra main_photo media fundraiser._id fundraiser.alias fundraiser.name",
   status: "published",
-  page: 1,
   sort: { created_at: -1 },
+};
+
+// top-level await => SSR waits for page 1 and renders it server-side
+const { data: experiencesData, loading: pending } = await FeedsCrud.get({
+  ...requestBody,
+  page: 1,
 });
 
 const { data: contributorsData, loading: creatorsPending } =
