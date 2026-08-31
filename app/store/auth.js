@@ -18,6 +18,8 @@ export const useAuthStore = defineStore("authStore", {
     async login(data) {
       console.log("Login data:aaaaaaaaaa", data);
       console.log("Base URL:", this.baseURL);
+const router = useRouter();
+
       this.loading = true;
       const response = await $fetch(`/app-api/users/login`, {
         method: "POST",
@@ -28,6 +30,7 @@ export const useAuthStore = defineStore("authStore", {
       if (response?.status !== "SUCCESS") return;
       console.log("Login response:bbbbbbbbb", response.data);
       await this.setUser(response.data);
+      router.push("/");
       return response;
     },
 

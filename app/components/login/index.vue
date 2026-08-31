@@ -201,12 +201,12 @@ const submitForm = async () => {
   });
   console.log("Login response: status", response?.status);
 
-  if (response?.status === 'SUCCESS') {
-    // Handle successful login, e.g., redirect to dashboard
-    router.push("/");
-  } else {
-    // Handle login error, e.g., show error message
-  }
+  // if (response?.status === 'SUCCESS') {
+  //   // Handle successful login, e.g., redirect to dashboard
+  //   router.push("/");
+  // } else {
+  //   // Handle login error, e.g., show error message
+  // }
   isSubmitting.value = false;
 };
 </script>
