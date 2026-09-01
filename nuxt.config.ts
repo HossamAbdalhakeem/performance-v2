@@ -25,13 +25,18 @@ export default defineNuxtConfig({
       },
     },
   },
-  ssr: true,
-  // routeRules: {
-  //   // '/': { ssr: true },
-  //   '/privacy': { ssr: false },
-  //   // '/creators': { ssr: true },
-  //   // '/notifications': { ssr: true },
-  // },
+  experimental: {
+    payloadExtraction: false,
+  },
+  // ssr: true,
+  routeRules: {
+    '/': { ssr: true },
+    '/privacy': { ssr: false },
+    '/products/**': { isr: 3600 },
+    '/products/preview/**': { ssr: true },
+    '/creators/**': { isr: 3600 },
+    '/notifications': { ssr: true },
+  },
   devtools: { enabled: true },
   compatibilityDate: '2024-04-03',
   runtimeConfig: {
