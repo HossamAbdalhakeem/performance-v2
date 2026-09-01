@@ -5,6 +5,11 @@
   </NuxtLayout>
 </template>
 <script setup>
-const layoutName = "default";
+const route = useRoute();
+const layoutName = computed(() => {
+  const metaLayout = route.meta?.layout;
+  if (metaLayout) return metaLayout;
+  return "default";
+});
 </script>
 
