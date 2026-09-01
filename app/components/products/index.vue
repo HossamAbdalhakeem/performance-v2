@@ -51,8 +51,9 @@ const requestBody = {
   sort: { created_at: -1 },
 };
 
-// top-level await => SSR waits for page 1 and renders it server-side
-const { data: experiencesData, loading: pending } = await FeedsCrud.get({
+// No await => `loading` stays reactive (true while request in flight);
+// Nuxt still waits for the non-lazy requests during SSR before rendering
+const { data: experiencesData, loading: pending } = FeedsCrud.get({
   ...requestBody,
   page: 1,
 });
