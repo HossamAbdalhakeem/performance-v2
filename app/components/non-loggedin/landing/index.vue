@@ -148,6 +148,10 @@
 </template>
 
 <script setup>
+import features from "../features/index.vue";
+import how from "../how/index.vue";
+import shop from "../shop/index.vue";
+
 const heroChips = [
   "Music",
   "Digital products",
