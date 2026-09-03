@@ -2,32 +2,49 @@
   <div>
     <div class="p-6">
       <div
-        class="overflow-hidden rounded-2xl border border-forest/40 bg-forest/10"
+        class="flex gap-8 overflow-hidden rounded-2xl border border-forest/40 bg-forest/10 lg:flex-row"
       >
-        <!-- Player -->
-        <div class="aspect-video w-full bg-black">
-          <video
-            v-if="playableUrl && !contentPending"
-            :src="playableUrl"
-            controls
-            playsinline
-            class="h-full w-full"
-          />
-          <div
-            v-else
-            class="grid h-full place-items-center text-sm text-muted"
-          >
-            <Skeleton
-              v-if="contentPending"
-              width="100%"
-              height="100%"
-              border-radius="0px"
-            />
-            <span v-else>Video source is not available</span>
+        <!-- Player column -->
+        <div class="w-full shrink-0 lg:w-[60%]">
+          <div class="p-4">
+            <div class="aspect-video w-full overflow-hidden rounded-xl bg-black">
+              <video
+                v-if="playableUrl && !contentPending"
+                :src="playableUrl"
+                controls
+                playsinline
+                class="h-full w-full"
+              />
+              <div
+                v-else
+                class="grid h-full place-items-center text-sm text-muted"
+              >
+                <Skeleton
+                  v-if="contentPending"
+                  width="100%"
+                  height="100%"
+                  border-radius="0px"
+                />
+                <span v-else>Video source is not available</span>
+              </div>
+            </div>
+
+            <!-- Video title (from content object) -->
+            <div class="px-1 pt-3">
+              <template v-if="contentPending">
+                <Skeleton width="60%" height="1.25rem" border-radius="4px" />
+              </template>
+              <template v-else>
+                <p class="font-serif text-lg font-semibold text-mint">
+                  {{ content?.title || "Untitled video" }}
+                </p>
+              </template>
+            </div>
           </div>
         </div>
 
-        <div class="p-6">
+        <!-- Details column -->
+        <div class="flex-1 p-6 lg:py-8">
           <SharedSectionTitle
             :title="details?.title"
             :loading="productPending"
@@ -43,7 +60,7 @@
 
           <div
             v-if="!contentPending && contentMeta.length"
-            class="flex flex-wrap gap-2"
+            class="mb-6 flex flex-wrap gap-2"
           >
             <span
               v-for="(item, idx) in contentMeta"
@@ -53,6 +70,54 @@
               {{ item }}
             </span>
           </div>
+
+          <section
+            v-if="contentPending || contentDescription"
+            class="mb-6"
+          >
+            <h3 class="mb-2 font-serif text-xl font-normal text-mint">
+              Description
+            </h3>
+            <div v-if="contentPending">
+              <Skeleton
+                width="100%"
+                height="0.75rem"
+                border-radius="4px"
+                class="mb-2"
+              />
+              <Skeleton width="66%" height="0.75rem" border-radius="4px" />
+            </div>
+            <p v-else class="text-sm leading-relaxed text-muted">
+              {{ contentDescription }}
+            </p>
+          </section>
+
+          <section v-if="contentPending || videoFacts.length" class="mb-6">
+            <h3 class="mb-3 font-serif text-xl font-normal text-mint">
+              Details
+            </h3>
+            <div class="overflow-hidden rounded-lg border border-forest/40">
+              <div
+                v-for="(fact, idx) in videoFacts"
+                :key="idx"
+                class="flex items-center justify-between gap-4 px-4 py-2.5 text-sm"
+                :class="[
+                  idx % 2 === 0 ? 'bg-ink/40' : 'bg-transparent',
+                  idx > 0 ? 'border-t border-forest/40' : '',
+                ]"
+              >
+                <span class="text-muted">{{ fact.label }}</span>
+                <span class="font-medium text-mint">{{ fact.value }}</span>
+              </div>
+            </div>
+          </section>
+
+          <p
+            v-if="!contentPending && details?.fundraiser?.name"
+            class="text-xs text-muted/70"
+          >
+            From {{ details.fundraiser.name }}
+          </p>
         </div>
       </div>
     </div>
@@ -110,6 +175,35 @@ const contentMeta = computed(() => {
   if (c?.is_public) items.push("Public");
   return items;
 });
+
+// ---- Description (from content object) -----------------------------------
+const contentDescription = computed(
+  () => content.value?.description || "No description provided.",
+);
+
+// ---- Details table rows ---------------------------------------------------
+const videoFacts = computed(() => {
+  const c = content.value;
+  if (!c) return [];
+  const facts = [];
+  if (c.media_type) facts.push({ label: "Media type", value: c.media_type });
+  if (c.metadata?.duration)
+    facts.push({ label: "Duration", value: formatDuration(c.metadata.duration) });
+  if (c.is_public)
+    facts.push({ label: "Visibility", value: "Public" });
+  else facts.push({ label: "Visibility", value: "Private" });
+  if (c.is_published)
+    facts.push({ label: "Status", value: "Published" });
+  if (c._id) facts.push({ label: "Content ID", value: c._id });
+  return facts;
+});
+
+const formatDuration = (seconds) => {
+  const total = Math.round(Number(seconds) || 0);
+  const m = Math.floor(total / 60);
+  const s = total % 60;
+  return m > 0 ? `${m}m ${s}s` : `${s}s`;
+};
 </script>
 
 <style lang="scss" scoped>
