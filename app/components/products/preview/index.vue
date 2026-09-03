@@ -276,7 +276,8 @@ const metaItems = computed(() => {
 // ---- CTA --------------------------------------------------------------
 const ctaLabel = computed(() => {
   if (pending.value) return "";
-  return details.value?.extra?.subtype?.action_btn_title || "View";
+  // return details.value?.extra?.subtype?.action_btn_title || "watch";
+  return "watch";
 });
 
 const onCtaClick = () => {
