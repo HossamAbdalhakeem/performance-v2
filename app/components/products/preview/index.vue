@@ -281,7 +281,12 @@ const ctaLabel = computed(() => {
 });
 
 const onCtaClick = () => {
-  // TODO: wire up actual purchase / access flow when available
+  // Navigate to the watch page using the first content id from
+  // extra.contents_info (fallback to the product alias itself).
+  const watchId =
+    details.value?.extra?.contents_info?.[0]?._id || details.value?.alias;
+  if (!watchId) return;
+  navigateTo(`/products/preview/${alias}/watch/${watchId}`);
 };
 
 // ---- Notes (HTML description) -----------------------------------------
