@@ -1,13 +1,6 @@
 <template>
   <div>
     <div class="p-6">
-      <NuxtLink
-        to="/products"
-        class="mb-6 inline-flex items-center gap-2 text-sm text-muted transition hover:text-mint"
-      >
-        <span aria-hidden="true">&larr;</span> All products
-      </NuxtLink>
-
       <div
         class="flex flex-col gap-8 overflow-hidden rounded-2xl border border-forest/40 bg-forest/10 lg:flex-row"
       >

@@ -36,9 +36,15 @@ import Skeleton from "primevue/skeleton";
 const nuxtApp = useNuxtApp();
 
 // Navigate to the preview page for the clicked experience alias
+// from marks the origin so the inner-pages X button can route back here
 const router = useRouter();
 const goToPreview = (alias) => {
-  if (alias) router.push(`/products/preview/${alias}`);
+  if (alias) {
+    router.push({
+      path: `/products/preview/${alias}`,
+      query: { from: "products" },
+    });
+  }
 };
 
 const skeletonCards = Array.from({ length: 6 }, () => ({
