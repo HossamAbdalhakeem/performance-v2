@@ -12,7 +12,7 @@ export const useAuthStore = defineStore("authStore", {
     getUser: (state) => state.user,
     isLoggedIn: (state) => state.loggedIn,
     getOrganizationId: (state) => state.user?.organization_id,
-    getFundraiserId: (state) => useRuntimeConfig()?.public?.fundraiserId,
+    getFundraiserId: () => useRuntimeConfig()?.public?.fundraiserId,
   },
   actions: {
     async login(data) {
@@ -96,9 +96,22 @@ const router = useRouter();
       return response;
     },
     async logoutAll() {
-      await logoutCurrent();
-      removeUser();
-      removeTokens();
+      await this.logoutCurrent();
+      this.removeUser();
+      this.removeTokens();
+    },
+    async logout() {
+      // Best-effort server call - always clear the local session even
+      // if the network call fails (offline / expired token)
+      try {
+        await this.logoutCurrent();
+      } catch {
+        // ignore - local logout below is whats important
+      }
+      this.removeUser();
+      this.removeTokens();
+      const router = useRouter();
+      router.push("/");
     },
     removeUser() {
       this.user = {};

@@ -66,14 +66,35 @@
           >
           Help & privacy
         </NuxtLink>
+
+        <button
+          type="button"
+          class="mt-2 flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold text-red-300/90 transition hover:bg-white/10 hover:text-red-200"
+          @click="handleLogout"
+        >
+          <span
+            class="grid size-8 place-items-center rounded-lg bg-white/10 text-xs font-bold"
+            >&#8614;</span
+          >
+          Logout
+        </button>
       </div>
     </aside>
   </div>
 </template>
 
 <script setup>
+import { useAuthStore } from "~/store/auth.js";
+
 defineProps({ open: { type: Boolean, default: false } });
-defineEmits(["close"]);
+const emit = defineEmits(["close"]);
+
+const authStore = useAuthStore();
+const handleLogout = () => {
+  if (!authStore.isLoggedIn) return;
+  emit("close");
+  authStore.logout();
+};
 
 const navigation = [
   { label: "home", to: "/", shortcut: "H" },
