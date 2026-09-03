@@ -7,26 +7,11 @@
         <!-- Player column -->
         <div class="w-full shrink-0 lg:w-[60%]">
           <div class="p-4">
-            <div class="aspect-video w-full overflow-hidden rounded-xl bg-black">
-              <video
-                v-if="playableUrl && !contentPending"
+            <div class="aspect-video w-full">
+              <SharedWrapperVideo
                 :src="playableUrl"
-                controls
-                playsinline
-                class="h-full w-full"
+                :loading="contentPending"
               />
-              <div
-                v-else
-                class="grid h-full place-items-center text-sm text-muted"
-              >
-                <Skeleton
-                  v-if="contentPending"
-                  width="100%"
-                  height="100%"
-                  border-radius="0px"
-                />
-                <span v-else>Video source is not available</span>
-              </div>
             </div>
 
             <!-- Video title (from content object) -->
