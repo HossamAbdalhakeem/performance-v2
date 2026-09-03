@@ -31,7 +31,7 @@ export default defineNuxtConfig({
   // ssr: true,
   routeRules: {
     '/': { ssr: true },
-    '/privacy': { ssr: false },
+    '/privacy': { prerender: true },
     '/products/**': { isr: 3600 },
     '/products/preview/**': { ssr: true },
     '/creators/**': { isr: 3600 },
