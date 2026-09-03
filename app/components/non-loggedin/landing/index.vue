@@ -12,7 +12,7 @@
           <p
             class="mb-4 text-xs font-bold uppercase tracking-[0.18em] text-emerald-300"
           >
-            Fundraiser workspace
+            GiveSpark
           </p>
           <h1
             class="font-serif text-5xl font-normal leading-[1.02] sm:text-6xl"

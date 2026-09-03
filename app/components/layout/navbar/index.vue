@@ -15,7 +15,7 @@
         <p
           class="text-xs font-semibold uppercase tracking-[0.16em] text-forest"
         >
-          Fundraiser workspace
+          GiveSpark
         </p>
         <h1 class="mt-1 text-lg font-semibold text-mint">
           {{ pageTitle }}

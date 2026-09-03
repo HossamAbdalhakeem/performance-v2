@@ -3,7 +3,7 @@
     <div
       class="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-5 py-8 text-sm text-muted sm:flex-row sm:px-8"
     >
-      <p>© {{ year }} Fundraiser Workspace. All rights reserved.</p>
+      <p>© {{ year }} GiveSpark. All rights reserved.</p>
       <div class="flex items-center gap-6">
         <NuxtLink to="/privacy" class="transition hover:text-mint"
           >Privacy</NuxtLink

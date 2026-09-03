@@ -13,21 +13,7 @@
       ]"
     >
       <div class="flex items-center justify-between px-2">
-        <NuxtLink
-          class="flex items-center gap-3"
-          to="/"
-          @click="$emit('close')"
-        >
-          <span
-            class="grid size-10 place-items-center rounded-full border border-emerald-300/70 font-serif text-xl"
-            >F</span
-          >
-          <span
-            ><strong class="block font-serif text-xl font-normal"
-              >Fundraiser</strong
-            ><small class="text-xs text-emerald-300">Workspace</small></span
-          >
-        </NuxtLink>
+        <Logo @close="$emit('close')" />
         <button
           class="grid size-9 place-items-center rounded-lg text-emerald-100 hover:bg-white/10 lg:hidden"
           type="button"
@@ -84,6 +70,7 @@
 </template>
 
 <script setup>
+import Logo from "~/components/layout/logo/index.vue";
 import { useAuthStore } from "~/store/auth.js";
 
 defineProps({ open: { type: Boolean, default: false } });

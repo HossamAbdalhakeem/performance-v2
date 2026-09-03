@@ -11,7 +11,7 @@
       <section>
         <h2 class="font-semibold text-slate-900">1. Introduction</h2>
         <p>
-          Welcome to Fundraiser Workspace ("we," "us," "our," or "Company"). We
+          Welcome to GiveSpark ("we," "us," "our," or "Company"). We
           are committed to protecting your privacy and ensuring you have a
           positive experience on our platform. This Privacy Policy explains how
           we collect, use, disclose, and safeguard your information when you use
@@ -138,9 +138,9 @@
           practices, please contact us at:
         </p>
         <div class="mt-4 rounded-lg bg-slate-50 p-4">
-          <p><strong>Fundraiser Workspace</strong></p>
-          <p class="mt-2">Email: privacy@fundraiser.local</p>
-          <p>Address: 123 Fundraiser St, San Francisco, CA 94102</p>
+          <p><strong>GiveSpark</strong></p>
+          <p class="mt-2">Email: privacy@GiveSpark.local</p>
+          <p>Address: 123 GiveSpark St, San Francisco, CA 94102</p>
         </div>
       </section>
     </div>
