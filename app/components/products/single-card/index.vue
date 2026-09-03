@@ -38,6 +38,7 @@
       >
         <button
           class="inline-block rounded-lg bg-emerald-800 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-950"
+          @click="goToPreview"
         >
           {{ card.cta }}
         </button>
@@ -47,10 +48,18 @@
 </template>
 
 <script setup>
-defineProps({
+const props = defineProps({
   card: { type: Object, default: () => ({}) },
   loading: { type: Boolean, default: false },
 });
+
+// Emit the click event upward so the parent (home/products) decides navigation
+const emit = defineEmits(["view"]);
+
+const goToPreview = () => {
+  if (props.loading || !props.card?.alias) return;
+  emit("view", props.card.alias);
+};
 </script>
 
 <style lang="scss" scoped>

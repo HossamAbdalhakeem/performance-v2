@@ -5,6 +5,7 @@
       <ProductsCards
         :cards="pending ? skeletonCards : cards"
         :loading="pending"
+        @view="goToPreview"
       />
 
       <!-- Sentinel observed by IntersectionObserver to load the next page -->
@@ -33,6 +34,12 @@ import Skeleton from "primevue/skeleton";
 // Nuxt instance - lets us call FeedsCrud.get (useFetch)
 // from the observer callback via runWithContext()
 const nuxtApp = useNuxtApp();
+
+// Navigate to the preview page for the clicked experience alias
+const router = useRouter();
+const goToPreview = (alias) => {
+  if (alias) router.push(`/products/preview/${alias}`);
+};
 
 const skeletonCards = Array.from({ length: 6 }, () => ({
   image: {
@@ -77,6 +84,7 @@ const cards = computed(() =>
     },
     title: experience.title,
     description: experience.summary,
+    alias: experience.alias,
     cta: "View",
   }))
 );

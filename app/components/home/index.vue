@@ -5,6 +5,7 @@
       <ProductsCards
         :cards="pending ? skeletonCards : cards"
         :loading="pending"
+        @view="goToPreview"
       />
     </div>
 
@@ -46,6 +47,12 @@ const skeletonCreators = Array.from({ length: 6 }, () => ({
 
 const getMediaUrl = (media) => media?.file_url || "";
 
+// Navigate to the preview page for the clicked experience alias
+const router = useRouter();
+const goToPreview = (alias) => {
+  if (alias) router.push(`/products/preview/${alias}`);
+};
+
 // CRUD executes through useApi() internally (useFetch, SSR-friendly)
 // No await => `loading` stays reactive (true while request in flight);
 // Nuxt still waits for the non-lazy requests during SSR before rendering
@@ -78,6 +85,7 @@ const cards = computed(() =>
     },
     title: experience.title,
     description: experience.summary,
+    alias: experience.alias,
     cta: "View",
   }))
 );

@@ -1,7 +1,10 @@
 <template>
-  <div>hello preview page</div>
+  <div>
+    <index />
+  </div>
 </template>
 <script setup>
+import index from "~/components/products/preview/index.vue";
 definePageMeta({
   middleware: ["local-pages"],
   layout: "inner-pages",
