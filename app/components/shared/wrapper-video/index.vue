@@ -100,15 +100,34 @@ const initPlayer = async () => {
         "time_and_duration",
         "spacer",
         "mute",
-        "fullscreen",
         "volume",
-        "quality",
+        "fullscreen",
         "overflow_menu",
+      ],
+      // "quality" is an overflow-menu element, NOT a control-panel element
+      overflowMenuButtons: [
+        "quality",
+        "playback_rate",
+        "picture_in_picture",
       ],
     });
     shakaUi.value = ui;
 
     await player.load(props.src);
+
+    // DEBUG: verify how many quality variants the source exposes.
+    // The "quality" menu button is hidden by Shaka when this count <= 1.
+    try {
+      console.log(
+        "[wrapper-video] video tracks:",
+        player.getVideoTracks?.().length ?? "n/a",
+        "| variant tracks:",
+        player.getVariantTracks?.().length ?? "n/a",
+        player.getVideoTracks?.()
+      );
+    } catch {
+      // ignore debug errors
+    }
   } catch (err) {
     console.error("Shaka player failed to load:", err);
     playbackError.value = true;

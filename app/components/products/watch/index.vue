@@ -149,7 +149,7 @@ const content = computed(() => {
 });
 
 // ---- Playable source -----------------------------------------------------
-const playableUrl = computed(() => content.value?.url || "");
+const playableUrl = computed(() => 'https://media-public.genwin.app/production/5e0b95f2d93b5a416ca5b1ef/682c7c872c08d3c049de3174/videos/WYz00B-F1YiVQfVHysXj2.mp4?Expires=1788472830&Policy=eyJTdGF0ZW1lbnQiOlt7IlJlc291cmNlIjoiaHR0cHM6Ly9tZWRpYS1wdWJsaWMuZ2Vud2luLmFwcC9wcm9kdWN0aW9uLzVlMGI5NWYyZDkzYjVhNDE2Y2E1YjFlZi82ODJjN2M4NzJjMDhkM2MwNDlkZTMxNzQvdmlkZW9zL1dZejAwQi1GMVlpVlFmVkh5c1hqMi5tcDQiLCJDb25kaXRpb24iOnsiRGF0ZUxlc3NUaGFuIjp7IkFXUzpFcG9jaFRpbWUiOjE3ODg0NzI4MzB9fX1dfQ__&Signature=LvLNeSt7kMUQx5YGtNgvofmlMwX8TDkb8wkzSwy-mJ99yTcsFYl5RWXPdd7Ij8JAVTAcXf0Y5LKUOk-Lykb0P9yzg2vV0APe0sV3GY5FyoZiov~XF0FllmMQZpLBMf99Kbq5n2cM1EpEwVb53UvoyUMhV7J~b1y--3fgnL9eU8Jz0NBy66vcyaIdFX-z~QjnuDT8d4U6kSkWX0e0MtlqIyff1qTtL1LdCm7QokcqdAQ7uVkpzSAjJTPaFrcBISLjpZC~c76bLDjOax5Qjkb3mp18sUaHf8y8n8c1gpwMYOR4ATWe57vpTlRyGXxQ0Ht-9bortnjial7533r5YHnS-A__&Key-Pair-Id=K1A3W6AG2LLUJA' || "");
 
 // ---- Meta chips ----------------------------------------------------------
 const contentMeta = computed(() => {
