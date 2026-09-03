@@ -89,42 +89,25 @@ const { data: contentData, loading: contentPending } = alias
   ? ContentCrud.get(alias)
   : { data: ref(null), loading: ref(false) };
 
-// The content entry matching the watch id from the route.
+// The content entry: the API returns a single object keyed by _id,
+// matching the watch id taken from extra.contents_info[0]._id.
 const content = computed(() => {
-  const raw = contentData.value;
-  const list = Array.isArray(raw)
-    ? raw
-    : Array.isArray(raw?.data)
-      ? raw.data
-      : raw?.data
-        ? [raw.data]
-        : raw
-          ? [raw]
-          : [];
-  if (!list.length) return null;
-  return list.find((item) => item?._id === watchId) || list[0];
+  const raw = contentData.value?.data;
+  if (!raw || typeof raw !== "object") return null;
+  const item = Array.isArray(raw) ? raw[0] : raw;
+  return item || null;
 });
 
 // ---- Playable source -----------------------------------------------------
-const playableUrl = computed(() => {
-  const c = content.value;
-  return (
-    c?.url ||
-    c?.file_url ||
-    c?.source?.url ||
-    c?.manifest_url ||
-    c?.playback_url ||
-    ""
-  );
-});
+const playableUrl = computed(() => content.value?.url || "");
 
 // ---- Meta chips ----------------------------------------------------------
 const contentMeta = computed(() => {
   const c = content.value;
   const items = [];
-  if (c?.drm) items.push(`DRM: ${c.drm}`);
-  if (c?.type) items.push(c.type);
-  if (c?.status) items.push(c.status);
+  if (c?.media_type) items.push(c.media_type);
+  if (c?.metadata?.duration) items.push(`${Math.round(c.metadata.duration)}s`);
+  if (c?.is_public) items.push("Public");
   return items;
 });
 </script>
