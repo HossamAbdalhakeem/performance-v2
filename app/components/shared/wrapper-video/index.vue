@@ -20,6 +20,7 @@
         playsinline
         crossorigin="anonymous"
         class="h-full w-full"
+        :class="aspectRatio === 'aspect-video' ? '' : 'object-cover'"
       />
     </div>
   </div>

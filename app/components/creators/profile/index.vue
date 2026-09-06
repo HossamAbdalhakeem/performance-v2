@@ -12,7 +12,7 @@
               :src="previewVideoUrl"
               :loading="false"
               :hide-controls="true"
-              aspectRatio="aspect-[3/4]"
+              aspect-ratio="aspect-[3/4]"
             />
             </div>
             <div v-else class="p-4">
