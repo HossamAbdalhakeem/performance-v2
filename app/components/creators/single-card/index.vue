@@ -30,7 +30,7 @@
       >
         <button
           class="inline-block rounded-lg bg-emerald-800 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-950"
-          @click="emit('view', card._id)"
+          @click="emit('view', card.alias || card._id)"
         >
           {{ card.cta }}
         </button>

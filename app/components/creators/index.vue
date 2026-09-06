@@ -36,10 +36,16 @@ import Skeleton from "primevue/skeleton";
 const nuxtApp = useNuxtApp();
 
 const router = useRouter();
-// Navigate to the creator page for the clicked contributor _id
-const goToCreator = (_id) => {
-  if (_id) {
-    router.push({ path: `/creators/${_id}` });
+// Navigate to the creator page using the alias (falls back to _id).
+// The web-clients API resolves creators by alias.
+const goToCreator = (contributorId) => {
+  const contributorAlias = contributors.value?.find(
+    (item) => item._id === contributorId
+  )?.alias;
+  if (contributorAlias || contributorId) {
+    router.push({
+      path: `/creators/${contributorAlias || contributorId}`,
+    });
   }
 };
 
@@ -75,6 +81,7 @@ const contributors = computed(() => {
 const cards = computed(() =>
   (contributors.value || []).map((contributor) => ({
     _id: contributor._id,
+    alias: contributor.alias,
     image: {
       file_url: getMediaUrl(contributor?.main_photo),
       location: "portrait",

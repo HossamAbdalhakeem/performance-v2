@@ -2,7 +2,7 @@
   <p v-if="loading" class="text-sm">
     <Skeleton width="50%" height="1rem" border-radius="4px" />
   </p>
-  <p v-else class="text-sm text-muted">{{ subtitle }}</p>
+  <p v-else class="text-sm text-muted line-clamp-1">{{ subtitle }}</p>
 </template>
 
 <script setup>

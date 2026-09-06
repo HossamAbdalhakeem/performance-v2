@@ -3,7 +3,7 @@
     <h2 v-if="loading" class="font-serif text-3xl font-normal">
       <Skeleton width="12rem" height="2rem" border-radius="4px" />
     </h2>
-    <h2 v-else class="font-serif text-3xl font-normal text-mint">{{ title }}</h2>
+    <h2 v-else class="font-serif text-3xl font-normal line-clamp-1 text-mint">{{ title }}</h2>
 
     <!-- <p v-if="loading || subtitle" class="mt-2">
       <Skeleton v-if="loading" width="18rem" height="1rem" border-radius="4px" />
