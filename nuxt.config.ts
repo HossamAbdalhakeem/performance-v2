@@ -37,7 +37,12 @@ export default defineNuxtConfig({
     '/how/**': { prerender: true },
     '/features/**': { prerender: true },
     '/products/preview/**': { ssr: true },
-    '/creators/**': { isr: 3600 },
+    // Creators list stays ISR (cached, rebuilt hourly), while creator
+    // detail pages render on the server: the details component fetches
+    // the web-clients API through useFetch and Nuxt waits for it during
+    // SSR before sending the HTML
+    '/creators': { isr: 3600 },
+    '/creators/**': { ssr: true },
     '/notifications': { ssr: true },
   },
   devtools: { enabled: true },
