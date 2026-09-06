@@ -5,12 +5,17 @@
         class="flex flex-col gap-8 overflow-hidden rounded-2xl border border-forest/40 bg-forest/10 lg:flex-row"
       >
         <!-- Left rail: main photo + optional preview video -->
-        <div class="w-full shrink-0 lg:w-1/2">
+        <div class="w-full shrink-0 lg:w-1/4">
           <div v-if="!loading">
-            <div v-if="previewVideoUrl" class="px-4 pb-4">
-              <SharedWrapperVideo :src="previewVideoUrl" :loading="false" />
+            <div v-if="previewVideoUrl" class="p-4">
+              <SharedWrapperVideo
+              :src="previewVideoUrl"
+              :loading="false"
+              :hide-controls="true"
+              aspectRatio="aspect-[3/4]"
+            />
             </div>
-            <div class="px-4 pb-4" v-else>
+            <div v-else class="p-4">
               <SharedWrapperImage
                 :image="profileImage"
                 :alt="details?.contributor?.name"

@@ -6,12 +6,14 @@
       height="100%"
       border-radius="0px"
       class="aspect-video w-full"
+      :class="[aspectRatio]"
     />
     <!-- Shaka player (client only) -->
     <div
       v-show="!loading && src"
       ref="uiContainer"
-      class="relative aspect-video w-full bg-black"
+      class="relative w-full bg-black"
+      :class="[aspectRatio]"
     >
       <video
         ref="videoEl"
@@ -32,6 +34,9 @@ const props = defineProps({
   // Optional DRM (Widevine / FairPlay / PlayReady via Shaka)
   licenseUrl: { type: String, default: "" },
   drmSystem: { type: String, default: "" }, // e.g. "com.widevine.alpha"
+  aspectRatio: { type: String, default: "aspect-video" },
+  // Hide all player controls (autoplay loop-style preview)
+  hideControls: { type: Boolean, default: false },
 });
 
 const videoEl = ref(null);
@@ -74,8 +79,13 @@ const initPlayer = async () => {
       // Fallback: plain <video src> still plays progressive formats
       console.log("if shaka not support");
 
-      videoEl.value.controls = true;
+      videoEl.value.controls = !props.hideControls;
       videoEl.value.src = props.src;
+      if (props.hideControls) {
+        videoEl.value.loop = true;
+        videoEl.value.muted = true;
+        videoEl.value.play().catch(() => {});
+      }
       return;
     }
 
@@ -92,6 +102,23 @@ const initPlayer = async () => {
       });
     }
 
+    if (props.hideControls) {
+      // Bare player with NO Shaka UI overlay at all - this guarantees
+      // no seek bar / controls are rendered (the seek bar lives outside
+      // controlPanelElements). Auto-playing looped muted preview.
+      videoEl.value.loop = true;
+      videoEl.value.muted = true;
+      shakaPlayer.value = player;
+
+      await player.load(props.src);
+      try {
+        await videoEl.value.play();
+      } catch {
+        // autoplay may be rejected by the browser - ignore
+      }
+      return;
+    }
+
     // Shaka UI control bar (play, time, mute, volume, fullscreen, settings)
     const ui = new shaka.ui.Overlay(player, uiContainer.value, videoEl.value);
     ui.configure({
@@ -105,11 +132,7 @@ const initPlayer = async () => {
         "overflow_menu",
       ],
       // "quality" is an overflow-menu element, NOT a control-panel element
-      overflowMenuButtons: [
-        "quality",
-        "playback_rate",
-        "picture_in_picture",
-      ],
+      overflowMenuButtons: ["quality", "playback_rate", "picture_in_picture"],
     });
     shakaUi.value = ui;
 
@@ -133,7 +156,7 @@ const initPlayer = async () => {
     playbackError.value = true;
     // Fallback to native playback
     if (videoEl.value) {
-      videoEl.value.controls = true;
+      videoEl.value.controls = !props.hideControls;
       videoEl.value.src = props.src;
     }
   }
