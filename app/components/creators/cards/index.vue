@@ -5,6 +5,7 @@
       :key="idx"
       :card="card"
       :loading="loading"
+      @view="emit('view', $event)"
     />
   </div>
 </template>
@@ -16,6 +17,9 @@ defineProps({
   cards: { type: Array, default: () => [] },
   loading: { type: Boolean, default: false },
 });
+
+// Re-emit the "view" event so parents (home/creators) can navigate
+const emit = defineEmits(["view"]);
 </script>
 
 <style lang="scss" scoped>

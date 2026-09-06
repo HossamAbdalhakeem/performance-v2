@@ -30,6 +30,7 @@
       >
         <button
           class="inline-block rounded-lg bg-emerald-800 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-950"
+          @click="emit('view', card._id)"
         >
           {{ card.cta }}
         </button>
@@ -43,6 +44,9 @@ defineProps({
   card: { type: Object, default: () => ({}) },
   loading: { type: Boolean, default: false },
 });
+
+// Emit the clicked creator _id so parents can navigate
+const emit = defineEmits(["view"]);
 </script>
 
 <style lang="scss" scoped>
