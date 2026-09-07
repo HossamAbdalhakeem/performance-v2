@@ -58,6 +58,25 @@ export const useApi = () => {
       headers: requestHeaders,
       body,
       baseURL: config.public.baseUrl,
+      // When the same key is requested twice while a request is still in
+      // flight (e.g. two pages sharing the same key during a navigation,
+      // or a component re-mounting), Nuxt's default dedupe mode "cancel"
+      // ABORTS the in-flight request and starts a new one - showing
+      // "1 canceled + 1 success" in the network tab. "defer" shares the
+      // single in-flight request between both callers instead.
+      dedupe: "defer",
+      // Reuse the previously fetched payload on client-side navigations
+      // (e.g. navigating home -> products -> back). Without this, Nuxt
+      // re-requests the same key on every navigation and, because its
+      // dedupe mode is "cancel", the in-flight duplicate gets aborted -
+      // showing "1 canceled + 1 success" in the network tab.
+      // Pass `cache: false` in the request config to always refetch.
+      getCachedData: (cachedKey, nuxtApp) => {
+        if (requestConfig.cache === false) return undefined;
+        return (
+          nuxtApp.payload.data[cachedKey] ?? nuxtApp.static.data[cachedKey]
+        );
+      },
     });
     return {
       ...result,
