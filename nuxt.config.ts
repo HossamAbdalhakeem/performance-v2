@@ -49,9 +49,9 @@ export default defineNuxtConfig({
   compatibilityDate: '2024-04-03',
   runtimeConfig: {
     public: {
-      baseUrl: process.env.NUXT_ENV_BASE_URL,
-      organizationId: process.env.NUXT_ENV_ORGANIZATION_ID,
-      fundraiserId: process.env.NUXT_ENV_FUNDRAISER_ID,
+      baseUrl: process.env.NUXT_ENV_BASE_URL || process.env.BASE_URL,
+      organizationId: process.env.NUXT_ENV_ORGANIZATION_ID || process.env.ORGANIZATION_ID,
+      fundraiserId: process.env.NUXT_ENV_FUNDRAISER_ID || process.env.FUNDRAISER_ID,
     },
   },
 
