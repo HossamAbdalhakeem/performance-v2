@@ -5,7 +5,7 @@
         <p
           class="mb-3 text-xs font-bold uppercase tracking-[0.18em] text-emerald-300"
         >
-          Featuresssss
+          Featuresssss ds
         </p>
         <h1 class="font-serif text-4xl font-normal sm:text-5xl">
           Everything you need to grow.
