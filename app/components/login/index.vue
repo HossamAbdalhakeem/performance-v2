@@ -165,7 +165,7 @@
 
 <script setup>
 import Button from "primevue/button";
-import { useAuthStore } from "~/store/Auth.js";
+import { useAuthStore } from "~/store/auth.js";
 
 import { reactive, ref } from "vue";
 const form = reactive({ email: "", password: "" });
