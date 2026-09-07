@@ -13,7 +13,7 @@
         <div
           class="mb-16 grid size-12 place-items-center rounded-full border border-emerald-100/60 font-serif text-2xl sm:mb-24"
         >
-          Fssss test 2
+          Fssss test 2 v2
         </div>
         <p
           class="mb-4 text-[0.7rem] font-bold uppercase tracking-[0.18em] text-emerald-300"
