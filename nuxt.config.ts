@@ -10,7 +10,7 @@ export default defineNuxtConfig({
     '@primevue/nuxt-module',
     '@nuxtjs/robots',
     '@nuxtjs/sitemap',
-    'nuxt-schema-org'
+    'nuxt-schema-org',
   ],
   css: ['~/assets/css/tailwind.css'],
   app: {
@@ -55,7 +55,7 @@ export default defineNuxtConfig({
   // Site config used by @nuxtjs/robots & @nuxtjs/sitemap
   // (NUXT_PUBLIC_SITE_URL comes from .env, set the real domain in production)
   site: {
-    url: process.env.NUXT_PUBLIC_SITE_URL || 'http://localhost:3000',
+    url: process.env.NUXT_PUBLIC_SITE_URL ||process.env.SITE_URL || 'http://localhost:3000',
   },
   robots: {
     // Only /login is blocked from crawlers
