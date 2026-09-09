@@ -248,14 +248,14 @@ const canonicalUrl = computed(() => {
     return base;
   }
 });
-useHead({
-  // Only render the canonical tag when a site URL is configured
-  link: computed(() => (canonicalUrl.value ? [{ rel: 'canonical', href: canonicalUrl.value }] : [])),
-});
+// useHead({
+//   // Only render the canonical tag when a site URL is configured
+//   link: computed(() => (canonicalUrl.value ? [{ rel: 'canonical', href: canonicalUrl.value }] : [])),
+// });
 
 // ---- Structured data (JSON-LD) via nuxt-schema-org ----
 const absoluteProductImage = computed(() => {
-  const img = details.value?.main_photo?.file_url;
+  const img = firstCardImage.value;
   if (!img) return undefined;
   if (/^https?:\/\//i.test(img)) return img;
   try {
@@ -264,14 +264,14 @@ const absoluteProductImage = computed(() => {
     return img;
   }
 });
-useSchemaOrg([
-  defineProduct({
-    name: () => details.value?.title || 'Product',
-    description: () =>
-      details.value?.summary || details.value?.about || undefined,
-    image: absoluteProductImage,
-  }),
-]);
+// useSchemaOrg([
+//   defineProduct({
+//     name: () => details.value?.title || 'Product',
+//     description: () =>
+//       details.value?.summary || details.value?.about || undefined,
+//     image: absoluteProductImage,
+//   }),
+// ]);
 
 // ---- Left rail: images ------------------------------------------------
 // Prefer extra.card_preview_image (real experience payload) and fall back

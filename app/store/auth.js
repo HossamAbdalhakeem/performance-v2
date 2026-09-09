@@ -58,7 +58,7 @@ export const useAuthStore = defineStore("authStore", {
       if (error.value) {
         console.error("Fetch user failed:", error.value);
         // console.error("Fetch user failed:", error.value);
-        this.removeTokens();
+        // this.removeTokens();
         return;
       }
 
