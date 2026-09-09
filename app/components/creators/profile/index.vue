@@ -134,6 +134,38 @@ useHead({
   link: [{ rel: 'canonical', href: canonicalUrl }],
 });
 
+// ---- Structured data (JSON-LD) via nuxt-schema-org ----
+const absoluteCreatorImage = computed(() => {
+  const photo =
+    details.value?.contributor?.main_photo?.file_url ||
+    details.value?.meta?.image?.file_url;
+  if (!photo) return undefined;
+  if (/^https?:\/\//i.test(photo)) return photo;
+  try {
+    return new URL(photo, config.public.baseUrl || '').toString();
+  } catch {
+    return photo;
+  }
+});
+const creatorPerson = computed(() => ({
+  name:
+    about.value?.title ||
+    details.value?.contributor?.name ||
+    'Creator',
+  description:
+    details.value?.contributor?.bio ||
+    details.value?.description ||
+    undefined,
+  image: absoluteCreatorImage.value,
+}));
+useSchemaOrg([
+  defineWebPage({
+    '@type': 'ProfilePage',
+    mainEntity: creatorPerson,
+  }),
+  definePerson(creatorPerson),
+]);
+
 // contributor.about is a JSON string: { title, subtitle, description, image }
 const about = computed(() => {
   const raw = details.value?.contributor?.about;

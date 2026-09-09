@@ -242,6 +242,26 @@ useHead({
   link: [{ rel: 'canonical', href: canonicalUrl }],
 });
 
+// ---- Structured data (JSON-LD) via nuxt-schema-org ----
+const absoluteProductImage = computed(() => {
+  const img = details.value?.main_photo?.file_url;
+  if (!img) return undefined;
+  if (/^https?:\/\//i.test(img)) return img;
+  try {
+    return new URL(img, config.public.baseUrl || '').toString();
+  } catch {
+    return img;
+  }
+});
+useSchemaOrg([
+  defineProduct({
+    name: () => details.value?.title || 'Product',
+    description: () =>
+      details.value?.summary || details.value?.about || undefined,
+    image: absoluteProductImage,
+  }),
+]);
+
 // ---- Left rail: images ------------------------------------------------
 // Prefer extra.card_preview_image (real experience payload) and fall back
 // to main_photo. Deduplicate by file_url and honor each item's location.

@@ -10,6 +10,7 @@ export default defineNuxtConfig({
     '@primevue/nuxt-module',
     '@nuxtjs/robots',
     '@nuxtjs/sitemap',
+    'nuxt-schema-org'
   ],
   css: ['~/assets/css/tailwind.css'],
   app: {
