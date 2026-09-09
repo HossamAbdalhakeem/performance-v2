@@ -219,6 +219,14 @@ const { data, loading: pending } = FeedsCrud.get(requestBody);
 
 const details = computed(() => data.value?.data?.[0] || null);
 
+// ---- Open Graph + Twitter Cards (dynamic from product data) ----
+useDynamicSeo({
+  title: () => details.value?.title || 'Product',
+  description: () => details.value?.summary || details.value?.about || undefined,
+  image: () => details.value?.main_photo?.file_url || undefined,
+  type: 'product',
+});
+
 // ---- Left rail: images ------------------------------------------------
 // Prefer extra.card_preview_image (real experience payload) and fall back
 // to main_photo. Deduplicate by file_url and honor each item's location.

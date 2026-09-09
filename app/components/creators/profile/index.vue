@@ -102,6 +102,22 @@ const { data, loading, error } = props.alias
 
 const details = computed(() => data.value?.data || data.value || null);
 
+// ---- Open Graph + Twitter Cards (dynamic from creator data) ----
+useDynamicSeo({
+  title: () => about.value?.title || details.value?.contributor?.name || 'Creator',
+  description: () =>
+    about.value?.subtitle ||
+    about.value?.description ||
+    details.value?.description ||
+    details.value?.contributor?.bio ||
+    undefined,
+  image: () =>
+    details.value?.contributor?.main_photo?.file_url ||
+    details.value?.meta?.image?.file_url ||
+    undefined,
+  type: 'profile',
+});
+
 // contributor.about is a JSON string: { title, subtitle, description, image }
 const about = computed(() => {
   const raw = details.value?.contributor?.about;

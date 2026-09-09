@@ -143,9 +143,22 @@ const { data: contentData, loading: contentPending } = alias
 // matching the watch id taken from extra.contents_info[0]._id.
 const content = computed(() => {
   const raw = contentData.value?.data;
-  if (!raw || typeof raw !== "object") return null;
+  if (!raw || typeof raw !== 'object') return null;
   const item = Array.isArray(raw) ? raw[0] : raw;
   return item || null;
+});
+
+// ---- Open Graph + Twitter Cards (dynamic from content/product data) ----
+useDynamicSeo({
+  title: () => content.value?.title || details.value?.title || 'Watch',
+  description: () =>
+    content.value?.description || details.value?.summary || undefined,
+  // Prefer a video thumbnail if available, fall back to the product photo
+  image: () =>
+    details.value?.main_photo?.file_url ||
+    content.value?.thumbnail?.file_url ||
+    undefined,
+  type: 'video.other',
 });
 
 // ---- Playable source -----------------------------------------------------
