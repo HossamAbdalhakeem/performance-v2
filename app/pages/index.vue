@@ -13,19 +13,10 @@ import { useAuthStore } from "~/store/auth.js";
 const authStore = useAuthStore();
 const isLoggedIn = computed(() => authStore.isLoggedIn);
 
-// ---- SEO: home page ----
-// useSeoMeta({
-//   title: "Home | Performance",
-//   description:
-//     "Discover creators, products and exclusive video experiences. Browse the latest content and support your favorite creators.",
-//   ogTitle: "Home | Performance",
-//   ogDescription: "Discover creators, products and exclusive video experiences.",
-//   ogType: "website",
-//   twitterCard: "summary_large_image",
-// });
+
 
 useDynamicSeo({
-  title: () => "Home | Performanceww",
+  title: () => "my home",
   description: () =>
     "Discover creators, products and exclusive video experiences. Browse the latest content and support your favorite creators.",
 });
