@@ -248,10 +248,10 @@ const canonicalUrl = computed(() => {
     return base;
   }
 });
-// useHead({
-//   // Only render the canonical tag when a site URL is configured
-//   link: computed(() => (canonicalUrl.value ? [{ rel: 'canonical', href: canonicalUrl.value }] : [])),
-// });
+useHead({
+  // Only render the canonical tag when a site URL is configured
+  link: computed(() => (canonicalUrl.value ? [{ rel: 'canonical', href: canonicalUrl.value }] : [])),
+});
 
 // ---- Structured data (JSON-LD) via nuxt-schema-org ----
 const absoluteProductImage = computed(() => {
