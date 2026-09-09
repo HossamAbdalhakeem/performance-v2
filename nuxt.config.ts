@@ -16,6 +16,12 @@ export default defineNuxtConfig({
   app: {
     head: {
       htmlAttrs: { class: 'app-dark' },
+      link: [
+        // Favicon (served from /public/favicon.ico)
+        { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
+        { rel: 'shortcut icon', type: 'image/x-icon', href: '/favicon.ico' },
+        { rel: 'apple-touch-icon', href: '/favicon.ico' },
+      ],
     },
   },
   primevue: {
