@@ -21,6 +21,7 @@ export const useDynamicSeo = (options = {}) => {
     type = "website",
     twitterCard = "summary_large_image",
     canonical, // optional custom canonical URL (handled per-page via useHead, not here)
+    fallbackImage, // used when `image` resolves to nothing (e.g. it's a video)
   } = options;
 
   const config = useRuntimeConfig();
@@ -37,10 +38,14 @@ export const useDynamicSeo = (options = {}) => {
     }
   });
 
-  // Make sure the OG image is an absolute URL (crawlers require it)
+  // Make sure the OG image is an absolute URL (crawlers require it).
+  // Social crawlers only accept real images (jpg/png/gif/webp) as og:image,
+  // so any video URL is rejected and the fallbackImage is used instead.
+  const VIDEO_EXT_RE = /\.(mp4|webm|ogg|ogv|mov|m4v|avi|mkv)(\?.*)?$/i;
   const absoluteImage = computed(() => {
-    const img = resolveRefValue(image);
-    if (!img) return undefined;
+    let img = resolveRefValue(image);
+    if (!img || VIDEO_EXT_RE.test(img)) img = resolveRefValue(fallbackImage);
+    if (!img || VIDEO_EXT_RE.test(img)) return undefined;
     if (/^https?:\/\//i.test(img)) return img;
     try {
       return new URL(img, config.public.baseUrl || "").toString();

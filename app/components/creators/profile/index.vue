@@ -131,7 +131,8 @@ const canonicalUrl = computed(() => {
   }
 });
 useHead({
-  link: [{ rel: 'canonical', href: canonicalUrl }],
+  // Only render the canonical tag when a site URL is configured
+  link: computed(() => (canonicalUrl.value ? [{ rel: 'canonical', href: canonicalUrl.value }] : [])),
 });
 
 // ---- Structured data (JSON-LD) via nuxt-schema-org ----

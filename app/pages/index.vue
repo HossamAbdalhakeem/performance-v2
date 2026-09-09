@@ -16,7 +16,7 @@ const isLoggedIn = computed(() => authStore.isLoggedIn);
 
 
 useDynamicSeo({
-  title: () => "my home",
+  title: () => "my home v2",
   description: () =>
     "Discover creators, products and exclusive video experiences. Browse the latest content and support your favorite creators.",
 });

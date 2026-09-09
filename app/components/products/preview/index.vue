@@ -220,10 +220,20 @@ const { data, loading: pending } = FeedsCrud.get(requestBody);
 const details = computed(() => data.value?.data?.[0] || null);
 
 // ---- Open Graph + Twitter Cards (dynamic from product data) ----
+// main_photo may be a preview VIDEO for some products; social crawlers
+// require a real image for og:image, so fall back to the first image
+// found in extra.card_preview_image.
+const firstCardImage = computed(() => {
+  const list = details.value?.extra?.card_preview_image;
+  if (!Array.isArray(list)) return undefined;
+  const item = list.find((it) => it?.file_url && !/\.mp4(\?.*)?$/i.test(it.file_url));
+  return item?.file_url || undefined;
+});
 useDynamicSeo({
   title: () => details.value?.title || 'Product',
   description: () => details.value?.summary || details.value?.about || undefined,
   image: () => details.value?.main_photo?.file_url || undefined,
+  fallbackImage: () => firstCardImage.value,
   type: 'product',
 });
 
@@ -239,7 +249,8 @@ const canonicalUrl = computed(() => {
   }
 });
 useHead({
-  link: [{ rel: 'canonical', href: canonicalUrl }],
+  // Only render the canonical tag when a site URL is configured
+  link: computed(() => (canonicalUrl.value ? [{ rel: 'canonical', href: canonicalUrl.value }] : [])),
 });
 
 // ---- Structured data (JSON-LD) via nuxt-schema-org ----
