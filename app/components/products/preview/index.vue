@@ -227,6 +227,21 @@ useDynamicSeo({
   type: 'product',
 });
 
+// ---- Canonical URL (absolute, derived from siteUrl + current route) ----
+const config = useRuntimeConfig();
+const canonicalUrl = computed(() => {
+  const base = config.public.siteUrl || '';
+  if (!base) return undefined;
+  try {
+    return new URL(route.fullPath, base).toString();
+  } catch {
+    return base;
+  }
+});
+useHead({
+  link: [{ rel: 'canonical', href: canonicalUrl }],
+});
+
 // ---- Left rail: images ------------------------------------------------
 // Prefer extra.card_preview_image (real experience payload) and fall back
 // to main_photo. Deduplicate by file_url and honor each item's location.

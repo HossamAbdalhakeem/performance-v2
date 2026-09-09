@@ -118,6 +118,22 @@ useDynamicSeo({
   type: 'profile',
 });
 
+// ---- Canonical URL (absolute, derived from siteUrl + current route) ----
+const config = useRuntimeConfig();
+const route = useRoute();
+const canonicalUrl = computed(() => {
+  const base = config.public.siteUrl || '';
+  if (!base) return undefined;
+  try {
+    return new URL(route.fullPath, base).toString();
+  } catch {
+    return base;
+  }
+});
+useHead({
+  link: [{ rel: 'canonical', href: canonicalUrl }],
+});
+
 // contributor.about is a JSON string: { title, subtitle, description, image }
 const about = computed(() => {
   const raw = details.value?.contributor?.about;

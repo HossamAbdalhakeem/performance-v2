@@ -20,6 +20,7 @@ export const useDynamicSeo = (options = {}) => {
     image,
     type = "website",
     twitterCard = "summary_large_image",
+    canonical, // optional custom canonical URL (handled per-page via useHead, not here)
   } = options;
 
   const config = useRuntimeConfig();
@@ -71,12 +72,11 @@ export const useDynamicSeo = (options = {}) => {
     twitterImage: absoluteImage,
   });
 
-  // --- Canonical URL (absolute, derived from siteUrl + current route) ---
+  // --- HTML attrs only (canonical is handled per-page via useHead) ---
   useHead({
     htmlAttrs: {
       lang: "en",
     },
-    link: [{ rel: "canonical", href: pageUrl }],
   });
 };
 
