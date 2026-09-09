@@ -37,7 +37,7 @@ const props = defineProps({
   // Force a specific CDN width - 0 means auto-detect from element width
   imageWidth: { type: Number, default: 0 },
 });
-
+console.log("alt", props?.alt);
 const componentRef = ref(null);
 const elWidth = ref(0);
 const inView = ref(false);
@@ -75,11 +75,9 @@ const buildResizedUrl = (rawSrc, width) => {
   for (const host of hosts) {
     if (rawSrc.includes(host)) {
       const [before, after] = rawSrc.split(host);
-      console.log('before', before);
-      console.log('after', after);
+      console.log("before", before);
+      console.log("after", after);
 
-
-      
       return `${before}${host}/resize/w/${width}/format/webp/type/progressive/fit/cover/path${after}`;
     }
   }
