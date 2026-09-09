@@ -6,7 +6,7 @@
 <script setup>
 import index from "~/components/products/preview/index.vue";
 definePageMeta({
-  middleware: ["local-pages"],
+  // middleware: ["local-pages"],
   layout: "inner-pages",
 });
 </script>
