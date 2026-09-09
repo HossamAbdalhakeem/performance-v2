@@ -18,7 +18,7 @@ export const useAuthStore = defineStore("authStore", {
     async login(data) {
       console.log("Login data:aaaaaaaaaa", data);
       console.log("Base URL:", this.baseURL);
-const router = useRouter();
+      const router = useRouter();
 
       this.loading = true;
       const response = await $fetch(`/app-api/users/login`, {
@@ -33,7 +33,13 @@ const router = useRouter();
       router.push("/");
       return response;
     },
-
+    removeTokens() {
+      this.token = null;
+      const tokenCookie = useCookie("token");
+      tokenCookie.value = null;
+      const refreshTokenCookie = useCookie("refresh_token");
+      refreshTokenCookie.value = null;
+    },
     async fetchUser() {
       console.log("Fetching user with token: 22");
       const token = this.token;
@@ -48,9 +54,11 @@ const router = useRouter();
           Authorization: `Bearer ${token}`,
         },
       });
-
+      console.log("my error auth", error.value);
       if (error.value) {
         console.error("Fetch user failed:", error.value);
+        // console.error("Fetch user failed:", error.value);
+        this.removeTokens();
         return;
       }
 
@@ -116,13 +124,6 @@ const router = useRouter();
     removeUser() {
       this.user = {};
       this.loggedIn = false;
-    },
-    removeTokens() {
-      this.token = null;
-      const tokenCookie = useCookie("token");
-      tokenCookie.value = null;
-      const refreshTokenCookie = useCookie("refresh_token");
-      refreshTokenCookie.value = null;
     },
   },
 });
