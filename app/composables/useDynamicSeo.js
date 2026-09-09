@@ -18,8 +18,8 @@ export const useDynamicSeo = (options = {}) => {
     title,
     description,
     image,
-    type = 'website',
-    twitterCard = 'summary_large_image',
+    type = "website",
+    twitterCard = "summary_large_image",
   } = options;
 
   const config = useRuntimeConfig();
@@ -27,7 +27,7 @@ export const useDynamicSeo = (options = {}) => {
 
   // Absolute URL of the current page (site URL + current route path)
   const pageUrl = computed(() => {
-    const base = config.public.siteUrl || '';
+    const base = config.public.siteUrl || "";
     if (!base) return undefined;
     try {
       return new URL(route.fullPath, base).toString();
@@ -42,7 +42,7 @@ export const useDynamicSeo = (options = {}) => {
     if (!img) return undefined;
     if (/^https?:\/\//i.test(img)) return img;
     try {
-      return new URL(img, config.public.baseUrl || '').toString();
+      return new URL(img, config.public.baseUrl || "").toString();
     } catch {
       return img;
     }
@@ -70,6 +70,14 @@ export const useDynamicSeo = (options = {}) => {
     twitterDescription: resolvedDescription,
     twitterImage: absoluteImage,
   });
+
+  // --- Canonical URL (absolute, derived from siteUrl + current route) ---
+  useHead({
+    htmlAttrs: {
+      lang: "en",
+    },
+    link: [{ rel: "canonical", href: pageUrl }],
+  });
 };
 
 // Internal: resolve ref / getter / plain value safely
@@ -79,7 +87,7 @@ function resolveRefValue(value) {
     const resolved = unref(value);
     return resolved == null ? undefined : String(resolved);
   }
-  if (typeof value === 'function') {
+  if (typeof value === "function") {
     try {
       const resolved = value();
       return resolved == null ? undefined : String(resolved);
@@ -89,4 +97,3 @@ function resolveRefValue(value) {
   }
   return String(value);
 }
-
