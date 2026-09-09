@@ -8,6 +8,8 @@ export default defineNuxtConfig({
     '@pinia/nuxt',
     '@nuxtjs/tailwindcss',
     '@primevue/nuxt-module',
+    '@nuxtjs/robots',
+    '@nuxtjs/sitemap',
   ],
   css: ['~/assets/css/tailwind.css'],
   app: {
@@ -44,9 +46,20 @@ export default defineNuxtConfig({
     '/creators': { isr: 3600 },
     '/creators/**': { ssr: true },
     '/notifications': { ssr: true },
+    '/login': { ssr: false },
+
   },
   devtools: { enabled: true },
   compatibilityDate: '2024-04-03',
+  // Site config used by @nuxtjs/robots & @nuxtjs/sitemap
+  // (NUXT_PUBLIC_SITE_URL comes from .env, set the real domain in production)
+  site: {
+    url: process.env.NUXT_PUBLIC_SITE_URL || 'http://localhost:3000',
+  },
+  robots: {
+    // Only /login is blocked from crawlers
+    disallow: ['/login'],
+  },
   runtimeConfig: {
     public: {
       baseUrl: process.env.NUXT_ENV_BASE_URL,
