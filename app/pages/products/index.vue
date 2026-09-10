@@ -5,9 +5,9 @@
 </template>
 <script setup>
 import index from "~/components/products/index.vue";
-definePageMeta({
-  middleware: ["local-pages"],
-});
+// definePageMeta({
+//   middleware: ["local-pages"],
+// });
 
 // ---- SEO: products list ----
 useSeoMeta({
