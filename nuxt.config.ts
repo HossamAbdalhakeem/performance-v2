@@ -22,6 +22,12 @@ export default defineNuxtConfig({
         { rel: 'shortcut icon', type: 'image/x-icon', href: '/favicon.ico' },
         { rel: 'apple-touch-icon', href: '/favicon.ico' },
       ],
+      meta: [
+        {
+          name: 'google-site-verification',
+          content: 'p8nu92PVNlSJHyCctN8Da3D6FhUDqxycWVSR15lqUl8'
+        }
+      ]
     },
   },
   primevue: {
