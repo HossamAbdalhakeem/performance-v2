@@ -54,11 +54,11 @@ export const useAuthStore = defineStore("authStore", {
           Authorization: `Bearer ${token}`,
         },
       });
-      console.log("my error auth", error.value);
+      // console.log("my error auth", error.value);
       if (error.value) {
         console.error("Fetch user failed:", error.value);
         // console.error("Fetch user failed:", error.value);
-        // this.removeTokens();
+        this.removeTokens();
         return;
       }
 
