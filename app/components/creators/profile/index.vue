@@ -102,6 +102,18 @@ const { data, loading, error } = props.alias
 
 const details = computed(() => data.value?.data || data.value || null);
 
+// contributor.about is a JSON string: { title, subtitle, description, image }
+// (defined early because the SEO/schema computeds below read it)
+const about = computed(() => {
+  const raw = details.value?.contributor?.about;
+  if (!raw) return null;
+  try {
+    return typeof raw === "string" ? JSON.parse(raw) : raw;
+  } catch {
+    return null;
+  }
+});
+
 // ---- Open Graph + Twitter Cards (dynamic from creator data) ----
 useDynamicSeo({
   title: () => about.value?.title || details.value?.contributor?.name || 'Creator',
@@ -166,17 +178,6 @@ useSchemaOrg([
   }),
   definePerson(creatorPerson),
 ]);
-
-// contributor.about is a JSON string: { title, subtitle, description, image }
-const about = computed(() => {
-  const raw = details.value?.contributor?.about;
-  if (!raw) return null;
-  try {
-    return typeof raw === "string" ? JSON.parse(raw) : raw;
-  } catch {
-    return null;
-  }
-});
 
 const profileImage = computed(() => {
   const photo =
