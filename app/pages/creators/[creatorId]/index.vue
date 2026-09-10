@@ -6,7 +6,7 @@
 <script setup>
 import CreatorsProfile from "~/components/creators/profile/index.vue";
 definePageMeta({
-  middleware: ["local-pages"],
+  // middleware: ["local-pages"],
   layout: "inner-pages",
 });
 const route = useRoute();
