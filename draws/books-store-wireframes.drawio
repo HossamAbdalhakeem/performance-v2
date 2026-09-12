@@ -381,7 +381,7 @@
                     <mxGeometry x="250" y="546" width="390" height="38" as="geometry"/>
                 </mxCell>
                 <mxCell id="excelBtn" value="⬇ تصدير Excel" style="whiteSpace=wrap;html=1;fillColor=#2A2A2A;strokeColor=#FFFFFF;fontColor=#FFFFFF;fontStyle=1;" parent="1" vertex="1">
-                    <mxGeometry x="460" y="620" width="180" height="45" as="geometry"/>
+                    <mxGeometry x="355" y="600" width="180" height="45" as="geometry"/>
                 </mxCell>
                 <mxCell id="note" value="Wireframe — تقارير (كل التقارير قابلة للتصدير Excel)" style="text;html=1;fontColor=#999999;fontSize=11;align=left;" parent="1" vertex="1">
                     <mxGeometry x="60" y="790" width="450" height="20" as="geometry"/>
