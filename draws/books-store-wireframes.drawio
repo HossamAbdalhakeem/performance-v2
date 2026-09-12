@@ -389,9 +389,6 @@
                 <mxCell id="note" value="Wireframe — التقارير (Dashboard-style بدون Charts: كروت + جداول + ملخصات)" style="text;html=1;fontColor=#999999;fontSize=11;align=left;" parent="1" vertex="1">
                     <mxGeometry x="60" y="790" width="450" height="20" as="geometry"/>
                 </mxCell>
-                <mxCell id="vSJ4RI7H_M-IQ0IafaXS-3" style="edgeStyle=none;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;" edge="1" parent="1" source="filters" target="filters">
-                    <mxGeometry relative="1" as="geometry"/>
-                </mxCell>
                 <mxCell id="vSJ4RI7H_M-IQ0IafaXS-4" value="" style="edgeStyle=none;html=1;" edge="1" parent="1" source="filters" target="vSJ4RI7H_M-IQ0IafaXS-2">
                     <mxGeometry relative="1" as="geometry">
                         <mxPoint x="550" y="178" as="sourcePoint"/>
