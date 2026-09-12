@@ -65,7 +65,7 @@
         </mxGraphModel>
     </diagram>
     <diagram id="wfP2" name="2-اضافة للمخزن">
-        <mxGraphModel dx="808" dy="596" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+        <mxGraphModel dx="816" dy="765" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
@@ -130,7 +130,7 @@
         </mxGraphModel>
     </diagram>
     <diagram id="wfP3" name="3-سحب من المخزن">
-        <mxGraphModel dx="808" dy="596" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+        <mxGraphModel dx="816" dy="765" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
@@ -195,7 +195,7 @@
         </mxGraphModel>
     </diagram>
     <diagram id="wfP4" name="4-الغاء حجز">
-        <mxGraphModel dx="808" dy="596" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+        <mxGraphModel dx="816" dy="765" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
@@ -254,7 +254,7 @@
         </mxGraphModel>
     </diagram>
     <diagram id="wfP5" name="5-تبديل حجز">
-        <mxGraphModel dx="808" dy="596" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+        <mxGraphModel dx="816" dy="765" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
@@ -360,13 +360,13 @@
                     <mxGeometry x="550" y="165" width="90" height="25" as="geometry"/>
                 </mxCell>
                 <mxCell id="k1" value="إجمالي المبيعات&amp;nbsp;&lt;br&gt;8,750 ج.م" style="whiteSpace=wrap;html=1;fillColor=#1A1A1A;strokeColor=#FFFFFF;fontColor=#FFFFFF;fontStyle=1;align=right;" parent="1" vertex="1">
-                    <mxGeometry x="395" y="205" width="80" height="60" as="geometry"/>
+                    <mxGeometry x="570" y="205" width="80" height="60" as="geometry"/>
                 </mxCell>
                 <mxCell id="k2" value="إجمالي الحجوزات&#xa;24" style="whiteSpace=wrap;html=1;fillColor=#1A1A1A;strokeColor=#FFFFFF;fontColor=#FFFFFF;fontStyle=1;align=right;" parent="1" vertex="1">
                     <mxGeometry x="483" y="205" width="80" height="60" as="geometry"/>
                 </mxCell>
                 <mxCell id="k3" value="إجمالي المخزون&#xa;124" style="whiteSpace=wrap;html=1;fillColor=#1A1A1A;strokeColor=#FFFFFF;fontColor=#FFFFFF;fontStyle=1;align=right;" parent="1" vertex="1">
-                    <mxGeometry x="570" y="205" width="80" height="60" as="geometry"/>
+                    <mxGeometry x="395" y="205" width="80" height="60" as="geometry"/>
                 </mxCell>
                 <mxCell id="rp6" value="طلاب كل مدرس" style="text;html=1;fontColor=#FFFFFF;fontSize=11;fontStyle=1;align=center;" parent="1" vertex="1">
                     <mxGeometry x="455" y="550" width="185" height="18" as="geometry"/>
@@ -408,10 +408,7 @@
                     <mxGeometry x="593" y="612" width="47" height="20" as="geometry"/>
                 </mxCell>
                 <mxCell id="salesBox" value="مبيعات&amp;nbsp;&lt;br&gt;مبيعات فرع: 8,750&lt;br&gt;محجوزات: 18,230&lt;br&gt;صافي الربح: 18,400" style="whiteSpace=wrap;html=1;fillColor=#1A1A1A;strokeColor=#FFFFFF;fontColor=#FFFFFF;align=right;" parent="1" vertex="1">
-                    <mxGeometry x="247.5" y="290" width="185" height="105" as="geometry"/>
-                </mxCell>
-                <mxCell id="stockBox" value="حالة المخزون&#xa;متوفر: 412&#xa;محجوز: 128&#xa;منخفض: 18" style="whiteSpace=wrap;html=1;fillColor=#1A1A1A;strokeColor=#FFFFFF;fontColor=#FFFFFF;align=right;" parent="1" vertex="1">
-                    <mxGeometry x="450" y="290" width="185" height="105" as="geometry"/>
+                    <mxGeometry x="247.5" y="290" width="392.5" height="105" as="geometry"/>
                 </mxCell>
                 <mxCell id="excelBtn" value="⬇ تصدير كل التقارير Excel" style="whiteSpace=wrap;html=1;fillColor=#2A2A2A;strokeColor=#FFFFFF;fontColor=#FFFFFF;fontStyle=1;" parent="1" vertex="1">
                     <mxGeometry x="260" y="730" width="390" height="32" as="geometry"/>
@@ -422,7 +419,7 @@
                 <mxCell id="vSJ4RI7H_M-IQ0IafaXS-5" value="اختيار الكتاب ▾" style="whiteSpace=wrap;html=1;fillColor=#1A1A1A;strokeColor=#FFFFFF;fontColor=#FFFFFF;align=right;" parent="1" vertex="1">
                     <mxGeometry x="340" y="165" width="90" height="25" as="geometry"/>
                 </mxCell>
-                <mxCell id="vSJ4RI7H_M-IQ0IafaXS-6" value="&lt;div style=&quot;&quot;&gt;&lt;div style=&quot;&quot;&gt;&lt;span style=&quot;background-color: transparent; color: rgb(192, 192, 192);&quot;&gt;&amp;nbsp; الكتب&amp;nbsp; &amp;nbsp;محجوز&amp;nbsp; &amp;nbsp; متاح بيع مباشر&amp;nbsp;&lt;/span&gt;&lt;/div&gt;&lt;span style=&quot;background-color: transparent; color: rgb(192, 192, 192);&quot;&gt;&lt;div style=&quot;&quot;&gt;&lt;span style=&quot;background-color: transparent; color: rgb(192, 192, 192);&quot;&gt;&amp;nbsp; 23&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp;14&amp;nbsp; &amp;nbsp; &amp;nbsp;44&lt;/span&gt;&lt;/div&gt;&lt;/span&gt;&lt;/div&gt;" style="whiteSpace=wrap;html=1;fillColor=#1A1A1A;strokeColor=#FFFFFF;fontColor=#FFFFFF;fontStyle=1;align=right;" parent="1" vertex="1">
+                <mxCell id="vSJ4RI7H_M-IQ0IafaXS-6" value="&lt;br&gt;الكتب&lt;br&gt;كل&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp;محجوز&amp;nbsp; &amp;nbsp;&lt;font style=&quot;&quot;&gt;&lt;font style=&quot;color: light-dark(rgb(18, 18, 18), rgb(0, 0, 0));&quot;&gt; &amp;nbsp; &amp;nbsp;&lt;/font&gt;&lt;span style=&quot;color: rgb(18, 18, 18);&quot;&gt;&lt;font style=&quot;color: light-dark(rgb(18, 18, 18), rgb(0, 0, 0));&quot;&gt;متاح بيع مباشر&lt;/font&gt;&lt;/span&gt;&lt;/font&gt;&lt;span style=&quot;color: rgb(18, 18, 18);&quot;&gt;&lt;br&gt;&lt;/span&gt;&lt;font style=&quot;&quot;&gt;&lt;span style=&quot;color: rgb(18, 18, 18);&quot;&gt;&amp;nbsp; &amp;nbsp;&lt;/span&gt;&lt;span style=&quot;color: rgb(18, 18, 18);&quot;&gt;&lt;font style=&quot;color: light-dark(rgb(18, 18, 18), rgb(0, 0, 0));&quot;&gt;30&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp;&lt;/font&gt;&lt;/span&gt;&lt;font&gt;&lt;span style=&quot;color: rgb(18, 18, 18);&quot;&gt;&lt;font style=&quot;color: light-dark(rgb(18, 18, 18), rgb(0, 0, 0));&quot;&gt;14&amp;nbsp; &amp;nbsp; &amp;nbsp;&lt;/font&gt;&lt;/span&gt;&lt;span&gt;&lt;font style=&quot;color: light-dark(rgb(18, 18, 18), rgb(0, 0, 0));&quot;&gt;44&lt;/font&gt;&lt;/span&gt;&lt;/font&gt;&lt;br&gt;&lt;/font&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;" style="whiteSpace=wrap;html=1;fillColor=#1A1A1A;strokeColor=#FFFFFF;fontColor=#FFFFFF;fontStyle=1;align=right;" parent="1" vertex="1">
                     <mxGeometry x="235" y="205" width="150" height="60" as="geometry"/>
                 </mxCell>
                 <mxCell id="vSJ4RI7H_M-IQ0IafaXS-10" value="عدد العملاء لكل سنة دراسية" style="text;html=1;fontColor=#FFFFFF;fontSize=11;fontStyle=1;align=center;" parent="1" vertex="1">
