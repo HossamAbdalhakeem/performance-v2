@@ -1,0 +1,150 @@
+<mxfile host="65bd71144e">
+    <diagram id="r3Books" name="1-الكتب">
+        <mxGraphModel dx="800" dy="700" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="frame" value="" style="whiteSpace=wrap;html=1;fillColor=#1A1A1A;strokeColor=#FFFFFF;fontColor=#FFFFFF;rounded=0;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="40" width="640" height="720" as="geometry"/>
+                </mxCell>
+                <mxCell id="nav" value="" style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;rounded=0;" parent="1" vertex="1">
+                    <mxGeometry x="60" y="60" width="600" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="logo" value="S" style="ellipse;whiteSpace=wrap;html=1;fillColor=#1A1A1A;strokeColor=#FFFFFF;fontColor=#FFFFFF;" parent="1" vertex="1">
+                    <mxGeometry x="600" y="65" width="50" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="navTitle" value="مكتبة السنتر" style="text;html=1;fontColor=#FFFFFF;fontSize=13;align=center;" parent="1" vertex="1">
+                    <mxGeometry x="80" y="75" width="250" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="sideLabel" value="القائمة" style="text;html=1;fontColor=#FFFFFF;fontSize=11;align=center;" parent="1" vertex="1">
+                    <mxGeometry x="60" y="145" width="140" height="18" as="geometry"/>
+                </mxCell>
+                <mxCell id="s1" value="الكتب" style="whiteSpace=wrap;html=1;fillColor=#333333;strokeColor=#FFFFFF;fontColor=#FFFFFF;" parent="1" vertex="1">
+                    <mxGeometry x="60" y="170" width="140" height="45" as="geometry"/>
+                </mxCell>
+                <mxCell id="sideNote" value="هذا هو tab واحد فقط — عميل الطلاب/الأستاذ" style="text;html=1;fontColor=#999999;fontSize=10;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="60" y="230" width="140" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="content" value="" style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;rounded=0;" parent="1" vertex="1">
+                    <mxGeometry x="230" y="150" width="430" height="580" as="geometry"/>
+                </mxCell>
+                <mxCell id="cTitle" value="الكتب" style="text;html=1;fontColor=#FFFFFF;fontSize=18;fontStyle=1;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="250" y="165" width="120" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="bookBtn" value="احجز كتاب 📖" style="whiteSpace=wrap;html=1;fillColor=#2A2A2A;strokeColor=#FFFFFF;fontColor=#FFFFFF;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="470" y="160" width="170" height="45" as="geometry"/>
+                </mxCell>
+                <mxCell id="tH1" value="اسم الكتاب" style="whiteSpace=wrap;html=1;fillColor=#333333;strokeColor=#FFFFFF;fontColor=#FFFFFF;fontSize=10;align=center;" parent="1" vertex="1">
+                    <mxGeometry x="250" y="240" width="130" height="28" as="geometry"/>
+                </mxCell>
+                <mxCell id="tH2" value="الأستاذ" style="whiteSpace=wrap;html=1;fillColor=#333333;strokeColor=#FFFFFF;fontColor=#FFFFFF;fontSize=10;align=center;" parent="1" vertex="1">
+                    <mxGeometry x="380" y="240" width="90" height="28" as="geometry"/>
+                </mxCell>
+                <mxCell id="tH3" value="العدد" style="whiteSpace=wrap;html=1;fillColor=#333333;strokeColor=#FFFFFF;fontColor=#FFFFFF;fontSize=10;align=center;" parent="1" vertex="1">
+                    <mxGeometry x="470" y="240" width="70" height="28" as="geometry"/>
+                </mxCell>
+                <mxCell id="tH4" value="متاح" style="whiteSpace=wrap;html=1;fillColor=#333333;strokeColor=#FFFFFF;fontColor=#FFFFFF;fontSize=10;align=center;" parent="1" vertex="1">
+                    <mxGeometry x="540" y="240" width="100" height="28" as="geometry"/>
+                </mxCell>
+                <mxCell id="r1c1" value="كتاب الكيمياء" style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;fontColor=#FFFFFF;fontSize=10;align=center;" parent="1" vertex="1">
+                    <mxGeometry x="250" y="270" width="130" height="34" as="geometry"/>
+                </mxCell>
+                <mxCell id="r1c2" value="أ. خالد" style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;fontColor=#FFFFFF;fontSize=10;align=center;" parent="1" vertex="1">
+                    <mxGeometry x="380" y="270" width="90" height="34" as="geometry"/>
+                </mxCell>
+                <mxCell id="r1c3" value="44" style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;fontColor=#FFFFFF;fontSize=10;align=center;" parent="1" vertex="1">
+                    <mxGeometry x="470" y="270" width="70" height="34" as="geometry"/>
+                </mxCell>
+                <mxCell id="r1c4" value="✔ متاح" style="whiteSpace=wrap;html=1;fillColor=#144d1f;strokeColor=#82b366;fontColor=#FFFFFF;fontSize=10;align=center;" parent="1" vertex="1">
+                    <mxGeometry x="540" y="270" width="100" height="34" as="geometry"/>
+                </mxCell>
+                <mxCell id="r2c1" value="كتاب الفيزياء" style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;fontColor=#FFFFFF;fontSize=10;align=center;" parent="1" vertex="1">
+                    <mxGeometry x="250" y="306" width="130" height="34" as="geometry"/>
+                </mxCell>
+                <mxCell id="r2c2" value="أ. عمر" style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;fontColor=#FFFFFF;fontSize=10;align=center;" parent="1" vertex="1">
+                    <mxGeometry x="380" y="306" width="90" height="34" as="geometry"/>
+                </mxCell>
+                <mxCell id="r2c3" value="5" style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;fontColor=#FFFFFF;fontSize=10;align=center;" parent="1" vertex="1">
+                    <mxGeometry x="470" y="306" width="70" height="34" as="geometry"/>
+                </mxCell>
+                <mxCell id="r2c4" value="✖ غير متاح" style="whiteSpace=wrap;html=1;fillColor=#a20025;strokeColor=#6F0000;fontColor=#FFFFFF;fontSize=10;align=center;" parent="1" vertex="1">
+                    <mxGeometry x="540" y="306" width="100" height="34" as="geometry"/>
+                </mxCell>
+                <mxCell id="r3c1" value="كتاب الرياضيات" style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;fontColor=#FFFFFF;fontSize=10;align=center;" parent="1" vertex="1">
+                    <mxGeometry x="250" y="342" width="130" height="34" as="geometry"/>
+                </mxCell>
+                <mxCell id="r3c2" value="أ. سارة" style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;fontColor=#FFFFFF;fontSize=10;align=center;" parent="1" vertex="1">
+                    <mxGeometry x="380" y="342" width="90" height="34" as="geometry"/>
+                </mxCell>
+                <mxCell id="r3c3" value="18" style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;fontColor=#FFFFFF;fontSize=10;align=center;" parent="1" vertex="1">
+                    <mxGeometry x="470" y="342" width="70" height="34" as="geometry"/>
+                </mxCell>
+                <mxCell id="r3c4" value="✔ متاح" style="whiteSpace=wrap;html=1;fillColor=#144d1f;strokeColor=#82b366;fontColor=#FFFFFF;fontSize=10;align=center;" parent="1" vertex="1">
+                    <mxGeometry x="540" y="342" width="100" height="34" as="geometry"/>
+                </mxCell>
+                <mxCell id="searchBar" value="🔍 بحث عن كتاب أو أستاذ…" style="whiteSpace=wrap;html=1;fillColor=#1A1A1A;strokeColor=#FFFFFF;fontColor=#FFFFFF;align=right;" parent="1" vertex="1">
+                    <mxGeometry x="250" y="195" width="200" height="36" as="geometry"/>
+                </mxCell>
+                <mxCell id="countNote" value="إجمالي الكتب: 3" style="text;html=1;fontColor=#999999;fontSize=11;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="250" y="400" width="200" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="bookNote" value="اختيار كتاب + الضغط على زر «احجز كتاب» يفتح صفحة الحجز" style="text;html=1;fontColor=#999999;fontSize=10;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="250" y="430" width="390" height="20" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+    <diagram id="r3Reserve" name="2-احجز كتاب">
+        <mxGraphModel dx="800" dy="700" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="frame" value="" style="whiteSpace=wrap;html=1;fillColor=#1A1A1A;strokeColor=#FFFFFF;fontColor=#FFFFFF;rounded=0;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="40" width="640" height="620" as="geometry"/>
+                </mxCell>
+                <mxCell id="nav" value="" style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;rounded=0;" parent="1" vertex="1">
+                    <mxGeometry x="60" y="60" width="600" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="logo" value="S" style="ellipse;whiteSpace=wrap;html=1;fillColor=#1A1A1A;strokeColor=#FFFFFF;fontColor=#FFFFFF;" parent="1" vertex="1">
+                    <mxGeometry x="600" y="65" width="50" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="navTitle" value="مكتبة السنتر" style="text;html=1;fontColor=#FFFFFF;fontSize=13;align=center;" parent="1" vertex="1">
+                    <mxGeometry x="80" y="75" width="250" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="s1" value="الكتب" style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;fontColor=#FFFFFF;" parent="1" vertex="1">
+                    <mxGeometry x="60" y="170" width="140" height="45" as="geometry"/>
+                </mxCell>
+                <mxCell id="content" value="" style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;rounded=0;" parent="1" vertex="1">
+                    <mxGeometry x="230" y="150" width="430" height="480" as="geometry"/>
+                </mxCell>
+                <mxCell id="cTitle" value="احجز كتاب" style="text;html=1;fontColor=#FFFFFF;fontSize=18;fontStyle=1;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="250" y="165" width="150" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="backBtn" value="← رجوع للكتب" style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;fontColor=#FFFFFF;" parent="1" vertex="1">
+                    <mxGeometry x="450" y="165" width="180" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="fBook" value="الكتاب: كتاب الكيمياء ▾" style="whiteSpace=wrap;html=1;fillColor=#1A1A1A;strokeColor=#FFFFFF;fontColor=#FFFFFF;align=right;" parent="1" vertex="1">
+                    <mxGeometry x="250" y="230" width="390" height="42" as="geometry"/>
+                </mxCell>
+                <mxCell id="fTeacher" value="الأستاذ: أ. خالد" style="whiteSpace=wrap;html=1;fillColor=#1A1A1A;strokeColor=#FFFFFF;fontColor=#FFFFFF;align=right;" parent="1" vertex="1">
+                    <mxGeometry x="250" y="285" width="390" height="42" as="geometry"/>
+                </mxCell>
+                <mxCell id="fName" value="اسم الطالب: ________" style="whiteSpace=wrap;html=1;fillColor=#1A1A1A;strokeColor=#FFFFFF;fontColor=#FFFFFF;align=right;" parent="1" vertex="1">
+                    <mxGeometry x="250" y="340" width="390" height="42" as="geometry"/>
+                </mxCell>
+                <mxCell id="fPhone" value="رقم الموبايل: ________" style="whiteSpace=wrap;html=1;fillColor=#1A1A1A;strokeColor=#FFFFFF;fontColor=#FFFFFF;align=right;" parent="1" vertex="1">
+                    <mxGeometry x="250" y="395" width="390" height="42" as="geometry"/>
+                </mxCell>
+                <mxCell id="ack" value="سيتم تأكيد الحجز وخصمه من العدد المتاح" style="whiteSpace=wrap;html=1;fillColor=#2A2A2A;strokeColor=#888888;fontColor=#AAAAAA;dashed=1;align=right;" parent="1" vertex="1">
+                    <mxGeometry x="250" y="450" width="390" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="confirmBtn" value="تأكيد الحجز ✅" style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;fontColor=#FFFFFF;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="430" y="510" width="210" height="48" as="geometry"/>
+                </mxCell>
+                <mxCell id="note" value="Wireframe — Role المستخدم الثالث: صفحة حجز كتاب (تفتح من زر «احجز كتاب»)" style="text;html=1;fontColor=#999999;fontSize=11;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="60" y="660" width="450" height="20" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>
