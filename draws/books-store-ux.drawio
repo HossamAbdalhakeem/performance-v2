@@ -85,9 +85,46 @@
                 <mxCell id="lg3" value="تأكيد / عملية نهائية" style="whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" parent="1" vertex="1"><mxGeometry x="60" y="130" width="200" height="35" as="geometry"/></mxCell>
                 <mxCell id="lg4" value="تقرير" style="whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="1" vertex="1"><mxGeometry x="60" y="175" width="200" height="35" as="geometry"/></mxCell>
                 <mxCell id="lg5" value="زر تصدير Excel" style="whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" parent="1" vertex="1"><mxGeometry x="60" y="220" width="200" height="35" as="geometry"/></mxCell>
-
-
-
+            </root>
+        </mxGraphModel>
+    </diagram>
+    <diagram id="bookFormUX" name="2-حجز الكتب">
+        <mxGraphModel dx="1600" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="1600" pageHeight="900" math="0" shadow="0">
+            <root>
+                <mxCell id="hb0"/>
+                <mxCell id="hb1" parent="hb0"/>
+                <mxCell id="hb_bg" value="" style="rounded=0;fillColor=#f2f6fb;strokeColor=none;" parent="hb1" vertex="1"><mxGeometry x="0" y="0" width="1600" height="750" as="geometry"/></mxCell>
+                <mxCell id="hb_num" value="2" style="ellipse;fillColor=#159a4c;strokeColor=none;fontColor=#ffffff;fontStyle=1;fontSize=34;align=center;verticalAlign=middle;" parent="hb1" vertex="1"><mxGeometry x="1500" y="25" width="70" height="70" as="geometry"/></mxCell>
+                <mxCell id="hb_cal" value="📅" style="rounded=1;arcSize=20;fillColor=#159a4c;strokeColor=none;fontColor=#ffffff;fontSize=30;align=center;verticalAlign=middle;" parent="hb1" vertex="1"><mxGeometry x="1415" y="25" width="70" height="70" as="geometry"/></mxCell>
+                <mxCell id="hb_title" value="حجز الكتب" style="text;html=1;fontStyle=1;fontSize=30;align=right;verticalAlign=middle;" parent="hb1" vertex="1"><mxGeometry x="1100" y="20" width="300" height="45" as="geometry"/></mxCell>
+                <mxCell id="hb_sub" value="تسجيل حجز كتاب أو منتج لطالب" style="text;html=1;fontSize=15;fontColor=#64748B;align=right;" parent="hb1" vertex="1"><mxGeometry x="1100" y="62" width="400" height="30" as="geometry"/></mxCell>
+                <mxCell id="hb_hint" value="يتم تسجيل الحجز ويظهر رقم حجز للطالب" style="rounded=1;arcSize=15;fillColor=#e7f8e9;strokeColor=#bbf7d0;fontColor=#15803d;fontSize=15;align=center;verticalAlign=middle;" parent="hb1" vertex="1"><mxGeometry x="80" y="30" width="470" height="60" as="geometry"/></mxCell>
+                <mxCell id="hb_form" value="" style="rounded=1;arcSize=15;fillColor=#ffffff;strokeColor=#e2e8f0;" parent="hb1" vertex="1"><mxGeometry x="520" y="125" width="1060" height="570" as="geometry"/></mxCell>
+                <mxCell id="hb_okcard" value="" style="rounded=1;arcSize=15;fillColor=#ffffff;strokeColor=#e2e8f0;" parent="hb1" vertex="1"><mxGeometry x="100" y="125" width="400" height="570" as="geometry"/></mxCell>
+                <mxCell id="hb_l_prod" value="المنتج" style="text;html=1;fontStyle=1;fontSize=15;align=right;" parent="hb1" vertex="1"><mxGeometry x="1300" y="150" width="220" height="25" as="geometry"/></mxCell>
+                <mxCell id="hb_f_prod" value="الكتاب + كود الترم الأول  ▾" style="rounded=1;arcSize=10;fillColor=#ffffff;strokeColor=#e2e8f0;fontSize=14;align=center;verticalAlign=middle;" parent="hb1" vertex="1"><mxGeometry x="1240" y="180" width="290" height="55" as="geometry"/></mxCell>
+                <mxCell id="hb_l_teach" value="اسم المدرس" style="text;html=1;fontStyle=1;fontSize=15;align=right;" parent="hb1" vertex="1"><mxGeometry x="960" y="150" width="220" height="25" as="geometry"/></mxCell>
+                <mxCell id="hb_f_teach" value="مستر محمد صلاح  ▾" style="rounded=1;arcSize=10;fillColor=#ffffff;strokeColor=#e2e8f0;fontSize=14;align=center;verticalAlign=middle;" parent="hb1" vertex="1"><mxGeometry x="900" y="180" width="290" height="55" as="geometry"/></mxCell>
+                <mxCell id="hb_l_year" value="السنة الدراسية" style="text;html=1;fontStyle=1;fontSize=15;align=right;" parent="hb1" vertex="1"><mxGeometry x="620" y="150" width="220" height="25" as="geometry"/></mxCell>
+                <mxCell id="hb_f_year" value="2 بكالوريا  ▾" style="rounded=1;arcSize=10;fillColor=#ffffff;strokeColor=#e2e8f0;fontSize=14;align=center;verticalAlign=middle;" parent="hb1" vertex="1"><mxGeometry x="550" y="180" width="290" height="55" as="geometry"/></mxCell>
+                <mxCell id="hb_l_up" value="إرفاق صورة التحويل (اختياري)" style="text;html=1;fontSize=13;align=right;" parent="hb1" vertex="1"><mxGeometry x="840" y="270" width="190" height="25" as="geometry"/></mxCell>
+                <mxCell id="hb_f_up" value="اضغط لرفع الصورة" style="rounded=1;arcSize=10;dashed=1;fillColor=#f8fafc;strokeColor=#94a3b8;fontSize=13;fontColor=#64748B;align=center;verticalAlign=middle;" parent="hb1" vertex="1"><mxGeometry x="840" y="300" width="190" height="140" as="geometry"/></mxCell>
+                <mxCell id="hb_l_pay" value="طريقة الدفع" style="text;html=1;fontStyle=1;fontSize=15;align=right;" parent="hb1" vertex="1"><mxGeometry x="650" y="270" width="170" height="25" as="geometry"/></mxCell>
+                <mxCell id="hb_pay1" value="●  كاش" style="text;html=1;fontSize=14;align=right;fontStyle=1;fontColor=#0f766e;" parent="hb1" vertex="1"><mxGeometry x="650" y="300" width="170" height="30" as="geometry"/></mxCell>
+                <mxCell id="hb_pay2" value="○  انستا باي" style="text;html=1;fontSize=14;align=right;fontColor=#334155;" parent="hb1" vertex="1"><mxGeometry x="650" y="332" width="170" height="30" as="geometry"/></mxCell>
+                <mxCell id="hb_pay3" value="○  محفظة إلكترونية" style="text;html=1;fontSize=14;align=right;fontColor=#334155;" parent="hb1" vertex="1"><mxGeometry x="650" y="364" width="170" height="30" as="geometry"/></mxCell>
+                <mxCell id="hb_l_amt" value="المبلغ المدفوع (مقدم)" style="text;html=1;fontStyle=1;fontSize=15;align=right;" parent="hb1" vertex="1"><mxGeometry x="450" y="270" width="180" height="25" as="geometry"/></mxCell>
+                <mxCell id="hb_f_amt" value="250" style="rounded=1;arcSize=10;fillColor=#ffffff;strokeColor=#e2e8f0;fontSize=15;align=center;verticalAlign=middle;" parent="hb1" vertex="1"><mxGeometry x="450" y="300" width="180" height="55" as="geometry"/></mxCell>
+                <mxCell id="hb_l_mob" value="رقم الموبيل" style="text;html=1;fontStyle=1;fontSize=15;align=right;" parent="hb1" vertex="1"><mxGeometry x="250" y="270" width="180" height="25" as="geometry"/></mxCell>
+                <mxCell id="hb_f_mob" value="01123456789" style="rounded=1;arcSize=10;fillColor=#ffffff;strokeColor=#e2e8f0;fontSize=15;align=center;verticalAlign=middle;" parent="hb1" vertex="1"><mxGeometry x="250" y="300" width="180" height="55" as="geometry"/></mxCell>
+                <mxCell id="hb_l_name" value="اسم الطالب" style="text;html=1;fontStyle=1;fontSize=15;align=right;" parent="hb1" vertex="1"><mxGeometry x="50" y="270" width="180" height="25" as="geometry"/></mxCell>
+                <mxCell id="hb_f_name" value="سارة أحمد" style="rounded=1;arcSize=10;fillColor=#ffffff;strokeColor=#e2e8f0;fontSize=15;align=center;verticalAlign=middle;" parent="hb1" vertex="1"><mxGeometry x="50" y="300" width="180" height="55" as="geometry"/></mxCell>
+                <mxCell id="hb_confirm" value="تأكيد الحجز" style="rounded=1;arcSize=15;fillColor=#0d9a5f;strokeColor=none;fontColor=#ffffff;fontStyle=1;fontSize=20;align=center;verticalAlign=middle;" parent="hb1" vertex="1"><mxGeometry x="290" y="500" width="520" height="75" as="geometry"/></mxCell>
+                <mxCell id="hb_ok_ico" value="✓" style="ellipse;fillColor=#22a34a;strokeColor=none;fontColor=#ffffff;fontStyle=1;fontSize=40;align=center;verticalAlign=middle;" parent="hb1" vertex="1"><mxGeometry x="1245" y="155" width="90" height="90" as="geometry"/></mxCell>
+                <mxCell id="hb_ok_t" value="تم تسجيل الحجز بنجاح" style="text;html=1;fontStyle=1;fontSize=22;fontColor=#15803d;align=center;" parent="hb1" vertex="1"><mxGeometry x="1100" y="255" width="400" height="40" as="geometry"/></mxCell>
+                <mxCell id="hb_ok_lbl" value="رقم الحجز" style="text;html=1;fontSize=16;align=center;" parent="hb1" vertex="1"><mxGeometry x="1100" y="310" width="400" height="30" as="geometry"/></mxCell>
+                <mxCell id="hb_ok_num" value="B-2025-00125" style="rounded=1;arcSize=10;fillColor=#dcfce7;strokeColor=#bbf7d0;fontStyle=1;fontSize=20;align=center;verticalAlign=middle;" parent="hb1" vertex="1"><mxGeometry x="1120" y="345" width="360" height="60" as="geometry"/></mxCell>
+                <mxCell id="hb_ok_hint" value="احتفظ برقم الحجز لتسليم الكتاب لاحقا" style="text;html=1;fontSize=13;fontColor=#64748B;align=center;" parent="hb1" vertex="1"><mxGeometry x="1100" y="420" width="400" height="30" as="geometry"/></mxCell>
             </root>
         </mxGraphModel>
     </diagram>
