@@ -408,7 +408,7 @@
                     <mxGeometry x="410" y="280" width="90" height="60" as="geometry"/>
                 </mxCell>
                 <mxCell id="vSJ4RI7H_M-IQ0IafaXS-8" value="عدد الكتب البيع المباشر&lt;br&gt;23" style="whiteSpace=wrap;html=1;fillColor=#1A1A1A;strokeColor=#FFFFFF;fontColor=#FFFFFF;fontStyle=1;align=right;" vertex="1" parent="1">
-                    <mxGeometry x="310" y="280" width="90" height="60" as="geometry"/>
+                    <mxGeometry x="300" y="280" width="100" height="60" as="geometry"/>
                 </mxCell>
                 <mxCell id="vSJ4RI7H_M-IQ0IafaXS-10" value="عدد العملاء لكل سنة&amp;nbsp;" style="whiteSpace=wrap;html=1;fillColor=#333333;strokeColor=#FFFFFF;fontColor=#FFFFFF;align=right;" vertex="1" parent="1">
                     <mxGeometry x="245" y="550" width="200" height="145" as="geometry"/>
