@@ -1,0 +1,94 @@
+<mxfile host="65bd71144e">
+    <diagram id="booksStoreUX" name="Books Store UX">
+        <mxGraphModel dx="2200" dy="1400" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="2400" pageHeight="1600" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="dash" value="Dashboard&#10;الرئيسية" style="whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontStyle=1;fontSize=16;" parent="1" vertex="1">
+                    <mxGeometry x="60" y="560" width="160" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="b1" value="المدرسين&#10;(إضافة منتج / مدرس)" style="whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="320" y="80" width="160" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="b2" value="إضافة للمخزن" style="whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="320" y="280" width="160" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="b3" value="سحب من المخزن" style="whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="320" y="460" width="160" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="b4" value="إلغاء حجز" style="whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="320" y="640" width="160" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="b5" value="تبديل حجز" style="whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="320" y="820" width="160" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="b6" value="التقارير" style="whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="320" y="1000" width="160" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="e1" style="edgeStyle=orthogonalEdgeStyle;html=1;" parent="1" source="dash" target="b1" edge="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+                <mxCell id="e2" style="edgeStyle=orthogonalEdgeStyle;html=1;" parent="1" source="dash" target="b2" edge="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+                <mxCell id="e3" style="edgeStyle=orthogonalEdgeStyle;html=1;" parent="1" source="dash" target="b3" edge="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+                <mxCell id="e4" style="edgeStyle=orthogonalEdgeStyle;html=1;" parent="1" source="dash" target="b4" edge="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+                <mxCell id="e5" style="edgeStyle=orthogonalEdgeStyle;html=1;" parent="1" source="dash" target="b5" edge="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+                <mxCell id="e6" style="edgeStyle=orthogonalEdgeStyle;html=1;" parent="1" source="dash" target="b6" edge="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+                <mxCell id="t1" value="1- المدرسين" style="text;html=1;fontStyle=1;fontSize=14;align=left;" parent="1" vertex="1"><mxGeometry x="320" y="40" width="200" height="30" as="geometry"/></mxCell>
+                <mxCell id="pAddT" value="إضافة مدرس" style="whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1"><mxGeometry x="600" y="40" width="170" height="60" as="geometry"/></mxCell>
+                <mxCell id="pAddTF" value="فورم بيانات المدرس:&#10;الاسم - رقم الموبايل&#10;(يُسجل تلقائياً عند أول شراء لطلابه)" style="whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1"><mxGeometry x="840" y="30" width="200" height="80" as="geometry"/></mxCell>
+                <mxCell id="eAddT" style="edgeStyle=orthogonalEdgeStyle;html=1;" parent="1" source="b1" target="pAddT" edge="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+                <mxCell id="eAddTF" style="edgeStyle=orthogonalEdgeStyle;html=1;" parent="1" source="pAddT" target="pAddTF" edge="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+                <mxCell id="pAddP" value="إضافة منتج&#10;(كتاب جديد / محاضرة نزلة)" style="whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1"><mxGeometry x="600" y="150" width="170" height="70" as="geometry"/></mxCell>
+                <mxCell id="pAddPF" value="فورم المنتج:&#10;اختيار المدرس&#10;اسم المنتج - النوع&#10;سعر الجملة - سعر البيع&#10;=&gt; صافي الربح يحسبه الموقع تلقائياً من المبيعات" style="whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1"><mxGeometry x="840" y="130" width="220" height="110" as="geometry"/></mxCell>
+                <mxCell id="eAddP" style="edgeStyle=orthogonalEdgeStyle;html=1;" parent="1" source="b1" target="pAddP" edge="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+                <mxCell id="eAddPF" style="edgeStyle=orthogonalEdgeStyle;html=1;" parent="1" source="pAddP" target="pAddPF" edge="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+                <mxCell id="t2" value="2- إضافة للمخزن" style="text;html=1;fontStyle=1;fontSize=14;align=left;" parent="1" vertex="1"><mxGeometry x="320" y="240" width="220" height="30" as="geometry"/></mxCell>
+                <mxCell id="sAddF" value="فورم تسليم:&#10;اختيار الفرع + التاريخ&#10;اختيار المنتجات + الكميات&#10;=&gt; تسليم منتجات للفرع" style="whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1"><mxGeometry x="600" y="270" width="220" height="90" as="geometry"/></mxCell>
+                <mxCell id="eSAdd" style="edgeStyle=orthogonalEdgeStyle;html=1;" parent="1" source="b2" target="sAddF" edge="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+                <mxCell id="t3" value="3- سحب من المخزن" style="text;html=1;fontStyle=1;fontSize=14;align=left;" parent="1" vertex="1"><mxGeometry x="320" y="420" width="220" height="30" as="geometry"/></mxCell>
+                <mxCell id="sDrawF" value="فورم سحب:&#10;اختيار الفرع + التاريخ&#10;المنتج المسحوب + الكمية&#10;=&gt; خصم من مخزن الفرع" style="whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1"><mxGeometry x="600" y="450" width="220" height="90" as="geometry"/></mxCell>
+                <mxCell id="eSDraw" style="edgeStyle=orthogonalEdgeStyle;html=1;" parent="1" source="b3" target="sDrawF" edge="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+                <mxCell id="t4" value="4- إلغاء حجز" style="text;html=1;fontStyle=1;fontSize=14;align=left;" parent="1" vertex="1"><mxGeometry x="320" y="600" width="220" height="30" as="geometry"/></mxCell>
+                <mxCell id="cSearch" value="بحث عن الحجز:&#10;اسم الطالب /&#10;رقم الموبايل /&#10;رقم الحجز" style="whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1"><mxGeometry x="600" y="630" width="170" height="90" as="geometry"/></mxCell>
+                <mxCell id="cConfirm" value="تأكيد الإلغاء&#10;(صفحة الحجز)" style="whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" parent="1" vertex="1"><mxGeometry x="840" y="645" width="170" height="60" as="geometry"/></mxCell>
+                <mxCell id="cDone" value="إلغاء الحجز:&#10;استرداد الفلوس للطالب&#10;- خصم من عدد الكتب المحجوزة&#10;+ إرجاع الكتاب للمخزن" style="whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" parent="1" vertex="1"><mxGeometry x="1080" y="620" width="220" height="110" as="geometry"/></mxCell>
+                <mxCell id="eC1" style="edgeStyle=orthogonalEdgeStyle;html=1;" parent="1" source="b4" target="cSearch" edge="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+                <mxCell id="eC2" style="edgeStyle=orthogonalEdgeStyle;html=1;" parent="1" source="cSearch" target="cConfirm" edge="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+                <mxCell id="eC3" style="edgeStyle=orthogonalEdgeStyle;html=1;" parent="1" source="cConfirm" target="cDone" edge="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+                <mxCell id="t5" value="5- تبديل حجز" style="text;html=1;fontStyle=1;fontSize=14;align=left;" parent="1" vertex="1"><mxGeometry x="320" y="780" width="220" height="30" as="geometry"/></mxCell>
+                <mxCell id="swSearch" value="بحث عن الحجز&#10;(رقم الحجز / الموبايل)" style="whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1"><mxGeometry x="600" y="820" width="170" height="70" as="geometry"/></mxCell>
+                <mxCell id="swNewT" value="اختيار المدرس الجديد&#10;(بدل المدرس الحالي)" style="whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1"><mxGeometry x="840" y="820" width="170" height="70" as="geometry"/></mxCell>
+                <mxCell id="swDone" value="تأكيد التبديل&#10;- تحديث الحجز&#10;- تحديث مخزون الفرعين" style="whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" parent="1" vertex="1"><mxGeometry x="1080" y="820" width="200" height="80" as="geometry"/></mxCell>
+                <mxCell id="eS1" style="edgeStyle=orthogonalEdgeStyle;html=1;" parent="1" source="b5" target="swSearch" edge="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+                <mxCell id="eS2" style="edgeStyle=orthogonalEdgeStyle;html=1;" parent="1" source="swSearch" target="swNewT" edge="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+                <mxCell id="eS3" style="edgeStyle=orthogonalEdgeStyle;html=1;" parent="1" source="swNewT" target="swDone" edge="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+                <mxCell id="t6" value="6- التقارير" style="text;html=1;fontStyle=1;fontSize=14;align=left;" parent="1" vertex="1"><mxGeometry x="320" y="960" width="220" height="30" as="geometry"/></mxCell>
+                <mxCell id="r1" value="تقرير مبيعات يومي لكل فرع" style="whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="1" vertex="1"><mxGeometry x="600" y="1000" width="220" height="45" as="geometry"/></mxCell>
+                <mxCell id="r2" value="تقرير مبيعات أسبوعي لكل فرع" style="whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="1" vertex="1"><mxGeometry x="600" y="1055" width="220" height="45" as="geometry"/></mxCell>
+                <mxCell id="r3" value="تقرير مبيعات شهري لكل فرع" style="whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="1" vertex="1"><mxGeometry x="600" y="1110" width="220" height="45" as="geometry"/></mxCell>
+                <mxCell id="r4" value="تقرير بأعداد الحجوزات لكل كتاب ولكل فرع" style="whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="1" vertex="1"><mxGeometry x="600" y="1165" width="220" height="45" as="geometry"/></mxCell>
+                <mxCell id="r5" value="تقرير الكتب المتوفرة في كل فرع&#10;(محجوز / متاح للبيع المباشر)" style="whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="1" vertex="1"><mxGeometry x="600" y="1220" width="220" height="55" as="geometry"/></mxCell>
+                <mxCell id="r6" value="تقرير صافي الربح&#10;(على حركة البيع فقط - المحجوز لا يُضاف إلا عند البيع)" style="whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="1" vertex="1"><mxGeometry x="600" y="1285" width="220" height="55" as="geometry"/></mxCell>
+                <mxCell id="r7" value="تقرير عدد العملاء وتنصيفهم لكل سنة دراسية" style="whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="1" vertex="1"><mxGeometry x="600" y="1350" width="220" height="45" as="geometry"/></mxCell>
+                <mxCell id="r8" value="تقرير طلاب كل مدرس&#10;(الاسم + رقم الموبايل - يسجل مرة واحدة عند أول شراء من منتج المدرس)" style="whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="1" vertex="1"><mxGeometry x="600" y="1405" width="220" height="55" as="geometry"/></mxCell>
+                <mxCell id="eR1" style="edgeStyle=orthogonalEdgeStyle;html=1;" parent="1" source="b6" target="r1" edge="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+                <mxCell id="eR2" style="edgeStyle=orthogonalEdgeStyle;html=1;" parent="1" source="b6" target="r2" edge="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+                <mxCell id="eR3" style="edgeStyle=orthogonalEdgeStyle;html=1;" parent="1" source="b6" target="r3" edge="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+                <mxCell id="eR4" style="edgeStyle=orthogonalEdgeStyle;html=1;" parent="1" source="b6" target="r4" edge="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+                <mxCell id="eR5" style="edgeStyle=orthogonalEdgeStyle;html=1;" parent="1" source="b6" target="r5" edge="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+                <mxCell id="eR6" style="edgeStyle=orthogonalEdgeStyle;html=1;" parent="1" source="b6" target="r6" edge="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+                <mxCell id="eR7" style="edgeStyle=orthogonalEdgeStyle;html=1;" parent="1" source="b6" target="r7" edge="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+                <mxCell id="eR8" style="edgeStyle=orthogonalEdgeStyle;html=1;" parent="1" source="b6" target="r8" edge="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+                <mxCell id="excel" value="⬇ تصدير كل التقارير كملف Excel" style="whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;" parent="1" vertex="1"><mxGeometry x="900" y="1200" width="230" height="60" as="geometry"/></mxCell>
+                <mxCell id="eEx1" style="edgeStyle=orthogonalEdgeStyle;html=1;dashed=1;" parent="1" source="r1" target="excel" edge="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+                <mxCell id="eEx8" style="edgeStyle=orthogonalEdgeStyle;html=1;dashed=1;" parent="1" source="r8" target="excel" edge="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+                <mxCell id="lg1" value="Dashboard / شاشة رئيسية" style="whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" parent="1" vertex="1"><mxGeometry x="60" y="40" width="200" height="35" as="geometry"/></mxCell>
+                <mxCell id="lg2" value="فورم إدخال" style="whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1"><mxGeometry x="60" y="85" width="200" height="35" as="geometry"/></mxCell>
+                <mxCell id="lg3" value="تأكيد / عملية نهائية" style="whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" parent="1" vertex="1"><mxGeometry x="60" y="130" width="200" height="35" as="geometry"/></mxCell>
+                <mxCell id="lg4" value="تقرير" style="whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="1" vertex="1"><mxGeometry x="60" y="175" width="200" height="35" as="geometry"/></mxCell>
+                <mxCell id="lg5" value="زر تصدير Excel" style="whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" parent="1" vertex="1"><mxGeometry x="60" y="220" width="200" height="35" as="geometry"/></mxCell>
+
+
+
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>
