@@ -1,80 +1,11 @@
-<mxfile host="65bd71144e">
-    <diagram id="wfDash" name="1-Dashboard">
-        <mxGraphModel dx="800" dy="700" grid="1" gridSize="10" page="0" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+﻿<mxfile host="65bd71144e">
+    <diagram id="wfP1" name="1-اضافة منتج">
+        <mxGraphModel dx="808" dy="596" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
                 <mxCell id="frame" value="" style="whiteSpace=wrap;html=1;fillColor=#1A1A1A;strokeColor=#FFFFFF;fontColor=#FFFFFF;rounded=0;" parent="1" vertex="1">
-                    <mxGeometry x="40" y="40" width="640" height="580" as="geometry"/>
-                </mxCell>
-                <mxCell id="nav" value="" style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;rounded=0;" parent="1" vertex="1">
-                    <mxGeometry x="60" y="60" width="600" height="60" as="geometry"/>
-                </mxCell>
-                <mxCell id="logo" value="S" style="ellipse;whiteSpace=wrap;html=1;fillColor=#1A1A1A;strokeColor=#FFFFFF;fontColor=#FFFFFF;" parent="1" vertex="1">
-                    <mxGeometry x="620" y="65" width="50" height="50" as="geometry"/>
-                </mxCell>
-                <mxCell id="navTitle" value="مكتبة السنتر — لوحة التحكم" style="text;html=1;fontColor=#FFFFFF;fontSize=13;align=center;" parent="1" vertex="1">
-                    <mxGeometry x="80" y="75" width="250" height="30" as="geometry"/>
-                </mxCell>
-                <mxCell id="sb1" value="المدرسين" style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;fontColor=#FFFFFF;" parent="1" vertex="1">
-                    <mxGeometry x="60" y="150" width="140" height="40" as="geometry"/>
-                </mxCell>
-                <mxCell id="sb2" value="إضافة للمخزن" style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;fontColor=#FFFFFF;" parent="1" vertex="1">
-                    <mxGeometry x="60" y="205" width="140" height="40" as="geometry"/>
-                </mxCell>
-                <mxCell id="sb3" value="سحب من المخزن" style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;fontColor=#FFFFFF;" parent="1" vertex="1">
-                    <mxGeometry x="60" y="260" width="140" height="40" as="geometry"/>
-                </mxCell>
-                <mxCell id="sb4" value="إلغاء حجز" style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;fontColor=#FFFFFF;" parent="1" vertex="1">
-                    <mxGeometry x="60" y="315" width="140" height="40" as="geometry"/>
-                </mxCell>
-                <mxCell id="sb5" value="تبديل حجز" style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;fontColor=#FFFFFF;" parent="1" vertex="1">
-                    <mxGeometry x="60" y="370" width="140" height="40" as="geometry"/>
-                </mxCell>
-                <mxCell id="sb6" value="التقارير" style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;fontColor=#FFFFFF;" parent="1" vertex="1">
-                    <mxGeometry x="60" y="425" width="140" height="40" as="geometry"/>
-                </mxCell>
-                <mxCell id="content" value="" style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;rounded=0;" parent="1" vertex="1">
-                    <mxGeometry x="230" y="150" width="430" height="450" as="geometry"/>
-                </mxCell>
-                <mxCell id="cTitle" value="الرئيسية" style="text;html=1;fontColor=#FFFFFF;fontSize=15;fontStyle=1;align=center;" parent="1" vertex="1">
-                    <mxGeometry x="380" y="165" width="130" height="30" as="geometry"/>
-                </mxCell>
-                <mxCell id="qc1" value="المدرسين + منتج" style="whiteSpace=wrap;html=1;fillColor=#1A1A1A;strokeColor=#FFFFFF;fontColor=#FFFFFF;" parent="1" vertex="1">
-                    <mxGeometry x="250" y="210" width="180" height="80" as="geometry"/>
-                </mxCell>
-                <mxCell id="qc2" value="المخزن: تسليم / سحب" style="whiteSpace=wrap;html=1;fillColor=#1A1A1A;strokeColor=#FFFFFF;fontColor=#FFFFFF;" parent="1" vertex="1">
-                    <mxGeometry x="460" y="210" width="180" height="80" as="geometry"/>
-                </mxCell>
-                <mxCell id="qc3" value="الحجوزات: إلغاء / تبديل" style="whiteSpace=wrap;html=1;fillColor=#1A1A1A;strokeColor=#FFFFFF;fontColor=#FFFFFF;" parent="1" vertex="1">
-                    <mxGeometry x="250" y="310" width="180" height="80" as="geometry"/>
-                </mxCell>
-                <mxCell id="qc4" value="التقارير + Excel" style="whiteSpace=wrap;html=1;fillColor=#1A1A1A;strokeColor=#FFFFFF;fontColor=#FFFFFF;" parent="1" vertex="1">
-                    <mxGeometry x="460" y="310" width="180" height="80" as="geometry"/>
-                </mxCell>
-                <mxCell id="stat1" value="مبيعات اليوم: 0" style="whiteSpace=wrap;html=1;fillColor=#1A1A1A;strokeColor=#FFFFFF;fontColor=#FFFFFF;" parent="1" vertex="1">
-                    <mxGeometry x="250" y="420" width="180" height="60" as="geometry"/>
-                </mxCell>
-                <mxCell id="stat2" value="صافي الربح: 0" style="whiteSpace=wrap;html=1;fillColor=#1A1A1A;strokeColor=#FFFFFF;fontColor=#FFFFFF;" parent="1" vertex="1">
-                    <mxGeometry x="460" y="420" width="180" height="60" as="geometry"/>
-                </mxCell>
-                <mxCell id="stat3" value="حجوزات قيد الانتظار: 0" style="whiteSpace=wrap;html=1;fillColor=#1A1A1A;strokeColor=#FFFFFF;fontColor=#FFFFFF;" parent="1" vertex="1">
-                    <mxGeometry x="350" y="500" width="190" height="60" as="geometry"/>
-                </mxCell>
-                <mxCell id="note" value="Wireframe — شاشة الرئيسية (Dashboard)" style="text;html=1;fontColor=#999999;fontSize=11;align=left;" parent="1" vertex="1">
-                    <mxGeometry x="60" y="630" width="400" height="20" as="geometry"/>
-                </mxCell>
-            </root>
-        </mxGraphModel>
-    </diagram>
-
-    <diagram id="wfTeachers" name="2-المدرسين">
-        <mxGraphModel dx="800" dy="700" grid="1" gridSize="10" page="0" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
-            <root>
-                <mxCell id="0"/>
-                <mxCell id="1" parent="0"/>
-                <mxCell id="frame" value="" style="whiteSpace=wrap;html=1;fillColor=#1A1A1A;strokeColor=#FFFFFF;fontColor=#FFFFFF;rounded=0;" parent="1" vertex="1">
-                    <mxGeometry x="40" y="40" width="640" height="700" as="geometry"/>
+                    <mxGeometry x="40" y="40" width="640" height="640" as="geometry"/>
                 </mxCell>
                 <mxCell id="nav" value="" style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;rounded=0;" parent="1" vertex="1">
                     <mxGeometry x="60" y="60" width="600" height="60" as="geometry"/>
@@ -85,74 +16,61 @@
                 <mxCell id="navTitle" value="مكتبة السنتر" style="text;html=1;fontColor=#FFFFFF;fontSize=13;align=center;" parent="1" vertex="1">
                     <mxGeometry x="80" y="75" width="250" height="30" as="geometry"/>
                 </mxCell>
-                <mxCell id="sb1" value="المدرسين (محدد)" style="whiteSpace=wrap;html=1;fillColor=#333333;strokeColor=#FFFFFF;fontColor=#FFFFFF;" parent="1" vertex="1">
+                <mxCell id="s1" value="اضافة منتج" style="whiteSpace=wrap;html=1;fillColor=#333333;strokeColor=#FFFFFF;fontColor=#FFFFFF;" parent="1" vertex="1">
                     <mxGeometry x="60" y="150" width="140" height="40" as="geometry"/>
                 </mxCell>
-                <mxCell id="sb2" value="إضافة للمخزن" style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;fontColor=#FFFFFF;" parent="1" vertex="1">
+                <mxCell id="s2" value="اضافة للمخزن" style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;fontColor=#FFFFFF;" parent="1" vertex="1">
                     <mxGeometry x="60" y="205" width="140" height="40" as="geometry"/>
                 </mxCell>
-                <mxCell id="sb3" value="سحب من المخزن" style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;fontColor=#FFFFFF;" parent="1" vertex="1">
+                <mxCell id="s3" value="سحب من المخزن" style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;fontColor=#FFFFFF;" parent="1" vertex="1">
                     <mxGeometry x="60" y="260" width="140" height="40" as="geometry"/>
                 </mxCell>
-                <mxCell id="sb4" value="إلغاء حجز" style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;fontColor=#FFFFFF;" parent="1" vertex="1">
+                <mxCell id="s4" value="الغاء حجز" style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;fontColor=#FFFFFF;" parent="1" vertex="1">
                     <mxGeometry x="60" y="315" width="140" height="40" as="geometry"/>
                 </mxCell>
-                <mxCell id="sb5" value="تبديل حجز" style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;fontColor=#FFFFFF;" parent="1" vertex="1">
+                <mxCell id="s5" value="تبديل حجز" style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;fontColor=#FFFFFF;" parent="1" vertex="1">
                     <mxGeometry x="60" y="370" width="140" height="40" as="geometry"/>
                 </mxCell>
-                <mxCell id="sb6" value="التقارير" style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;fontColor=#FFFFFF;" parent="1" vertex="1">
+                <mxCell id="s6" value="تقارير" style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;fontColor=#FFFFFF;" parent="1" vertex="1">
                     <mxGeometry x="60" y="425" width="140" height="40" as="geometry"/>
                 </mxCell>
                 <mxCell id="content" value="" style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;rounded=0;" parent="1" vertex="1">
-                    <mxGeometry x="230" y="150" width="430" height="570" as="geometry"/>
+                    <mxGeometry x="230" y="150" width="430" height="500" as="geometry"/>
                 </mxCell>
-                <mxCell id="cTitle" value="المدرسين" style="text;html=1;fontColor=#FFFFFF;fontSize=15;fontStyle=1;align=center;" parent="1" vertex="1">
+                <mxCell id="cTitle" value="اضافة منتج" style="text;html=1;fontColor=#FFFFFF;fontSize=15;fontStyle=1;align=center;" parent="1" vertex="1">
                     <mxGeometry x="380" y="165" width="130" height="30" as="geometry"/>
                 </mxCell>
-                <mxCell id="tabT" value="إضافة مدرس" style="whiteSpace=wrap;html=1;fillColor=#333333;strokeColor=#FFFFFF;fontColor=#FFFFFF;" parent="1" vertex="1">
-                    <mxGeometry x="250" y="210" width="190" height="40" as="geometry"/>
+                <mxCell id="ddT" value="اختر المدرس ▾" style="whiteSpace=wrap;html=1;fillColor=#1A1A1A;strokeColor=#FFFFFF;fontColor=#FFFFFF;align=right;" parent="1" vertex="1">
+                    <mxGeometry x="250" y="210" width="290" height="40" as="geometry"/>
                 </mxCell>
-                <mxCell id="tabP" value="إضافة منتج" style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;fontColor=#FFFFFF;" parent="1" vertex="1">
-                    <mxGeometry x="460" y="210" width="180" height="40" as="geometry"/>
+                <mxCell id="addT" value="+ إضافة مدرس" style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;fontColor=#FFFFFF;" parent="1" vertex="1">
+                    <mxGeometry x="550" y="210" width="90" height="40" as="geometry"/>
                 </mxCell>
-                <mxCell id="fName" value="اسم المدرس: ________" style="whiteSpace=wrap;html=1;fillColor=#1A1A1A;strokeColor=#FFFFFF;fontColor=#FFFFFF;align=right;" parent="1" vertex="1">
+                <mxCell id="inProd" value="اسم المنتج (كتاب جديد / محاضرة نزلة): ________" style="whiteSpace=wrap;html=1;fillColor=#1A1A1A;strokeColor=#FFFFFF;fontColor=#FFFFFF;align=right;" parent="1" vertex="1">
                     <mxGeometry x="250" y="270" width="390" height="40" as="geometry"/>
                 </mxCell>
-                <mxCell id="fPhone" value="رقم الموبايل: ________" style="whiteSpace=wrap;html=1;fillColor=#1A1A1A;strokeColor=#FFFFFF;fontColor=#FFFFFF;align=right;" parent="1" vertex="1">
-                    <mxGeometry x="250" y="325" width="390" height="40" as="geometry"/>
+                <mxCell id="inW" value="سعر الجملة: ________" style="whiteSpace=wrap;html=1;fillColor=#1A1A1A;strokeColor=#FFFFFF;fontColor=#FFFFFF;align=right;" parent="1" vertex="1">
+                    <mxGeometry x="250" y="325" width="185" height="40" as="geometry"/>
                 </mxCell>
-                <mxCell id="fProd" value="المنتج (كتاب جديد / محاضرة نزلة): ________" style="whiteSpace=wrap;html=1;fillColor=#1A1A1A;strokeColor=#FFFFFF;fontColor=#FFFFFF;align=right;" parent="1" vertex="1">
-                    <mxGeometry x="250" y="380" width="390" height="40" as="geometry"/>
+                <mxCell id="inS" value="سعر البيع: ________" style="whiteSpace=wrap;html=1;fillColor=#1A1A1A;strokeColor=#FFFFFF;fontColor=#FFFFFF;align=right;" parent="1" vertex="1">
+                    <mxGeometry x="455" y="325" width="185" height="40" as="geometry"/>
                 </mxCell>
-                <mxCell id="fW" value="سعر الجملة: ________" style="whiteSpace=wrap;html=1;fillColor=#1A1A1A;strokeColor=#FFFFFF;fontColor=#FFFFFF;align=right;" parent="1" vertex="1">
-                    <mxGeometry x="250" y="435" width="185" height="40" as="geometry"/>
+                <mxCell id="save" value="حفظ المنتج" style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;fontColor=#FFFFFF;" parent="1" vertex="1">
+                    <mxGeometry x="380" y="400" width="150" height="45" as="geometry"/>
                 </mxCell>
-                <mxCell id="fS" value="سعر البيع: ________" style="whiteSpace=wrap;html=1;fillColor=#1A1A1A;strokeColor=#FFFFFF;fontColor=#FFFFFF;align=right;" parent="1" vertex="1">
-                    <mxGeometry x="455" y="435" width="185" height="40" as="geometry"/>
+                <mxCell id="note" value="Wireframe — اضافة منتج (اختيار/إضافة مدرس ثم المنتج بأسعاره)" style="text;html=1;fontColor=#999999;fontSize=11;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="60" y="690" width="450" height="20" as="geometry"/>
                 </mxCell>
-                <mxCell id="fProfit" value="صافي الربح (يحسبه الموقع تلقائياً من المبيعات)" style="whiteSpace=wrap;html=1;fillColor=#2A2A2A;strokeColor=#888888;fontColor=#AAAAAA;dashed=1;align=right;" parent="1" vertex="1">
-                    <mxGeometry x="250" y="490" width="390" height="40" as="geometry"/>
-                </mxCell>
-                <mxCell id="saveBtn" value="حفظ" style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;fontColor=#FFFFFF;" parent="1" vertex="1">
-                    <mxGeometry x="490" y="555" width="150" height="45" as="geometry"/>
-                </mxCell>
-                <mxCell id="listBtn" value="قائمة المدرسين والمنتجات" style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;fontColor=#FFFFFF;" parent="1" vertex="1">
-                    <mxGeometry x="250" y="555" width="220" height="45" as="geometry"/>
-                </mxCell>
-                <mxCell id="note" value="Wireframe — شاشة المدرسين: إضافة مدرس / إضافة منتج" style="text;html=1;fontColor=#999999;fontSize=11;align=left;" parent="1" vertex="1">
-                    <mxGeometry x="60" y="750" width="400" height="20" as="geometry"/>
-                </mxCell>
-
             </root>
         </mxGraphModel>
     </diagram>
-    <diagram id="wfStock" name="3-المخزن">
-        <mxGraphModel dx="800" dy="700" grid="1" gridSize="10" page="0" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+    <diagram id="wfP2" name="2-اضافة للمخزن">
+        <mxGraphModel dx="808" dy="596" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
                 <mxCell id="frame" value="" style="whiteSpace=wrap;html=1;fillColor=#1A1A1A;strokeColor=#FFFFFF;fontColor=#FFFFFF;rounded=0;" parent="1" vertex="1">
-                    <mxGeometry x="40" y="40" width="640" height="700" as="geometry"/>
+                    <mxGeometry x="40" y="40" width="640" height="640" as="geometry"/>
                 </mxCell>
                 <mxCell id="nav" value="" style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;rounded=0;" parent="1" vertex="1">
                     <mxGeometry x="60" y="60" width="600" height="60" as="geometry"/>
@@ -163,68 +81,61 @@
                 <mxCell id="navTitle" value="مكتبة السنتر" style="text;html=1;fontColor=#FFFFFF;fontSize=13;align=center;" parent="1" vertex="1">
                     <mxGeometry x="80" y="75" width="250" height="30" as="geometry"/>
                 </mxCell>
-                <mxCell id="sb1" value="المدرسين" style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;fontColor=#FFFFFF;" parent="1" vertex="1">
+                <mxCell id="s1" value="اضافة منتج" style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;fontColor=#FFFFFF;" parent="1" vertex="1">
                     <mxGeometry x="60" y="150" width="140" height="40" as="geometry"/>
                 </mxCell>
-                <mxCell id="sb2" value="تسليم للفرع (محدد)" style="whiteSpace=wrap;html=1;fillColor=#333333;strokeColor=#FFFFFF;fontColor=#FFFFFF;" parent="1" vertex="1">
+                <mxCell id="s2" value="اضافة للمخزن" style="whiteSpace=wrap;html=1;fillColor=#333333;strokeColor=#FFFFFF;fontColor=#FFFFFF;" parent="1" vertex="1">
                     <mxGeometry x="60" y="205" width="140" height="40" as="geometry"/>
                 </mxCell>
-                <mxCell id="sb3" value="سحب من المخزن" style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;fontColor=#FFFFFF;" parent="1" vertex="1">
+                <mxCell id="s3" value="سحب من المخزن" style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;fontColor=#FFFFFF;" parent="1" vertex="1">
                     <mxGeometry x="60" y="260" width="140" height="40" as="geometry"/>
                 </mxCell>
-                <mxCell id="sb4" value="إلغاء حجز" style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;fontColor=#FFFFFF;" parent="1" vertex="1">
+                <mxCell id="s4" value="الغاء حجز" style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;fontColor=#FFFFFF;" parent="1" vertex="1">
                     <mxGeometry x="60" y="315" width="140" height="40" as="geometry"/>
                 </mxCell>
-                <mxCell id="sb5" value="تبديل حجز" style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;fontColor=#FFFFFF;" parent="1" vertex="1">
+                <mxCell id="s5" value="تبديل حجز" style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;fontColor=#FFFFFF;" parent="1" vertex="1">
                     <mxGeometry x="60" y="370" width="140" height="40" as="geometry"/>
                 </mxCell>
-                <mxCell id="sb6" value="التقارير" style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;fontColor=#FFFFFF;" parent="1" vertex="1">
+                <mxCell id="s6" value="تقارير" style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;fontColor=#FFFFFF;" parent="1" vertex="1">
                     <mxGeometry x="60" y="425" width="140" height="40" as="geometry"/>
                 </mxCell>
                 <mxCell id="content" value="" style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;rounded=0;" parent="1" vertex="1">
-                    <mxGeometry x="230" y="150" width="430" height="570" as="geometry"/>
+                    <mxGeometry x="230" y="150" width="430" height="500" as="geometry"/>
                 </mxCell>
-                <mxCell id="cTitle" value="حركة المخزن" style="text;html=1;fontColor=#FFFFFF;fontSize=15;fontStyle=1;align=center;" parent="1" vertex="1">
+                <mxCell id="cTitle" value="اضافة للمخزن" style="text;html=1;fontColor=#FFFFFF;fontSize=15;fontStyle=1;align=center;" parent="1" vertex="1">
                     <mxGeometry x="380" y="165" width="130" height="30" as="geometry"/>
                 </mxCell>
-                <mxCell id="tabIn" value="تسليم للفرع (إضافة)" style="whiteSpace=wrap;html=1;fillColor=#333333;strokeColor=#FFFFFF;fontColor=#FFFFFF;" parent="1" vertex="1">
-                    <mxGeometry x="250" y="210" width="190" height="40" as="geometry"/>
+                <mxCell id="ddB" value="الفرع: اختار الفرع ▾" style="whiteSpace=wrap;html=1;fillColor=#1A1A1A;strokeColor=#FFFFFF;fontColor=#FFFFFF;align=right;" parent="1" vertex="1">
+                    <mxGeometry x="250" y="210" width="390" height="40" as="geometry"/>
                 </mxCell>
-                <mxCell id="tabOut" value="سحب من الفرع" style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;fontColor=#FFFFFF;" parent="1" vertex="1">
-                    <mxGeometry x="460" y="210" width="180" height="40" as="geometry"/>
+                <mxCell id="inDate" value="التاريخ: انهارده" style="whiteSpace=wrap;html=1;fillColor=#1A1A1A;strokeColor=#FFFFFF;fontColor=#FFFFFF;align=right;" parent="1" vertex="1">
+                    <mxGeometry x="250" y="265" width="390" height="40" as="geometry"/>
                 </mxCell>
-                <mxCell id="fBranch" value="الفرع: [ dropdown اختار الفرع ] ▾" style="whiteSpace=wrap;html=1;fillColor=#1A1A1A;strokeColor=#FFFFFF;fontColor=#FFFFFF;align=right;" parent="1" vertex="1">
-                    <mxGeometry x="250" y="270" width="390" height="40" as="geometry"/>
+                <mxCell id="ddP" value="المنتج: اختار المنتج ▾" style="whiteSpace=wrap;html=1;fillColor=#1A1A1A;strokeColor=#FFFFFF;fontColor=#FFFFFF;align=right;" parent="1" vertex="1">
+                    <mxGeometry x="250" y="320" width="290" height="40" as="geometry"/>
                 </mxCell>
-                <mxCell id="fDate" value="التاريخ: انهارده / اختار تاريخ" style="whiteSpace=wrap;html=1;fillColor=#1A1A1A;strokeColor=#FFFFFF;fontColor=#FFFFFF;align=right;" parent="1" vertex="1">
-                    <mxGeometry x="250" y="325" width="390" height="40" as="geometry"/>
+                <mxCell id="inQty" value="الكمية: ___" style="whiteSpace=wrap;html=1;fillColor=#1A1A1A;strokeColor=#FFFFFF;fontColor=#FFFFFF;align=right;" parent="1" vertex="1">
+                    <mxGeometry x="550" y="320" width="90" height="40" as="geometry"/>
                 </mxCell>
-                <mxCell id="fProd" value="المنتج: [ dropdown ] ▾" style="whiteSpace=wrap;html=1;fillColor=#1A1A1A;strokeColor=#FFFFFF;fontColor=#FFFFFF;align=right;" parent="1" vertex="1">
-                    <mxGeometry x="250" y="380" width="390" height="40" as="geometry"/>
+                <mxCell id="tbl" value="| المنتج | الكمية المُسلّمة |&#xa;| كتاب X | 10 |" style="whiteSpace=wrap;html=1;fillColor=#1A1A1A;strokeColor=#888888;fontColor=#FFFFFF;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="250" y="380" width="390" height="60" as="geometry"/>
                 </mxCell>
-                <mxCell id="fQty" value="الكمية: ________" style="whiteSpace=wrap;html=1;fillColor=#1A1A1A;strokeColor=#FFFFFF;fontColor=#FFFFFF;align=right;" parent="1" vertex="1">
-                    <mxGeometry x="250" y="435" width="390" height="40" as="geometry"/>
+                <mxCell id="save" value="تسليم المنتجات للفرع" style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;fontColor=#FFFFFF;" parent="1" vertex="1">
+                    <mxGeometry x="370" y="465" width="170" height="45" as="geometry"/>
                 </mxCell>
-                <mxCell id="tbl" value="| المنتج | الكمية | المتاح بالفرع |&#10;| كتاب 1 | 5 | 20 |" style="whiteSpace=wrap;html=1;fillColor=#1A1A1A;strokeColor=#888888;fontColor=#FFFFFF;align=left;" parent="1" vertex="1">
-                    <mxGeometry x="250" y="490" width="390" height="60" as="geometry"/>
+                <mxCell id="note" value="Wireframe — اضافة للمخزن (انك هتسلم الفرع منتجات)" style="text;html=1;fontColor=#999999;fontSize=11;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="60" y="690" width="450" height="20" as="geometry"/>
                 </mxCell>
-                <mxCell id="saveBtn" value="تأكيد الحركة" style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;fontColor=#FFFFFF;" parent="1" vertex="1">
-                    <mxGeometry x="490" y="570" width="150" height="45" as="geometry"/>
-                </mxCell>
-                <mxCell id="note" value="Wireframe — شاشة المخزن: تسليم للفرع / سحب" style="text;html=1;fontColor=#999999;fontSize=11;align=left;" parent="1" vertex="1">
-                    <mxGeometry x="60" y="750" width="400" height="20" as="geometry"/>
-                </mxCell>
-
             </root>
         </mxGraphModel>
     </diagram>
-    <diagram id="wfReserve" name="4-الحجوزات">
-        <mxGraphModel dx="800" dy="700" grid="1" gridSize="10" page="0" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+    <diagram id="wfP3" name="3-سحب من المخزن">
+        <mxGraphModel dx="808" dy="596" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
                 <mxCell id="frame" value="" style="whiteSpace=wrap;html=1;fillColor=#1A1A1A;strokeColor=#FFFFFF;fontColor=#FFFFFF;rounded=0;" parent="1" vertex="1">
-                    <mxGeometry x="40" y="40" width="640" height="700" as="geometry"/>
+                    <mxGeometry x="40" y="40" width="640" height="640" as="geometry"/>
                 </mxCell>
                 <mxCell id="nav" value="" style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;rounded=0;" parent="1" vertex="1">
                     <mxGeometry x="60" y="60" width="600" height="60" as="geometry"/>
@@ -235,71 +146,120 @@
                 <mxCell id="navTitle" value="مكتبة السنتر" style="text;html=1;fontColor=#FFFFFF;fontSize=13;align=center;" parent="1" vertex="1">
                     <mxGeometry x="80" y="75" width="250" height="30" as="geometry"/>
                 </mxCell>
-                <mxCell id="sb1" value="المدرسين" style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;fontColor=#FFFFFF;" parent="1" vertex="1">
+                <mxCell id="s1" value="اضافة منتج" style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;fontColor=#FFFFFF;" parent="1" vertex="1">
                     <mxGeometry x="60" y="150" width="140" height="40" as="geometry"/>
                 </mxCell>
-                <mxCell id="sb2" value="إضافة للمخزن" style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;fontColor=#FFFFFF;" parent="1" vertex="1">
+                <mxCell id="s2" value="اضافة للمخزن" style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;fontColor=#FFFFFF;" parent="1" vertex="1">
                     <mxGeometry x="60" y="205" width="140" height="40" as="geometry"/>
                 </mxCell>
-                <mxCell id="sb3" value="سحب من المخزن" style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;fontColor=#FFFFFF;" parent="1" vertex="1">
+                <mxCell id="s3" value="سحب من المخزن" style="whiteSpace=wrap;html=1;fillColor=#333333;strokeColor=#FFFFFF;fontColor=#FFFFFF;" parent="1" vertex="1">
                     <mxGeometry x="60" y="260" width="140" height="40" as="geometry"/>
                 </mxCell>
-                <mxCell id="sb4" value="إلغاء / تبديل حجز" style="whiteSpace=wrap;html=1;fillColor=#333333;strokeColor=#FFFFFF;fontColor=#FFFFFF;" parent="1" vertex="1">
+                <mxCell id="s4" value="الغاء حجز" style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;fontColor=#FFFFFF;" parent="1" vertex="1">
                     <mxGeometry x="60" y="315" width="140" height="40" as="geometry"/>
                 </mxCell>
-                <mxCell id="sb5" value=" " style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;fontColor=#FFFFFF;" parent="1" vertex="1">
+                <mxCell id="s5" value="تبديل حجز" style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;fontColor=#FFFFFF;" parent="1" vertex="1">
                     <mxGeometry x="60" y="370" width="140" height="40" as="geometry"/>
                 </mxCell>
-                <mxCell id="sb6" value="التقارير" style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;fontColor=#FFFFFF;" parent="1" vertex="1">
+                <mxCell id="s6" value="تقارير" style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;fontColor=#FFFFFF;" parent="1" vertex="1">
                     <mxGeometry x="60" y="425" width="140" height="40" as="geometry"/>
                 </mxCell>
                 <mxCell id="content" value="" style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;rounded=0;" parent="1" vertex="1">
-                    <mxGeometry x="230" y="150" width="430" height="570" as="geometry"/>
+                    <mxGeometry x="230" y="150" width="430" height="500" as="geometry"/>
                 </mxCell>
-                <mxCell id="cTitle" value="الحجوزات" style="text;html=1;fontColor=#FFFFFF;fontSize=15;fontStyle=1;align=center;" parent="1" vertex="1">
+                <mxCell id="cTitle" value="سحب من المخزن" style="text;html=1;fontColor=#FFFFFF;fontSize=15;fontStyle=1;align=center;" parent="1" vertex="1">
                     <mxGeometry x="380" y="165" width="130" height="30" as="geometry"/>
                 </mxCell>
-                <mxCell id="tabC" value="إلغاء حجز" style="whiteSpace=wrap;html=1;fillColor=#333333;strokeColor=#FFFFFF;fontColor=#FFFFFF;" parent="1" vertex="1">
-                    <mxGeometry x="250" y="210" width="190" height="40" as="geometry"/>
+                <mxCell id="ddB" value="الفرع: اختار الفرع ▾" style="whiteSpace=wrap;html=1;fillColor=#1A1A1A;strokeColor=#FFFFFF;fontColor=#FFFFFF;align=right;" parent="1" vertex="1">
+                    <mxGeometry x="250" y="210" width="390" height="40" as="geometry"/>
                 </mxCell>
-                <mxCell id="tabS" value="تبديل حجز (مدرس بمدرس)" style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;fontColor=#FFFFFF;" parent="1" vertex="1">
-                    <mxGeometry x="460" y="210" width="180" height="40" as="geometry"/>
+                <mxCell id="inDate" value="التاريخ: انهارده" style="whiteSpace=wrap;html=1;fillColor=#1A1A1A;strokeColor=#FFFFFF;fontColor=#FFFFFF;align=right;" parent="1" vertex="1">
+                    <mxGeometry x="250" y="265" width="390" height="40" as="geometry"/>
                 </mxCell>
-                <mxCell id="search" value="بحث: اسم الطالب / رقم الموبايل / رقم الحجز" style="whiteSpace=wrap;html=1;fillColor=#1A1A1A;strokeColor=#FFFFFF;fontColor=#FFFFFF;align=right;" parent="1" vertex="1">
-                    <mxGeometry x="250" y="270" width="300" height="40" as="geometry"/>
+                <mxCell id="ddP" value="سحبت ايه: اختار المنتج ▾" style="whiteSpace=wrap;html=1;fillColor=#1A1A1A;strokeColor=#FFFFFF;fontColor=#FFFFFF;align=right;" parent="1" vertex="1">
+                    <mxGeometry x="250" y="320" width="290" height="40" as="geometry"/>
                 </mxCell>
-                <mxCell id="searchBtn" value="🔍" style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;fontColor=#FFFFFF;" parent="1" vertex="1">
-                    <mxGeometry x="565" y="270" width="75" height="40" as="geometry"/>
+                <mxCell id="inQty" value="الكمية: ___" style="whiteSpace=wrap;html=1;fillColor=#1A1A1A;strokeColor=#FFFFFF;fontColor=#FFFFFF;align=right;" parent="1" vertex="1">
+                    <mxGeometry x="550" y="320" width="90" height="40" as="geometry"/>
                 </mxCell>
-                <mxCell id="res1" value="طالب: أحمد محمد | حجز #1024 | مدرس: X | فرع: Y | مبلغ: 500" style="whiteSpace=wrap;html=1;fillColor=#1A1A1A;strokeColor=#FFFFFF;fontColor=#FFFFFF;align=right;" parent="1" vertex="1">
-                    <mxGeometry x="250" y="330" width="390" height="50" as="geometry"/>
+                <mxCell id="avail" value="المتاح بالمخزن حالياً: 20" style="whiteSpace=wrap;html=1;fillColor=#2A2A2A;strokeColor=#888888;fontColor=#AAAAAA;dashed=1;align=right;" parent="1" vertex="1">
+                    <mxGeometry x="250" y="380" width="390" height="40" as="geometry"/>
                 </mxCell>
-                <mxCell id="cancelBtn" value="إلغاء الحجز&#10;(استرداد + خصم من المحجوز)" style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;fontColor=#FFFFFF;" parent="1" vertex="1">
-                    <mxGeometry x="250" y="400" width="185" height="60" as="geometry"/>
+                <mxCell id="save" value="تأكيد السحب" style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;fontColor=#FFFFFF;" parent="1" vertex="1">
+                    <mxGeometry x="360" y="450" width="170" height="45" as="geometry"/>
                 </mxCell>
-                <mxCell id="swapBtn" value="تبديل المدرس ▾" style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;fontColor=#FFFFFF;" parent="1" vertex="1">
-                    <mxGeometry x="455" y="400" width="185" height="60" as="geometry"/>
+                <mxCell id="note" value="Wireframe — سحب من المخزن (خصم من مخزن الفرع)" style="text;html=1;fontColor=#999999;fontSize=11;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="60" y="690" width="450" height="20" as="geometry"/>
                 </mxCell>
-                <mxCell id="confirmBox" value="تأكيد العملية؟&#10;- إلغاء: يرجع الفلوس للطالب + الكتاب يرجع متاح للبيع&#10;- تبديل: يتحدث الحجز + مخزون الفرعين" style="whiteSpace=wrap;html=1;fillColor=#2A2A2A;strokeColor=#888888;fontColor=#AAAAAA;dashed=1;align=right;" parent="1" vertex="1">
-                    <mxGeometry x="250" y="480" width="390" height="70" as="geometry"/>
-                </mxCell>
-                <mxCell id="confirmBtn" value="تأكيد" style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;fontColor=#FFFFFF;" parent="1" vertex="1">
-                    <mxGeometry x="490" y="570" width="150" height="45" as="geometry"/>
-                </mxCell>
-                <mxCell id="note" value="Wireframe — شاشة الحجوزات: إلغاء / تبديل" style="text;html=1;fontColor=#999999;fontSize=11;align=left;" parent="1" vertex="1">
-                    <mxGeometry x="60" y="750" width="400" height="20" as="geometry"/>
-                </mxCell>
-
             </root>
         </mxGraphModel>
     </diagram>
-    <diagram id="wfReports" name="5-التقارير">
-        <mxGraphModel dx="800" dy="700" grid="1" gridSize="10" page="0" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+    <diagram id="wfP4" name="4-الغاء حجز">
+        <mxGraphModel dx="808" dy="596" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
                 <mxCell id="frame" value="" style="whiteSpace=wrap;html=1;fillColor=#1A1A1A;strokeColor=#FFFFFF;fontColor=#FFFFFF;rounded=0;" parent="1" vertex="1">
-                    <mxGeometry x="40" y="40" width="640" height="760" as="geometry"/>
+                    <mxGeometry x="40" y="40" width="640" height="640" as="geometry"/>
+                </mxCell>
+                <mxCell id="nav" value="" style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;rounded=0;" parent="1" vertex="1">
+                    <mxGeometry x="60" y="60" width="600" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="logo" value="S" style="ellipse;whiteSpace=wrap;html=1;fillColor=#1A1A1A;strokeColor=#FFFFFF;fontColor=#FFFFFF;" parent="1" vertex="1">
+                    <mxGeometry x="600" y="65" width="50" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="navTitle" value="مكتبة السنتر" style="text;html=1;fontColor=#FFFFFF;fontSize=13;align=center;" parent="1" vertex="1">
+                    <mxGeometry x="80" y="75" width="250" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="s1" value="اضافة منتج" style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;fontColor=#FFFFFF;" parent="1" vertex="1">
+                    <mxGeometry x="60" y="150" width="140" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="s2" value="اضافة للمخزن" style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;fontColor=#FFFFFF;" parent="1" vertex="1">
+                    <mxGeometry x="60" y="205" width="140" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="s3" value="سحب من المخزن" style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;fontColor=#FFFFFF;" parent="1" vertex="1">
+                    <mxGeometry x="60" y="260" width="140" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="s4" value="الغاء حجز" style="whiteSpace=wrap;html=1;fillColor=#333333;strokeColor=#FFFFFF;fontColor=#FFFFFF;" parent="1" vertex="1">
+                    <mxGeometry x="60" y="315" width="140" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="s5" value="تبديل حجز" style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;fontColor=#FFFFFF;" parent="1" vertex="1">
+                    <mxGeometry x="60" y="370" width="140" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="s6" value="تقارير" style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;fontColor=#FFFFFF;" parent="1" vertex="1">
+                    <mxGeometry x="60" y="425" width="140" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="content" value="" style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;rounded=0;" parent="1" vertex="1">
+                    <mxGeometry x="230" y="150" width="430" height="500" as="geometry"/>
+                </mxCell>
+                <mxCell id="cTitle" value="الغاء حجز" style="text;html=1;fontColor=#FFFFFF;fontSize=15;fontStyle=1;align=center;" parent="1" vertex="1">
+                    <mxGeometry x="380" y="165" width="130" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="search" value="&lt;span style=&quot;color: rgb(18, 18, 18); text-align: center;&quot;&gt;🔍&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp;&lt;/span&gt;بحث: اسم الطالب / رقم الموبايل / رقم الحجز" style="whiteSpace=wrap;html=1;fillColor=#1A1A1A;strokeColor=#FFFFFF;fontColor=#FFFFFF;align=right;" parent="1" vertex="1">
+                    <mxGeometry x="250" y="210" width="390" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="res" value="حجز #1024 | طالب: أحمد محمد | كتاب: Y | فرع: Z | مبلغ: 500" style="whiteSpace=wrap;html=1;fillColor=#1A1A1A;strokeColor=#FFFFFF;fontColor=#FFFFFF;align=right;" parent="1" vertex="1">
+                    <mxGeometry x="250" y="270" width="390" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="effect" value="عند الإلغاء:&#xa;- يرجع الفلوس للطالب&#xa;- يتخصم من عدد الكتب المحجوزة&#xa;- الكتاب يرجع متاح للبيع المباشر" style="whiteSpace=wrap;html=1;fillColor=#2A2A2A;strokeColor=#888888;fontColor=#AAAAAA;dashed=1;align=right;" parent="1" vertex="1">
+                    <mxGeometry x="250" y="340" width="390" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="cancelBtn" value="تأكيد الغاء الحجز" style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;fontColor=#FFFFFF;" parent="1" vertex="1">
+                    <mxGeometry x="350" y="440" width="170" height="45" as="geometry"/>
+                </mxCell>
+                <mxCell id="note" value="Wireframe — الغاء حجز (فرع معين + استرداد)" style="text;html=1;fontColor=#999999;fontSize=11;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="60" y="690" width="450" height="20" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+    <diagram id="wfP5" name="5-تبديل حجز">
+        <mxGraphModel dx="808" dy="596" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="frame" value="" style="whiteSpace=wrap;html=1;fillColor=#1A1A1A;strokeColor=#FFFFFF;fontColor=#FFFFFF;rounded=0;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="40" width="640" height="640" as="geometry"/>
                 </mxCell>
                 <mxCell id="nav" value="" style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;rounded=0;" parent="1" vertex="1">
                     <mxGeometry x="60" y="60" width="600" height="60" as="geometry"/>
@@ -310,64 +270,122 @@
                 <mxCell id="navTitle" value="مكتبة السنتر" style="text;html=1;fontColor=#FFFFFF;fontSize=13;align=center;" parent="1" vertex="1">
                     <mxGeometry x="80" y="75" width="250" height="30" as="geometry"/>
                 </mxCell>
-                <mxCell id="sb1" value="المدرسين" style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;fontColor=#FFFFFF;" parent="1" vertex="1">
+                <mxCell id="s1" value="اضافة منتج" style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;fontColor=#FFFFFF;" parent="1" vertex="1">
                     <mxGeometry x="60" y="150" width="140" height="40" as="geometry"/>
                 </mxCell>
-                <mxCell id="sb2" value="إضافة للمخزن" style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;fontColor=#FFFFFF;" parent="1" vertex="1">
+                <mxCell id="s2" value="اضافة للمخزن" style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;fontColor=#FFFFFF;" parent="1" vertex="1">
                     <mxGeometry x="60" y="205" width="140" height="40" as="geometry"/>
                 </mxCell>
-                <mxCell id="sb3" value="سحب من المخزن" style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;fontColor=#FFFFFF;" parent="1" vertex="1">
+                <mxCell id="s3" value="سحب من المخزن" style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;fontColor=#FFFFFF;" parent="1" vertex="1">
                     <mxGeometry x="60" y="260" width="140" height="40" as="geometry"/>
                 </mxCell>
-                <mxCell id="sb4" value="إلغاء / تبديل حجز" style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;fontColor=#FFFFFF;" parent="1" vertex="1">
+                <mxCell id="s4" value="الغاء حجز" style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;fontColor=#FFFFFF;" parent="1" vertex="1">
                     <mxGeometry x="60" y="315" width="140" height="40" as="geometry"/>
                 </mxCell>
-                <mxCell id="sb5" value=" " style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;fontColor=#FFFFFF;" parent="1" vertex="1">
+                <mxCell id="s5" value="تبديل حجز" style="whiteSpace=wrap;html=1;fillColor=#333333;strokeColor=#FFFFFF;fontColor=#FFFFFF;" parent="1" vertex="1">
                     <mxGeometry x="60" y="370" width="140" height="40" as="geometry"/>
                 </mxCell>
-                <mxCell id="sb6" value="التقارير (محدد)" style="whiteSpace=wrap;html=1;fillColor=#333333;strokeColor=#FFFFFF;fontColor=#FFFFFF;" parent="1" vertex="1">
+                <mxCell id="s6" value="تقارير" style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;fontColor=#FFFFFF;" parent="1" vertex="1">
                     <mxGeometry x="60" y="425" width="140" height="40" as="geometry"/>
                 </mxCell>
                 <mxCell id="content" value="" style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;rounded=0;" parent="1" vertex="1">
-                    <mxGeometry x="230" y="150" width="430" height="630" as="geometry"/>
+                    <mxGeometry x="230" y="150" width="430" height="500" as="geometry"/>
                 </mxCell>
-                <mxCell id="cTitle" value="التقارير" style="text;html=1;fontColor=#FFFFFF;fontSize=15;fontStyle=1;align=center;" parent="1" vertex="1">
+                <mxCell id="cTitle" value="تبديل حجز" style="text;html=1;fontColor=#FFFFFF;fontSize=15;fontStyle=1;align=center;" parent="1" vertex="1">
+                    <mxGeometry x="380" y="165" width="130" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="search" value="&amp;nbsp;&lt;span style=&quot;color: rgb(18, 18, 18); text-align: center;&quot;&gt;🔍&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp;&amp;nbsp;&lt;/span&gt;بحث: رقم الحجز / رقم الموبايل" style="whiteSpace=wrap;html=1;fillColor=#1A1A1A;strokeColor=#FFFFFF;fontColor=#FFFFFF;align=right;" parent="1" vertex="1">
+                    <mxGeometry x="250" y="210" width="390" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="res" value="حجز #1024 | طالب: أحمد محمد | المدرس الحالي: X | فرع: Z" style="whiteSpace=wrap;html=1;fillColor=#1A1A1A;strokeColor=#FFFFFF;fontColor=#FFFFFF;align=right;" parent="1" vertex="1">
+                    <mxGeometry x="250" y="270" width="390" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="ddNewT" value="المدرس الجديد: اختار مدرس تاني ▾" style="whiteSpace=wrap;html=1;fillColor=#1A1A1A;strokeColor=#FFFFFF;fontColor=#FFFFFF;align=right;" parent="1" vertex="1">
+                    <mxGeometry x="250" y="340" width="390" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="effect" value="عند التبديل: يتحدث الحجز بالمدرس الجديد + يتحدث مخزون الفرعين" style="whiteSpace=wrap;html=1;fillColor=#2A2A2A;strokeColor=#888888;fontColor=#AAAAAA;dashed=1;align=right;" parent="1" vertex="1">
+                    <mxGeometry x="250" y="400" width="390" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="swapBtn" value="تأكيد تبديل الحجز" style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;fontColor=#FFFFFF;" parent="1" vertex="1">
+                    <mxGeometry x="360" y="465" width="170" height="45" as="geometry"/>
+                </mxCell>
+                <mxCell id="note" value="Wireframe — تبديل حجز (مدرس بمدرس تاني)" style="text;html=1;fontColor=#999999;fontSize=11;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="60" y="690" width="450" height="20" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+    <diagram id="wfP6" name="6-تقارير">
+        <mxGraphModel dx="808" dy="596" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="frame" value="" style="whiteSpace=wrap;html=1;fillColor=#1A1A1A;strokeColor=#FFFFFF;fontColor=#FFFFFF;rounded=0;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="40" width="640" height="740" as="geometry"/>
+                </mxCell>
+                <mxCell id="nav" value="" style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;rounded=0;" parent="1" vertex="1">
+                    <mxGeometry x="60" y="60" width="600" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="logo" value="S" style="ellipse;whiteSpace=wrap;html=1;fillColor=#1A1A1A;strokeColor=#FFFFFF;fontColor=#FFFFFF;" parent="1" vertex="1">
+                    <mxGeometry x="620" y="65" width="50" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="navTitle" value="مكتبة السنتر" style="text;html=1;fontColor=#FFFFFF;fontSize=13;align=center;" parent="1" vertex="1">
+                    <mxGeometry x="80" y="75" width="250" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="s1" value="اضافة منتج" style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;fontColor=#FFFFFF;" parent="1" vertex="1">
+                    <mxGeometry x="60" y="150" width="140" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="s2" value="اضافة للمخزن" style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;fontColor=#FFFFFF;" parent="1" vertex="1">
+                    <mxGeometry x="60" y="205" width="140" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="s3" value="سحب من المخزن" style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;fontColor=#FFFFFF;" parent="1" vertex="1">
+                    <mxGeometry x="60" y="260" width="140" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="s4" value="الغاء حجز" style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;fontColor=#FFFFFF;" parent="1" vertex="1">
+                    <mxGeometry x="60" y="315" width="140" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="s5" value="تبديل حجز" style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;fontColor=#FFFFFF;" parent="1" vertex="1">
+                    <mxGeometry x="60" y="370" width="140" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="s6" value="تقارير" style="whiteSpace=wrap;html=1;fillColor=#333333;strokeColor=#FFFFFF;fontColor=#FFFFFF;" parent="1" vertex="1">
+                    <mxGeometry x="60" y="425" width="140" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="content" value="" style="whiteSpace=wrap;html=1;fillColor=#0D0D0D;strokeColor=#FFFFFF;rounded=0;" parent="1" vertex="1">
+                    <mxGeometry x="230" y="150" width="430" height="600" as="geometry"/>
+                </mxCell>
+                <mxCell id="cTitle" value="تقارير" style="text;html=1;fontColor=#FFFFFF;fontSize=15;fontStyle=1;align=center;" parent="1" vertex="1">
                     <mxGeometry x="380" y="165" width="130" height="30" as="geometry"/>
                 </mxCell>
                 <mxCell id="r1" value="مبيعات يومي — لكل فرع" style="whiteSpace=wrap;html=1;fillColor=#1A1A1A;strokeColor=#FFFFFF;fontColor=#FFFFFF;align=right;" parent="1" vertex="1">
                     <mxGeometry x="250" y="210" width="390" height="38" as="geometry"/>
                 </mxCell>
-                <mxCell id="r2" value="مبيعات أسبوعي — لكل فرع" style="whiteSpace=wrap;html=1;fillColor=#1A1A1A;strokeColor=#FFFFFF;fontColor=#FFFFFF;align=right;" parent="1" vertex="1">
+                <mxCell id="r2" value="مبيعات اسبوعي — لكل فرع" style="whiteSpace=wrap;html=1;fillColor=#1A1A1A;strokeColor=#FFFFFF;fontColor=#FFFFFF;align=right;" parent="1" vertex="1">
                     <mxGeometry x="250" y="258" width="390" height="38" as="geometry"/>
                 </mxCell>
                 <mxCell id="r3" value="مبيعات شهري — لكل فرع" style="whiteSpace=wrap;html=1;fillColor=#1A1A1A;strokeColor=#FFFFFF;fontColor=#FFFFFF;align=right;" parent="1" vertex="1">
                     <mxGeometry x="250" y="306" width="390" height="38" as="geometry"/>
                 </mxCell>
-                <mxCell id="r4" value="أعداد الحجوزات — لكل كتاب ولكل فرع" style="whiteSpace=wrap;html=1;fillColor=#1A1A1A;strokeColor=#FFFFFF;fontColor=#FFFFFF;align=right;" parent="1" vertex="1">
+                <mxCell id="r4" value="اعداد الحجوزات — لكل كتاب ولكل فرع" style="whiteSpace=wrap;html=1;fillColor=#1A1A1A;strokeColor=#FFFFFF;fontColor=#FFFFFF;align=right;" parent="1" vertex="1">
                     <mxGeometry x="250" y="354" width="390" height="38" as="geometry"/>
                 </mxCell>
                 <mxCell id="r5" value="الكتب المتوفرة — لكل فرع (محجوز / متاح للبيع المباشر)" style="whiteSpace=wrap;html=1;fillColor=#1A1A1A;strokeColor=#FFFFFF;fontColor=#FFFFFF;align=right;" parent="1" vertex="1">
                     <mxGeometry x="250" y="402" width="390" height="38" as="geometry"/>
                 </mxCell>
-                <mxCell id="r6" value="صافي الربح — على حركة البيع فقط" style="whiteSpace=wrap;html=1;fillColor=#1A1A1A;strokeColor=#FFFFFF;fontColor=#FFFFFF;align=right;" parent="1" vertex="1">
+                <mxCell id="r6" value="صافي الربح — على حركة البيع فقط (المحجوز مبيضافش غير لما يتباع)" style="whiteSpace=wrap;html=1;fillColor=#1A1A1A;strokeColor=#FFFFFF;fontColor=#FFFFFF;align=right;" parent="1" vertex="1">
                     <mxGeometry x="250" y="450" width="390" height="38" as="geometry"/>
                 </mxCell>
                 <mxCell id="r7" value="عدد العملاء وتنصيفهم — لكل سنة دراسية" style="whiteSpace=wrap;html=1;fillColor=#1A1A1A;strokeColor=#FFFFFF;fontColor=#FFFFFF;align=right;" parent="1" vertex="1">
                     <mxGeometry x="250" y="498" width="390" height="38" as="geometry"/>
                 </mxCell>
-                <mxCell id="r8" value="طلاب كل مدرس — (الاسم + الموبايل، يسجل مرة واحدة)" style="whiteSpace=wrap;html=1;fillColor=#1A1A1A;strokeColor=#FFFFFF;fontColor=#FFFFFF;align=right;" parent="1" vertex="1">
+                <mxCell id="r8" value="طلاب كل مدرس — (اسم الطالب + رقم الموبايل، يتسجل مرة واحدة)" style="whiteSpace=wrap;html=1;fillColor=#1A1A1A;strokeColor=#FFFFFF;fontColor=#FFFFFF;align=right;" parent="1" vertex="1">
                     <mxGeometry x="250" y="546" width="390" height="38" as="geometry"/>
                 </mxCell>
-                <mxCell id="tbl" value="| التقرير | الفرع | القيمة |&#10;| مبيعات يومي | فرع 1 | 5,000 |" style="whiteSpace=wrap;html=1;fillColor=#1A1A1A;strokeColor=#888888;fontColor=#FFFFFF;align=left;" parent="1" vertex="1">
-                    <mxGeometry x="250" y="600" width="390" height="60" as="geometry"/>
-                </mxCell>
                 <mxCell id="excelBtn" value="⬇ تصدير Excel" style="whiteSpace=wrap;html=1;fillColor=#2A2A2A;strokeColor=#FFFFFF;fontColor=#FFFFFF;fontStyle=1;" parent="1" vertex="1">
-                    <mxGeometry x="460" y="680" width="180" height="45" as="geometry"/>
+                    <mxGeometry x="460" y="620" width="180" height="45" as="geometry"/>
                 </mxCell>
-                <mxCell id="note" value="Wireframe — شاشة التقارير + تصدير Excel" style="text;html=1;fontColor=#999999;fontSize=11;align=left;" parent="1" vertex="1">
-                    <mxGeometry x="60" y="810" width="400" height="20" as="geometry"/>
+                <mxCell id="note" value="Wireframe — تقارير (كل التقارير قابلة للتصدير Excel)" style="text;html=1;fontColor=#999999;fontSize=11;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="60" y="790" width="450" height="20" as="geometry"/>
                 </mxCell>
-
             </root>
         </mxGraphModel>
     </diagram>
