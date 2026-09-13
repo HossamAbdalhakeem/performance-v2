@@ -31,14 +31,14 @@
 
       <div class="bg-[#111c2d] px-3 py-2 text-right shadow-sm">
         <label class="mb-1 block text-sm font-medium text-slate-300"
-          >نوع التقرير</label
+          >التاريخ</label
         >
         <Select
-          v-model="selectedReportType"
-          :options="reportTypeOptions"
+          v-model="selectedDate"
+          :options="dateOptions"
           optionLabel="label"
           optionValue="value"
-          placeholder="اختر النوع"
+          placeholder="اختر التاريخ"
           class="w-full"
         />
       </div>
@@ -196,10 +196,10 @@ const branchOptions = [
   { label: "فرع جدة", value: "jeddah" },
 ];
 
-const reportTypeOptions = [
-  { label: "المبيعات", value: "sales" },
-  { label: "الحجوزات", value: "reservations" },
-  { label: "المخزون", value: "stock" },
+const bookOptions = [
+  { label: "كل الكتب", value: "all" },
+  { label: "كتاب جديد", value: "new" },
+  { label: "محاضرة جديدة", value: "lecture" },
 ];
 
 const totalSales = "8,750";
