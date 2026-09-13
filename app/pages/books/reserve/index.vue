@@ -81,8 +81,8 @@ const loadOptions = async () => {
       teacherService.getTeachers(),
     ]);
 
-    const books = booksResponse?.data || [];
-    const teachers = teachersResponse?.data || [];
+    const books = Array.isArray(booksResponse) ? booksResponse : booksResponse?.data || [];
+    const teachers = Array.isArray(teachersResponse) ? teachersResponse : teachersResponse?.data || [];
 
     bookOptions.value = books.map((book) => ({
       label: book.title || book.name || `كتاب ${book.id}`,

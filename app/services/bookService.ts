@@ -7,27 +7,24 @@ const fallbackBooks = [
 export const bookService = {
   async getBooks(params = {}) {
     try {
-      const supabase = useSupabase();
-      let query = supabase.from('books').select('*');
-
-      if (params?.search) {
-        query = query.ilike('title', `%${params.search}%`);
-      }
-
-      const { data, error } = await query.order('title', { ascending: true });
-      return { data: data || [], error };
+      return await $fetch('/books', {
+        method: 'GET',
+        baseURL: useRuntimeConfig().public.baseUrl || '/api',
+        params,
+      });
     } catch {
-      return { data: fallbackBooks, error: null, params };
+      return fallbackBooks;
     }
   },
 
   async getBook(id: string) {
     try {
-      const supabase = useSupabase();
-      const { data, error } = await supabase.from('books').select('*').eq('id', id).single();
-      return { data, error };
+      return await $fetch(`/books/${id}`, {
+        method: 'GET',
+        baseURL: useRuntimeConfig().public.baseUrl || '/api',
+      });
     } catch {
-      return { data: fallbackBooks.find((book) => book.id === id) || null, error: null };
+      return fallbackBooks.find((book) => book.id === id) || null;
     }
   },
 };
