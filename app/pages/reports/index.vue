@@ -138,11 +138,10 @@
           </div>
           <div class="space-y-3 text-right text-sm text-slate-300">
             <p>
-              إجمالي المبيعات: <strong class="text-slate-100">8,750 ج.م</strong>
+             مبيعات الفرع : <strong class="text-slate-100">2500 ج.م</strong>
             </p>
-            <p>إجمالي الحجوزات: <strong class="text-slate-100">24</strong></p>
-            <p>إجمالي المخزون: <strong class="text-slate-100">124</strong></p>
-            <p>المبيعات المباشرة: <strong class="text-slate-100">30</strong></p>
+            <p> محجوزات: <strong class="text-slate-100">5400 ج.م</strong></p>
+            <p> صافي ربح: <strong class="text-slate-100">1400 ج.م</strong></p>
           </div>
         </div>
       </div>
