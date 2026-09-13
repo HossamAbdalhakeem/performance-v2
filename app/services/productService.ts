@@ -13,4 +13,12 @@ export const productService = {
       baseURL: useRuntimeConfig().public.baseUrl || '/api',
     });
   },
+
+  async createProduct(payload: Record<string, any>) {
+    return await $fetch('/products', {
+      method: 'POST',
+      baseURL: useRuntimeConfig().public.baseUrl || '/api',
+      body: payload,
+    });
+  },
 };

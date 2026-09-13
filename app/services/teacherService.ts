@@ -1,7 +1,7 @@
 const fallbackTeachers = [
-  { id: 'ahmed', name: 'أحمد محمد' },
-  { id: 'sara', name: 'سارة علي' },
-  { id: 'mahmoud', name: 'محمود فهد' },
+  { id: 'ahmed', name: 'أحمد محمد', subject: 'اللغة العربية', branch: 'riyadh', status: 'active' },
+  { id: 'sara', name: 'سارة علي', subject: 'الرياضيات', branch: 'jeddah', status: 'pending' },
+  { id: 'mahmoud', name: 'محمود فهد', subject: 'العلوم', branch: 'madina', status: 'left' },
 ];
 
 export const teacherService = {
@@ -25,6 +25,21 @@ export const teacherService = {
       });
     } catch {
       return fallbackTeachers.find((teacher) => teacher.id === id) || null;
+    }
+  },
+
+  async createTeacher(payload: Record<string, any>) {
+    try {
+      return await $fetch('/teachers', {
+        method: 'POST',
+        baseURL: useRuntimeConfig().public.baseUrl || '/api',
+        body: payload,
+      });
+    } catch {
+      return {
+        ...payload,
+        id: `teacher-${Date.now()}`,
+      };
     }
   },
 };

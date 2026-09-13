@@ -55,13 +55,12 @@ import InputText from "primevue/inputtext";
 import InputNumber from "primevue/inputnumber";
 import Select from "primevue/select";
 import { Form, Field, ErrorMessage } from "vee-validate";
+import { productService } from "~/services/productService";
+import { teacherService } from "~/services/teacherService";
 
 const saving = ref(false);
-const teacherOptions = [
-  { label: "أحمد محمد", value: "ahmed" },
-  { label: "سارة علي", value: "sara" },
-  { label: "محمود فهد", value: "mahmoud" },
-];
+const loadingTeachers = ref(true);
+const teacherOptions = ref([]);
 
 const form = reactive({
   name: "",
@@ -72,15 +71,39 @@ const form = reactive({
 
 const initialValues = { name: "", teacher: "", wholesalePrice: null, salePrice: null };
 
+const loadTeacherOptions = async () => {
+  try {
+    const teachers = await teacherService.getTeachers();
+    teacherOptions.value = Array.isArray(teachers)
+      ? teachers.map((teacher) => ({ label: teacher.name, value: teacher.id }))
+      : (teachers?.data || []).map((teacher) => ({ label: teacher.name, value: teacher.id }));
+  } catch (error) {
+    console.error("Failed to load teachers", error);
+  } finally {
+    loadingTeachers.value = false;
+  }
+};
+
 const submitProduct = async () => {
   saving.value = true;
-  await new Promise((resolve) => setTimeout(resolve, 700));
-  saving.value = false;
-  form.name = "";
-  form.teacher = "";
-  form.wholesalePrice = null;
-  form.salePrice = null;
+
+  try {
+    await productService.createProduct({
+      name: form.name,
+      teacher_id: form.teacher,
+      wholesale_price: form.wholesalePrice,
+      sale_price: form.salePrice,
+    });
+
+    Object.assign(form, initialValues);
+  } finally {
+    saving.value = false;
+  }
 };
+
+onMounted(() => {
+  loadTeacherOptions();
+});
 
 definePageMeta({ middleware: ["local-pages"] });
 </script>

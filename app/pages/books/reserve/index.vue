@@ -22,7 +22,11 @@
             </div>
           </Field>
 
-          <Field v-slot="{ field, errorMessage }" name="book" rules="required">
+          <div v-if="loadingOptions" class="flex flex-col gap-2 text-right">
+            <label class="text-sm font-medium text-slate-700">الكتاب</label>
+            <Skeleton height="2.9rem" border-radius="0.75rem" />
+          </div>
+          <Field v-else v-slot="{ field, errorMessage }" name="book" rules="required">
             <div class="flex flex-col gap-2 text-right">
               <label class="text-sm font-medium text-slate-700">الكتاب</label>
               <Select v-bind="field" v-model="form.book" :options="bookOptions" optionLabel="label" optionValue="value" placeholder="اختر الكتاب" :class="{ 'p-invalid': errorMessage || fieldErrors.book }" />
@@ -30,7 +34,11 @@
             </div>
           </Field>
 
-          <Field v-slot="{ field, errorMessage }" name="teacher" rules="required">
+          <div v-if="loadingOptions" class="flex flex-col gap-2 text-right">
+            <label class="text-sm font-medium text-slate-700">المدرس</label>
+            <Skeleton height="2.9rem" border-radius="0.75rem" />
+          </div>
+          <Field v-else v-slot="{ field, errorMessage }" name="teacher" rules="required">
             <div class="flex flex-col gap-2 text-right">
               <label class="text-sm font-medium text-slate-700">المدرس</label>
               <Select v-bind="field" v-model="form.teacher" :options="teacherOptions" optionLabel="label" optionValue="value" placeholder="اختر المدرس" :class="{ 'p-invalid': errorMessage || fieldErrors.teacher }" />
@@ -53,6 +61,7 @@ import Card from "primevue/card";
 import Button from "primevue/button";
 import InputText from "primevue/inputtext";
 import Select from "primevue/select";
+import Skeleton from "primevue/skeleton";
 import { Form, Field, ErrorMessage } from "vee-validate";
 import { reservationService } from "~/services/reservationService";
 import { bookService } from "~/services/bookService";

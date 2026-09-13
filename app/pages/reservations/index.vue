@@ -96,6 +96,7 @@ import Select from "primevue/select";
 import Calendar from "primevue/calendar";
 import Skeleton from "primevue/skeleton";
 import { Form, Field, ErrorMessage } from "vee-validate";
+import { reservationService } from "~/services/reservationService";
 
 const pending = ref(true);
 const saving = ref(false);
@@ -109,12 +110,30 @@ const statusOptions = [
 
 const form = reactive({ student: "", book: "", date: null, status: "pending" });
 const formInitialValues = { student: "", book: "", date: null, status: "pending" };
+const reservations = ref([]);
 
-const reservations = ref([
-  { id: "RES-201", student: "سارة أحمد", book: "مبادئ البرمجة", date: "12/09/2026", branch: "الرياض", status: "قيد التنفيذ", statusSeverity: "warning" },
-  { id: "RES-202", student: "خالد حسن", book: "الاقتصاد الإسلامي", date: "18/09/2026", branch: "جدة", status: "مكتمل", statusSeverity: "success" },
-  { id: "RES-203", student: "لينا سالم", book: "أساسيات الرياضيات", date: "20/09/2026", branch: "المدينة", status: "ملغي", statusSeverity: "danger" },
-]);
+const normalizeReservation = (reservation) => ({
+  id: reservation.id || "-",
+  student: reservation.student || reservation.student_name || "-",
+  book: reservation.book || reservation.book_name || "-",
+  date: reservation.date || reservation.reservation_date || "-",
+  branch: reservation.branch || reservation.branch_name || "الرياض",
+  status: reservation.status === "complete" ? "مكتمل" : reservation.status === "cancelled" ? "ملغي" : "قيد التنفيذ",
+  statusSeverity: reservation.status === "complete" ? "success" : reservation.status === "cancelled" ? "danger" : "warning",
+});
+
+const loadReservations = async () => {
+  try {
+    const items = await reservationService.getReservations();
+    const list = Array.isArray(items) ? items : items?.data || [];
+    reservations.value = list.map(normalizeReservation);
+  } catch (error) {
+    console.error("Failed to load reservations", error);
+    reservations.value = [];
+  } finally {
+    pending.value = false;
+  }
+};
 
 const filteredReservations = computed(() => {
   const term = search.value.trim().toLowerCase();
@@ -123,9 +142,9 @@ const filteredReservations = computed(() => {
 });
 
 const stats = computed(() => [
-  { label: "إجمالي الحجوزات", value: "42", tag: "جديدة", badgeClass: "bg-sky-100 text-sky-700" },
-  { label: "قيد التنفيذ", value: "28", tag: "نشط", badgeClass: "bg-amber-100 text-amber-700" },
-  { label: "مكتملة", value: "12", tag: "مؤكد", badgeClass: "bg-green-100 text-green-700" },
+  { label: "إجمالي الحجوزات", value: String(reservations.value.length || 0), tag: "جديدة", badgeClass: "bg-sky-100 text-sky-700" },
+  { label: "قيد التنفيذ", value: String(reservations.value.filter((item) => item.status === "قيد التنفيذ").length || 0), tag: "نشط", badgeClass: "bg-amber-100 text-amber-700" },
+  { label: "مكتملة", value: String(reservations.value.filter((item) => item.status === "مكتمل").length || 0), tag: "مؤكد", badgeClass: "bg-green-100 text-green-700" },
 ]);
 
 const emptyMessage = "لا توجد حجوزات متاحة.";
@@ -136,25 +155,26 @@ const toggleForm = () => {
 
 const submitReservation = async () => {
   saving.value = true;
-  await new Promise((resolve) => setTimeout(resolve, 700));
-  reservations.value.unshift({
-    id: `RES-${Date.now().toString().slice(-4)}`,
-    student: form.student,
-    book: form.book,
-    date: form.date ? new Date(form.date).toLocaleDateString("en-GB") : "-",
-    branch: "الرياض",
-    status: "قيد التنفيذ",
-    statusSeverity: "warning",
-  });
-  Object.assign(form, formInitialValues);
-  showForm.value = false;
-  saving.value = false;
+
+  try {
+    const result = await reservationService.createReservation({
+      student: form.student,
+      book: form.book,
+      reservation_date: form.date,
+      status: form.status,
+      branch: "الرياض",
+    });
+
+    reservations.value.unshift(normalizeReservation(result || { ...form, id: `RES-${Date.now().toString().slice(-4)}` }));
+    Object.assign(form, formInitialValues);
+    showForm.value = false;
+  } finally {
+    saving.value = false;
+  }
 };
 
 onMounted(() => {
-  setTimeout(() => {
-    pending.value = false;
-  }, 350);
+  loadReservations();
 });
 
 definePageMeta({ middleware: ["local-pages"] });

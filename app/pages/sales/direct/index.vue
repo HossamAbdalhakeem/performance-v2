@@ -55,23 +55,48 @@ import InputText from "primevue/inputtext";
 import InputNumber from "primevue/inputnumber";
 import Select from "primevue/select";
 import { Form, Field, ErrorMessage } from "vee-validate";
+import { saleService } from "~/services/saleService";
+import { productService } from "~/services/productService";
 
 const saving = ref(false);
-const productOptions = [
-  { label: "كتاب X", value: "book-x" },
-  { label: "كتاب Y", value: "book-y" },
-  { label: "محاضرة Z", value: "lecture-z" },
-];
+const loadingProducts = ref(true);
+const productOptions = ref([]);
 
 const form = reactive({ customer: "", phone: "", product: "", amount: null });
 const initialValues = { customer: "", phone: "", product: "", amount: null };
 
+const loadProducts = async () => {
+  try {
+    const products = await productService.getProducts();
+    const list = Array.isArray(products) ? products : products?.data || [];
+    productOptions.value = list.map((item) => ({ label: item.name || item.title || item.id, value: item.id }));
+  } catch (error) {
+    console.error("Failed to load direct sale products", error);
+  } finally {
+    loadingProducts.value = false;
+  }
+};
+
 const submitSale = async () => {
   saving.value = true;
-  await new Promise((resolve) => setTimeout(resolve, 700));
-  saving.value = false;
-  Object.assign(form, initialValues);
+
+  try {
+    await saleService.createSale({
+      customer_name: form.customer,
+      phone: form.phone,
+      product_id: form.product,
+      amount: form.amount,
+    });
+
+    Object.assign(form, initialValues);
+  } finally {
+    saving.value = false;
+  }
 };
+
+onMounted(() => {
+  loadProducts();
+});
 
 definePageMeta({ middleware: ["local-pages"] });
 </script>

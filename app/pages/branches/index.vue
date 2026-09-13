@@ -93,6 +93,7 @@ import InputText from "primevue/inputtext";
 import Select from "primevue/select";
 import Skeleton from "primevue/skeleton";
 import { Form, Field, ErrorMessage } from "vee-validate";
+import { branchService } from "~/services/branchService";
 
 const pending = ref(true);
 const saving = ref(false);
@@ -105,17 +106,33 @@ const statusOptions = [
 
 const form = reactive({ name: "", manager: "", city: "", status: "active" });
 const formInitialValues = { name: "", manager: "", city: "", status: "active" };
+const branches = ref([]);
 
-const branches = ref([
-  { name: "فرع الرياض", manager: "أحمد سالم", city: "الرياض", status: "نشط", statusSeverity: "success" },
-  { name: "فرع جدة", manager: "سارة علي", city: "جدة", status: "قيد التقييم", statusSeverity: "warning" },
-  { name: "فرع المدينة", manager: "إبراهيم فهد", city: "المدينة", status: "مغلق", statusSeverity: "danger" },
-]);
+const normalizeBranch = (branch) => ({
+  name: branch.name || branch.label || "فرع",
+  manager: branch.manager || branch.head || "-",
+  city: branch.city || branch.location || "-",
+  status: statusOptions.find((item) => item.value === branch.status)?.label || "نشط",
+  statusSeverity: branch.status === "active" ? "success" : branch.status === "review" ? "warning" : "danger",
+});
+
+const loadBranches = async () => {
+  try {
+    const items = await branchService.getBranches();
+    const list = Array.isArray(items) ? items : items?.data || [];
+    branches.value = list.map(normalizeBranch);
+  } catch (error) {
+    console.error("Failed to load branches", error);
+    branches.value = [];
+  } finally {
+    pending.value = false;
+  }
+};
 
 const stats = computed(() => [
-  { label: "إجمالي الفروع", value: "6", tag: "نشط", badgeClass: "bg-sky-100 text-sky-700" },
-  { label: "نشطة", value: "4", tag: "حالة", badgeClass: "bg-green-100 text-green-700" },
-  { label: "قيد التقييم", value: "2", tag: "مهم", badgeClass: "bg-amber-100 text-amber-700" },
+  { label: "إجمالي الفروع", value: String(branches.value.length || 0), tag: "نشط", badgeClass: "bg-sky-100 text-sky-700" },
+  { label: "نشطة", value: String(branches.value.filter((item) => item.status === "نشط").length || 0), tag: "حالة", badgeClass: "bg-green-100 text-green-700" },
+  { label: "قيد التقييم", value: String(branches.value.filter((item) => item.status === "قيد التقييم").length || 0), tag: "مهم", badgeClass: "bg-amber-100 text-amber-700" },
 ]);
 
 const emptyMessage = "لا توجد فروع مسجلة.";
@@ -126,23 +143,25 @@ const toggleForm = () => {
 
 const submitBranch = async () => {
   saving.value = true;
-  await new Promise((resolve) => setTimeout(resolve, 600));
-  branches.value.unshift({
-    name: form.name,
-    manager: form.manager,
-    city: form.city,
-    status: statusOptions.find((item) => item.value === form.status)?.label || "نشط",
-    statusSeverity: form.status === "active" ? "success" : form.status === "review" ? "warning" : "danger",
-  });
-  Object.assign(form, formInitialValues);
-  showForm.value = false;
-  saving.value = false;
+
+  try {
+    const result = await branchService.createBranch({
+      name: form.name,
+      manager: form.manager,
+      city: form.city,
+      status: form.status,
+    });
+
+    branches.value.unshift(normalizeBranch(result || { ...form, name: form.name, manager: form.manager, city: form.city, status: form.status }));
+    Object.assign(form, formInitialValues);
+    showForm.value = false;
+  } finally {
+    saving.value = false;
+  }
 };
 
 onMounted(() => {
-  setTimeout(() => {
-    pending.value = false;
-  }, 350);
+  loadBranches();
 });
 
 definePageMeta({ middleware: ["local-pages"] });

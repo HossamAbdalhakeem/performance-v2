@@ -93,6 +93,7 @@ import InputText from "primevue/inputtext";
 import Select from "primevue/select";
 import Skeleton from "primevue/skeleton";
 import { Form, Field, ErrorMessage } from "vee-validate";
+import { teacherService } from "~/services/teacherService";
 
 const pending = ref(true);
 const saving = ref(false);
@@ -110,17 +111,33 @@ const statusOptions = [
 
 const form = reactive({ name: "", subject: "", branch: "riyadh", status: "active" });
 const formInitialValues = { name: "", subject: "", branch: "riyadh", status: "active" };
+const teachers = ref([]);
 
-const teachers = ref([
-  { name: "أمل محمد", subject: "اللغة العربية", branch: "الرياض", status: "نشط", statusSeverity: "success" },
-  { name: "نواف إبراهيم", subject: "الرياضيات", branch: "جدة", status: "مؤجل", statusSeverity: "warning" },
-  { name: "حصة فهد", subject: "العلوم", branch: "المدينة", status: "مغادر", statusSeverity: "danger" },
-]);
+const normalizeTeacher = (teacher) => ({
+  name: teacher.name || "-",
+  subject: teacher.subject || "-",
+  branch: branchOptions.find((item) => item.value === teacher.branch)?.label || "الرياض",
+  status: statusOptions.find((item) => item.value === teacher.status)?.label || "نشط",
+  statusSeverity: teacher.status === "active" ? "success" : teacher.status === "pending" ? "warning" : "danger",
+});
+
+const loadTeachers = async () => {
+  try {
+    const items = await teacherService.getTeachers();
+    const list = Array.isArray(items) ? items : items?.data || [];
+    teachers.value = list.map(normalizeTeacher);
+  } catch (error) {
+    console.error("Failed to load teachers", error);
+    teachers.value = [];
+  } finally {
+    pending.value = false;
+  }
+};
 
 const stats = computed(() => [
-  { label: "إجمالي المعلمين", value: "34", tag: "نشط", badgeClass: "bg-sky-100 text-sky-700" },
-  { label: "نشط", value: "26", tag: "حاليًا", badgeClass: "bg-green-100 text-green-700" },
-  { label: "مؤجل", value: "8", tag: "متابعة", badgeClass: "bg-amber-100 text-amber-700" },
+  { label: "إجمالي المعلمين", value: String(teachers.value.length || 0), tag: "نشط", badgeClass: "bg-sky-100 text-sky-700" },
+  { label: "نشط", value: String(teachers.value.filter((item) => item.status === "نشط").length || 0), tag: "حاليًا", badgeClass: "bg-green-100 text-green-700" },
+  { label: "مؤجل", value: String(teachers.value.filter((item) => item.status === "مؤجل").length || 0), tag: "متابعة", badgeClass: "bg-amber-100 text-amber-700" },
 ]);
 
 const emptyMessage = "لا يوجد معلمين مسجلين.";
@@ -131,23 +148,25 @@ const toggleForm = () => {
 
 const submitTeacher = async () => {
   saving.value = true;
-  await new Promise((resolve) => setTimeout(resolve, 600));
-  teachers.value.unshift({
-    name: form.name,
-    subject: form.subject,
-    branch: branchOptions.find((item) => item.value === form.branch)?.label || "الرياض",
-    status: statusOptions.find((item) => item.value === form.status)?.label || "نشط",
-    statusSeverity: form.status === "active" ? "success" : form.status === "pending" ? "warning" : "danger",
-  });
-  Object.assign(form, formInitialValues);
-  showForm.value = false;
-  saving.value = false;
+
+  try {
+    const result = await teacherService.createTeacher({
+      name: form.name,
+      subject: form.subject,
+      branch: form.branch,
+      status: form.status,
+    });
+
+    teachers.value.unshift(normalizeTeacher(result || { ...form }));
+    Object.assign(form, formInitialValues);
+    showForm.value = false;
+  } finally {
+    saving.value = false;
+  }
 };
 
 onMounted(() => {
-  setTimeout(() => {
-    pending.value = false;
-  }, 350);
+  loadTeachers();
 });
 
 definePageMeta({ middleware: ["local-pages"] });

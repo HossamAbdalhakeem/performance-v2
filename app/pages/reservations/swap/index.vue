@@ -42,27 +42,60 @@ import Card from "primevue/card";
 import Button from "primevue/button";
 import Select from "primevue/select";
 import { Form, Field, ErrorMessage } from "vee-validate";
+import { reservationService } from "~/services/reservationService";
+import { teacherService } from "~/services/teacherService";
 
 const saving = ref(false);
-const reservationOptions = [
-  { label: "حجز #1024 - أحمد محمد", value: "1024" },
-  { label: "حجز #1025 - سارة علي", value: "1025" },
-];
-const teacherOptions = [
-  { label: "أحمد محمد", value: "ahmed" },
-  { label: "سارة علي", value: "sara" },
-  { label: "محمود فهد", value: "mahmoud" },
-];
+const loadingOptions = ref(true);
+const reservationOptions = ref([]);
+const teacherOptions = ref([]);
 
 const form = reactive({ reservation: "", teacher: "" });
 const initialValues = { reservation: "", teacher: "" };
 
+const loadOptions = async () => {
+  try {
+    const [reservations, teachers] = await Promise.all([
+      reservationService.getReservations(),
+      teacherService.getTeachers(),
+    ]);
+
+    const reservationList = Array.isArray(reservations) ? reservations : reservations?.data || [];
+    const teacherList = Array.isArray(teachers) ? teachers : teachers?.data || [];
+
+    reservationOptions.value = reservationList.map((item) => ({
+      label: `حجز #${item.id} - ${item.student || item.student_name || "طالب"}`,
+      value: item.id,
+    }));
+
+    teacherOptions.value = teacherList.map((item) => ({
+      label: item.name || item.teacher_name || "مدرس",
+      value: item.id,
+    }));
+  } catch (error) {
+    console.error("Failed to load swap options", error);
+  } finally {
+    loadingOptions.value = false;
+  }
+};
+
 const submitSwap = async () => {
   saving.value = true;
-  await new Promise((resolve) => setTimeout(resolve, 700));
-  saving.value = false;
-  Object.assign(form, initialValues);
+
+  try {
+    await reservationService.exchangeReservation(form.reservation, {
+      teacher_id: form.teacher,
+    });
+
+    Object.assign(form, initialValues);
+  } finally {
+    saving.value = false;
+  }
 };
+
+onMounted(() => {
+  loadOptions();
+});
 
 definePageMeta({ middleware: ["local-pages"] });
 </script>

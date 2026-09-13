@@ -93,6 +93,7 @@ import InputText from "primevue/inputtext";
 import Select from "primevue/select";
 import Skeleton from "primevue/skeleton";
 import { Form, Field, ErrorMessage } from "vee-validate";
+import { studentService } from "~/services/studentService";
 
 const pending = ref(true);
 const saving = ref(false);
@@ -110,17 +111,33 @@ const statusOptions = [
 
 const form = reactive({ name: "", grade: "", branch: "riyadh", status: "active" });
 const formInitialValues = { name: "", grade: "", branch: "riyadh", status: "active" };
+const students = ref([]);
 
-const students = ref([
-  { name: "سارة أحمد", grade: "الثالثة", branch: "الرياض", status: "نشط", statusSeverity: "success" },
-  { name: "خالد حسن", grade: "الرابعة", branch: "جدة", status: "مؤجل", statusSeverity: "warning" },
-  { name: "لينا سالم", grade: "الأولى", branch: "المدينة", status: "موقوف", statusSeverity: "danger" },
-]);
+const normalizeStudent = (student) => ({
+  name: student.name || "-",
+  grade: student.grade || "-",
+  branch: branchOptions.find((item) => item.value === student.branch)?.label || "الرياض",
+  status: statusOptions.find((item) => item.value === student.status)?.label || "نشط",
+  statusSeverity: student.status === "active" ? "success" : student.status === "pending" ? "warning" : "danger",
+});
+
+const loadStudents = async () => {
+  try {
+    const items = await studentService.getStudents();
+    const list = Array.isArray(items) ? items : items?.data || [];
+    students.value = list.map(normalizeStudent);
+  } catch (error) {
+    console.error("Failed to load students", error);
+    students.value = [];
+  } finally {
+    pending.value = false;
+  }
+};
 
 const stats = computed(() => [
-  { label: "إجمالي الطلاب", value: "430", tag: "مسجلين", badgeClass: "bg-sky-100 text-sky-700" },
-  { label: "نشط", value: "312", tag: "حاليًا", badgeClass: "bg-green-100 text-green-700" },
-  { label: "قيد المتابعة", value: "86", tag: "مهم", badgeClass: "bg-amber-100 text-amber-700" },
+  { label: "إجمالي الطلاب", value: String(students.value.length || 0), tag: "مسجلين", badgeClass: "bg-sky-100 text-sky-700" },
+  { label: "نشط", value: String(students.value.filter((item) => item.status === "نشط").length || 0), tag: "حاليًا", badgeClass: "bg-green-100 text-green-700" },
+  { label: "قيد المتابعة", value: String(students.value.filter((item) => item.status === "مؤجل").length || 0), tag: "مهم", badgeClass: "bg-amber-100 text-amber-700" },
 ]);
 
 const emptyMessage = "لا يوجد طلاب مسجلين.";
@@ -131,23 +148,25 @@ const toggleForm = () => {
 
 const submitStudent = async () => {
   saving.value = true;
-  await new Promise((resolve) => setTimeout(resolve, 600));
-  students.value.unshift({
-    name: form.name,
-    grade: form.grade,
-    branch: branchOptions.find((item) => item.value === form.branch)?.label || "الرياض",
-    status: statusOptions.find((item) => item.value === form.status)?.label || "نشط",
-    statusSeverity: form.status === "active" ? "success" : form.status === "pending" ? "warning" : "danger",
-  });
-  Object.assign(form, formInitialValues);
-  showForm.value = false;
-  saving.value = false;
+
+  try {
+    const result = await studentService.createStudent({
+      name: form.name,
+      grade: form.grade,
+      branch: form.branch,
+      status: form.status,
+    });
+
+    students.value.unshift(normalizeStudent(result || { ...form }));
+    Object.assign(form, formInitialValues);
+    showForm.value = false;
+  } finally {
+    saving.value = false;
+  }
 };
 
 onMounted(() => {
-  setTimeout(() => {
-    pending.value = false;
-  }, 350);
+  loadStudents();
 });
 
 definePageMeta({ middleware: ["local-pages"] });

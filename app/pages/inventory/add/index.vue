@@ -55,29 +55,59 @@ import InputNumber from "primevue/inputnumber";
 import Select from "primevue/select";
 import Calendar from "primevue/calendar";
 import { Form, Field, ErrorMessage } from "vee-validate";
+import { inventoryService } from "~/services/inventoryService";
+import { branchService } from "~/services/branchService";
+import { productService } from "~/services/productService";
 
 const saving = ref(false);
-const branchOptions = [
-  { label: "فرع الرياض", value: "riyadh" },
-  { label: "فرع جدة", value: "jeddah" },
-  { label: "فرع المدينة", value: "madina" },
-];
-
-const productOptions = [
-  { label: "كتاب X", value: "book-x" },
-  { label: "كتاب Y", value: "book-y" },
-  { label: "محاضرة Z", value: "lecture-z" },
-];
+const loadingOptions = ref(true);
+const branchOptions = ref([]);
+const productOptions = ref([]);
 
 const form = reactive({ branch: "", product: "", quantity: null, date: null });
 const initialValues = { branch: "", product: "", quantity: null, date: null };
 
+const loadOptions = async () => {
+  try {
+    const [branches, products] = await Promise.all([
+      branchService.getBranches(),
+      productService.getProducts(),
+    ]);
+
+    branchOptions.value = Array.isArray(branches)
+      ? branches.map((branch) => ({ label: branch.name || branch.label || branch.id, value: branch.id }))
+      : (branches?.data || []).map((branch) => ({ label: branch.name || branch.label || branch.id, value: branch.id }));
+
+    productOptions.value = Array.isArray(products)
+      ? products.map((product) => ({ label: product.name || product.title || product.id, value: product.id }))
+      : (products?.data || []).map((product) => ({ label: product.name || product.title || product.id, value: product.id }));
+  } catch (error) {
+    console.error("Failed to load inventory options", error);
+  } finally {
+    loadingOptions.value = false;
+  }
+};
+
 const submitStock = async () => {
   saving.value = true;
-  await new Promise((resolve) => setTimeout(resolve, 700));
-  saving.value = false;
-  Object.assign(form, initialValues);
+
+  try {
+    await inventoryService.addStock({
+      branch_id: form.branch,
+      product_id: form.product,
+      quantity: form.quantity,
+      received_at: form.date,
+    });
+
+    Object.assign(form, initialValues);
+  } finally {
+    saving.value = false;
+  }
 };
+
+onMounted(() => {
+  loadOptions();
+});
 
 definePageMeta({ middleware: ["local-pages"] });
 </script>

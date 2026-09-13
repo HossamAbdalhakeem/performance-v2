@@ -38,32 +38,44 @@ import Card from "primevue/card";
 import Button from "primevue/button";
 import InputText from "primevue/inputtext";
 import Skeleton from "primevue/skeleton";
+import { reservationService } from "~/services/reservationService";
 
 const pending = ref(true);
 const loadingId = ref(null);
 const search = ref("");
-const reservations = ref([
-  { id: "1024", student: "أحمد محمد", book: "Y", branch: "Z", amount: "500" },
-  { id: "1025", student: "سارة علي", book: "X", branch: "A", amount: "450" },
-]);
+const reservations = ref([]);
 
 const filteredReservations = computed(() => {
   const term = search.value.trim().toLowerCase();
   if (!term) return reservations.value;
-  return reservations.value.filter((item) => `${item.student} ${item.book} ${item.branch}`.toLowerCase().includes(term));
+  return reservations.value.filter((item) => `${item.student || item.student_name || ""} ${item.book || item.title || ""} ${item.branch || item.branch_name || ""}`.toLowerCase().includes(term));
 });
+
+const loadReservations = async () => {
+  try {
+    const items = await reservationService.getReservations();
+    reservations.value = Array.isArray(items) ? items : items?.data || [];
+  } catch (error) {
+    console.error("Failed to load reservations for cancel", error);
+    reservations.value = [];
+  } finally {
+    pending.value = false;
+  }
+};
 
 const cancelReservation = async (item) => {
   loadingId.value = item.id;
-  await new Promise((resolve) => setTimeout(resolve, 700));
-  reservations.value = reservations.value.filter((reservation) => reservation.id !== item.id);
-  loadingId.value = null;
+
+  try {
+    await reservationService.cancelReservation(item.id, { reason: "cancelled_by_admin" });
+    reservations.value = reservations.value.filter((reservation) => reservation.id !== item.id);
+  } finally {
+    loadingId.value = null;
+  }
 };
 
 onMounted(() => {
-  setTimeout(() => {
-    pending.value = false;
-  }, 350);
+  loadReservations();
 });
 
 definePageMeta({ middleware: ["local-pages"] });

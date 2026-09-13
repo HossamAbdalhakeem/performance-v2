@@ -93,6 +93,7 @@ import InputText from "primevue/inputtext";
 import Select from "primevue/select";
 import Skeleton from "primevue/skeleton";
 import { Form, Field, ErrorMessage } from "vee-validate";
+import { userService } from "~/services/userService";
 
 const pending = ref(true);
 const saving = ref(false);
@@ -110,17 +111,33 @@ const statusOptions = [
 
 const form = reactive({ name: "", email: "", role: "admin", status: "active" });
 const formInitialValues = { name: "", email: "", role: "admin", status: "active" };
+const users = ref([]);
 
-const users = ref([
-  { name: "أحمد لؤي", email: "admin@library.com", role: "مدير", status: "نشط", statusSeverity: "success" },
-  { name: "سارة فهد", email: "branch@library.com", role: "فرع", status: "مؤجل", statusSeverity: "warning" },
-  { name: "محمود علي", email: "social@library.com", role: "اجتماعي", status: "مغلق", statusSeverity: "danger" },
-]);
+const normalizeUser = (user) => ({
+  name: user.name || "-",
+  email: user.email || "-",
+  role: roleOptions.find((item) => item.value === user.role)?.label || "مدير",
+  status: statusOptions.find((item) => item.value === user.status)?.label || "نشط",
+  statusSeverity: user.status === "active" ? "success" : user.status === "pending" ? "warning" : "danger",
+});
+
+const loadUsers = async () => {
+  try {
+    const items = await userService.getUsers();
+    const list = Array.isArray(items) ? items : items?.data || [];
+    users.value = list.map(normalizeUser);
+  } catch (error) {
+    console.error("Failed to load users", error);
+    users.value = [];
+  } finally {
+    pending.value = false;
+  }
+};
 
 const stats = computed(() => [
-  { label: "إجمالي المستخدمين", value: "48", tag: "نشط", badgeClass: "bg-sky-100 text-sky-700" },
-  { label: "مديرين", value: "6", tag: "رئيسي", badgeClass: "bg-green-100 text-green-700" },
-  { label: "فروع", value: "14", tag: "مهم", badgeClass: "bg-amber-100 text-amber-700" },
+  { label: "إجمالي المستخدمين", value: String(users.value.length || 0), tag: "نشط", badgeClass: "bg-sky-100 text-sky-700" },
+  { label: "مديرين", value: String(users.value.filter((item) => item.role === "مدير").length || 0), tag: "رئيسي", badgeClass: "bg-green-100 text-green-700" },
+  { label: "فروع", value: String(users.value.filter((item) => item.role === "فرع").length || 0), tag: "مهم", badgeClass: "bg-amber-100 text-amber-700" },
 ]);
 
 const emptyMessage = "لا توجد مستخدمين.";
@@ -131,23 +148,25 @@ const toggleForm = () => {
 
 const submitUser = async () => {
   saving.value = true;
-  await new Promise((resolve) => setTimeout(resolve, 600));
-  users.value.unshift({
-    name: form.name,
-    email: form.email,
-    role: roleOptions.find((item) => item.value === form.role)?.label || "مدير",
-    status: statusOptions.find((item) => item.value === form.status)?.label || "نشط",
-    statusSeverity: form.status === "active" ? "success" : form.status === "pending" ? "warning" : "danger",
-  });
-  Object.assign(form, formInitialValues);
-  showForm.value = false;
-  saving.value = false;
+
+  try {
+    const result = await userService.createUser({
+      name: form.name,
+      email: form.email,
+      role: form.role,
+      status: form.status,
+    });
+
+    users.value.unshift(normalizeUser(result || { ...form }));
+    Object.assign(form, formInitialValues);
+    showForm.value = false;
+  } finally {
+    saving.value = false;
+  }
 };
 
 onMounted(() => {
-  setTimeout(() => {
-    pending.value = false;
-  }, 350);
+  loadUsers();
 });
 
 definePageMeta({ middleware: ["local-pages"] });
