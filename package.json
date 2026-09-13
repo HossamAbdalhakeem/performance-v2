@@ -25,7 +25,9 @@
     "primevue": "^4.4.1",
     "shaka-player": "^5.2.8",
     "vue": "^3.5.41",
-    "vue-router": "^5.2.0"
+    "vue-router": "^5.2.0",
+    "@vee-validate/nuxt": "^4.14.7",
+    "@vee-validate/rules": "^4.14.7"
   },
   "devDependencies": {
     "@primevue/nuxt-module": "^4.4.1",

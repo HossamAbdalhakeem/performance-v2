@@ -80,6 +80,7 @@ export default defineNuxtConfig({
       fundraiserId: process.env.NUXT_ENV_FUNDRAISER_ID,
       // Public site URL (used for OG tags & canonical URLs)
       siteUrl: process.env.NUXT_PUBLIC_SITE_URL,
+      supaBaseKey: process.env.NUXT_ENV_SUPABASE_KEY,
     },
   },
 
