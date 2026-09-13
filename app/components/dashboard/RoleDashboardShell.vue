@@ -1,6 +1,6 @@
 <template>
-  <div class="min-h-screen bg-slate-100 text-slate-800" dir="rtl">
-    <aside class="fixed inset-y-0 right-0 z-20 w-72 border-l border-slate-200 bg-slate-900 text-slate-100 shadow-xl">
+  <div class="min-h-screen bg-[#111827] text-slate-100" dir="rtl">
+    <aside class="fixed inset-y-0 right-0 z-20 w-72 border-l border-white/10 bg-[#0b1220] text-slate-100 shadow-xl">
       <div class="flex items-center justify-between border-b border-white/10 px-6 py-5">
         <div>
           <p class="text-xs tracking-[0.28em] text-sky-200/80">LIBRARY</p>
@@ -17,7 +17,7 @@
           :key="item.label"
           :to="item.to"
           class="flex w-full items-center justify-between rounded-xl px-3 py-3 text-right text-sm font-medium transition hover:bg-white/5"
-          :class="item.active ? 'bg-sky-500/15 text-sky-200' : 'text-slate-300'"
+          :class="item.active ? 'bg-slate-800 text-sky-200 ring-1 ring-sky-500/40' : 'text-slate-300'"
         >
           <span>{{ item.label }}</span>
           <span class="text-lg">{{ item.icon }}</span>
@@ -37,20 +37,20 @@
     </aside>
 
     <div class="mr-72 min-h-screen">
-      <header class="border-b border-slate-200 bg-white/80 px-6 py-5 backdrop-blur-sm">
+      <header class="border-b border-white/10 bg-[#0f172a]/90 px-6 py-5 backdrop-blur-sm">
         <div class="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <p class="text-sm text-slate-500">{{ title }}</p>
-            <h1 class="mt-1 text-2xl font-bold text-slate-900">{{ subtitle }}</h1>
+            <p class="text-sm text-slate-400">{{ title }}</p>
+            <h1 class="mt-1 text-2xl font-bold text-white">{{ subtitle }}</h1>
           </div>
 
-          <div class="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2">
-            <div class="flex h-10 w-10 items-center justify-center rounded-full bg-sky-100 font-bold text-sky-700">
+          <div class="flex items-center gap-3 rounded-2xl border border-white/10 bg-slate-900 px-3 py-2 shadow-sm">
+            <div class="flex h-10 w-10 items-center justify-center rounded-full bg-sky-500/20 font-bold text-sky-200">
               {{ userInitials }}
             </div>
             <div class="text-right">
-              <p class="text-sm font-semibold text-slate-800">{{ userName }}</p>
-              <p class="text-xs text-slate-500">{{ roleLabel }}</p>
+              <p class="text-sm font-semibold text-white">{{ userName }}</p>
+              <p class="text-xs text-slate-400">{{ roleLabel }}</p>
             </div>
           </div>
         </div>
@@ -61,14 +61,14 @@
           <div
             v-for="stat in stats"
             :key="stat.label"
-            class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"
+            class="rounded-2xl border border-white/10 bg-slate-900 p-4 shadow-sm"
           >
             <div class="flex items-center justify-between">
-              <p class="text-sm text-slate-500">{{ stat.label }}</p>
-              <span class="rounded-lg bg-sky-100 px-2 py-1 text-xs font-semibold text-sky-700">{{ stat.tag }}</span>
+              <p class="text-sm text-slate-400">{{ stat.label }}</p>
+              <span class="rounded-lg bg-sky-500/15 px-2 py-1 text-xs font-semibold text-sky-200">{{ stat.tag }}</span>
             </div>
-            <p class="mt-4 text-3xl font-bold text-slate-900">{{ stat.value }}</p>
-            <p class="mt-2 text-xs text-slate-500">{{ stat.note }}</p>
+            <p class="mt-4 text-3xl font-bold text-white">{{ stat.value }}</p>
+            <p class="mt-2 text-xs text-slate-400">{{ stat.note }}</p>
           </div>
         </div>
 

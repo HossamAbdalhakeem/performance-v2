@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 :root {
-  color-scheme: light;
+  color-scheme: dark;
 }
 
 html,
@@ -12,12 +12,14 @@ body,
   min-height: 100%;
   direction: rtl;
   text-align: right;
+  background: #020817;
+  color: #e2e8f0;
 }
 
 body {
   margin: 0;
-  background: #f5f7fb;
-  color: #122033;
+  background: #020817;
+  color: #e2e8f0;
   font-family: "Tahoma", "Segoe UI", sans-serif;
 }
 
@@ -30,4 +32,93 @@ input,
 select,
 textarea {
   font-family: inherit;
+}
+
+.p-card {
+  background: #0f172a !important;
+  color: #f8fafc !important;
+  border: 1px solid #334155 !important;
+  box-shadow: none !important;
+}
+
+.p-card .p-card-header,
+.p-card .p-card-content,
+.p-card .p-card-footer,
+.p-card .p-card-title {
+  background: transparent !important;
+  color: #f8fafc !important;
+}
+
+.p-card .p-card-title {
+  color: #f8fafc !important;
+}
+
+.p-card .p-card-content {
+  color: #e2e8f0 !important;
+}
+
+.p-inputtext,
+.p-select,
+.p-dropdown,
+.p-inputnumber-input,
+.p-calendar .p-inputtext,
+.p-textarea {
+  background: #0b1220 !important;
+  border: 1px solid #475569 !important;
+  color: #f8fafc !important;
+}
+
+.p-inputtext::placeholder,
+.p-select .p-placeholder {
+  color: #94a3b8 !important;
+}
+
+.p-datatable,
+.p-datatable .p-datatable-wrapper,
+.p-datatable .p-datatable-thead > tr > th,
+.p-datatable .p-datatable-tbody > tr > td {
+  background: #0f172a !important;
+  color: #e2e8f0 !important;
+  border-color: #334155 !important;
+}
+
+.bg-white,
+.bg-slate-50,
+.bg-slate-100,
+.bg-slate-200,
+.bg-slate-300 {
+  background-color: #0f172a !important;
+}
+
+.text-slate-900,
+.text-slate-800,
+.text-slate-700,
+.text-slate-600,
+.text-slate-500,
+.text-slate-400,
+.text-slate-300,
+.text-slate-200,
+.text-slate-100 {
+  color: #f8fafc !important;
+}
+
+.border-slate-200,
+.border-slate-300,
+.border-slate-600,
+.border-slate-700,
+.border-white\/10,
+.border-white\/20 {
+  border-color: #334155 !important;
+}
+
+.text-slate-500,
+.text-slate-600,
+.text-slate-700 {
+  color: #cbd5e1 !important;
+}
+
+.rounded-2xl,
+.rounded-xl,
+.rounded-lg {
+  background-clip: padding-box;
 }
