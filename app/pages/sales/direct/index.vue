@@ -4,21 +4,22 @@
       <template #title>
         <span class="text-lg font-bold text-slate-900">البيع المباشر</span>
       </template>
+
       <template #content>
         <Form v-slot="{ errors: fieldErrors }" @submit="submitSale" :initial-values="initialValues" class="grid gap-4 md:grid-cols-2">
-          <Field v-slot="{ field, errorMessage }" name="customer" rules="required">
+          <Field v-slot="{ field, errorMessage }" name="stage" rules="required">
             <div class="flex flex-col gap-2 text-right">
-              <label class="text-sm font-medium text-slate-700">اسم العميل</label>
-              <InputText v-bind="field" v-model="form.customer" :class="{ 'p-invalid': errorMessage || fieldErrors.customer }" />
-              <ErrorMessage name="customer" class="text-xs text-red-500" />
+              <label class="text-sm font-medium text-slate-700">السنة الدراسية</label>
+              <Select v-bind="field" v-model="form.stage" :options="stageOptions" optionLabel="label" optionValue="value" placeholder="اختر السنة" :class="{ 'p-invalid': errorMessage || fieldErrors.stage }" />
+              <ErrorMessage name="stage" class="text-xs text-red-500" />
             </div>
           </Field>
 
-          <Field v-slot="{ field, errorMessage }" name="phone" rules="required|min:10">
+          <Field v-slot="{ field, errorMessage }" name="teacher" rules="required">
             <div class="flex flex-col gap-2 text-right">
-              <label class="text-sm font-medium text-slate-700">رقم الهاتف</label>
-              <InputText v-bind="field" v-model="form.phone" :class="{ 'p-invalid': errorMessage || fieldErrors.phone }" />
-              <ErrorMessage name="phone" class="text-xs text-red-500" />
+              <label class="text-sm font-medium text-slate-700">اسم المدرس</label>
+              <Select v-bind="field" v-model="form.teacher" :options="teacherOptions" optionLabel="label" optionValue="value" placeholder="اختر المدرس" :class="{ 'p-invalid': errorMessage || fieldErrors.teacher }" />
+              <ErrorMessage name="teacher" class="text-xs text-red-500" />
             </div>
           </Field>
 
@@ -30,17 +31,41 @@
             </div>
           </Field>
 
+          <Field v-slot="{ field, errorMessage }" name="student" rules="required">
+            <div class="flex flex-col gap-2 text-right">
+              <label class="text-sm font-medium text-slate-700">اسم الطالب</label>
+              <InputText v-bind="field" v-model="form.student" :class="{ 'p-invalid': errorMessage || fieldErrors.student }" />
+              <ErrorMessage name="student" class="text-xs text-red-500" />
+            </div>
+          </Field>
+
+          <Field v-slot="{ field, errorMessage }" name="phone" rules="required|min:10">
+            <div class="flex flex-col gap-2 text-right">
+              <label class="text-sm font-medium text-slate-700">رقم الموبايل</label>
+              <InputText v-bind="field" v-model="form.phone" :class="{ 'p-invalid': errorMessage || fieldErrors.phone }" />
+              <ErrorMessage name="phone" class="text-xs text-red-500" />
+            </div>
+          </Field>
+
           <Field v-slot="{ field, errorMessage }" name="amount" rules="required|min_value:1">
             <div class="flex flex-col gap-2 text-right">
-              <label class="text-sm font-medium text-slate-700">المبلغ</label>
+              <label class="text-sm font-medium text-slate-700">المبلغ المدفوع (مقدم)</label>
               <InputNumber v-bind="field" v-model="form.amount" mode="currency" currency="EGP" locale="ar-EG" :class="{ 'p-invalid': errorMessage || fieldErrors.amount }" />
               <ErrorMessage name="amount" class="text-xs text-red-500" />
             </div>
           </Field>
 
+          <Field v-slot="{ field, errorMessage }" name="paymentMethod" rules="required">
+            <div class="flex flex-col gap-2 text-right md:col-span-2">
+              <label class="text-sm font-medium text-slate-700">طريقة الدفع</label>
+              <Select v-bind="field" v-model="form.paymentMethod" :options="paymentOptions" optionLabel="label" optionValue="value" placeholder="اختر طريقة الدفع" :class="{ 'p-invalid': errorMessage || fieldErrors.paymentMethod }" />
+              <ErrorMessage name="paymentMethod" class="text-xs text-red-500" />
+            </div>
+          </Field>
+
           <div class="md:col-span-2 flex justify-end gap-3">
             <Button label="إلغاء" severity="secondary" text />
-            <Button type="submit" label="إتمام البيع" :loading="saving" severity="info" />
+            <Button type="submit" label="حفظ البيع" :loading="saving" severity="info" />
           </div>
         </Form>
       </template>
@@ -57,23 +82,40 @@ import Select from "primevue/select";
 import { Form, Field, ErrorMessage } from "vee-validate";
 import { saleService } from "~/services/saleService";
 import { productService } from "~/services/productService";
+import { teacherService } from "~/services/teacherService";
 
 const saving = ref(false);
-const loadingProducts = ref(true);
 const productOptions = ref([]);
+const teacherOptions = ref([]);
+const stageOptions = [
+  { label: "ثانوية عامة", value: "secondary" },
+  { label: "بكالوريا", value: "baccalaureate" },
+  { label: "جامعي", value: "university" },
+];
+const paymentOptions = [
+  { label: "كاش", value: "cash" },
+  { label: "فودافون كاش", value: "vodafone" },
+  { label: "انستاباي", value: "instapay" },
+  { label: "أخرى", value: "other" },
+];
 
-const form = reactive({ customer: "", phone: "", product: "", amount: null });
-const initialValues = { customer: "", phone: "", product: "", amount: null };
+const form = reactive({ stage: "", teacher: "", product: "", student: "", phone: "", amount: null, paymentMethod: "" });
+const initialValues = { stage: "", teacher: "", product: "", student: "", phone: "", amount: null, paymentMethod: "" };
 
-const loadProducts = async () => {
+const loadData = async () => {
   try {
-    const products = await productService.getProducts();
-    const list = Array.isArray(products) ? products : products?.data || [];
-    productOptions.value = list.map((item) => ({ label: item.name || item.title || item.id, value: item.id }));
+    const [products, teachers] = await Promise.all([
+      productService.getProducts(),
+      teacherService.getTeachers(),
+    ]);
+
+    const productList = Array.isArray(products) ? products : products?.data || [];
+    const teacherList = Array.isArray(teachers) ? teachers : teachers?.data || [];
+
+    productOptions.value = productList.map((item) => ({ label: item.name || item.title || item.id, value: item.id }));
+    teacherOptions.value = teacherList.map((teacher) => ({ label: teacher.name || teacher.full_name || `مدرس ${teacher.id}`, value: teacher.id }));
   } catch (error) {
-    console.error("Failed to load direct sale products", error);
-  } finally {
-    loadingProducts.value = false;
+    console.error("Failed to load sale options", error);
   }
 };
 
@@ -82,10 +124,13 @@ const submitSale = async () => {
 
   try {
     await saleService.createSale({
-      customer_name: form.customer,
-      phone: form.phone,
+      stage: form.stage,
+      teacher_id: form.teacher,
       product_id: form.product,
+      student_name: form.student,
+      phone: form.phone,
       amount: form.amount,
+      payment_method: form.paymentMethod,
     });
 
     Object.assign(form, initialValues);
@@ -95,7 +140,7 @@ const submitSale = async () => {
 };
 
 onMounted(() => {
-  loadProducts();
+  loadData();
 });
 
 definePageMeta({ middleware: ["local-pages"] });

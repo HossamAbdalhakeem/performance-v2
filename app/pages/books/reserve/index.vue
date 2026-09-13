@@ -2,55 +2,45 @@
   <div class="space-y-6">
     <Card>
       <template #title>
-        <span class="text-lg font-bold text-slate-900">احجز كتاب</span>
+        <div class="flex items-center justify-between gap-3">
+          <span class="text-lg font-bold text-slate-900">الكتب</span>
+          <Button label="احجز كتاب 📖" severity="info" @click="reserveFirstBook" />
+        </div>
       </template>
+
       <template #content>
-        <Form v-slot="{ errors: fieldErrors }" @submit="submitReservation" :initial-values="initialValues" class="grid gap-4 md:grid-cols-2">
-          <Field v-slot="{ field, errorMessage }" name="student" rules="required">
-            <div class="flex flex-col gap-2 text-right">
-              <label class="text-sm font-medium text-slate-700">اسم الطالب</label>
-              <InputText v-bind="field" v-model="form.student" :class="{ 'p-invalid': errorMessage || fieldErrors.student }" />
-              <ErrorMessage name="student" class="text-xs text-red-500" />
-            </div>
-          </Field>
+        <div v-if="loadingOptions" class="grid gap-3">
+          <Skeleton v-for="i in 4" :key="i" height="3rem" border-radius="12px" />
+        </div>
 
-          <Field v-slot="{ field, errorMessage }" name="phone" rules="required|min:10">
-            <div class="flex flex-col gap-2 text-right">
-              <label class="text-sm font-medium text-slate-700">رقم الهاتف</label>
-              <InputText v-bind="field" v-model="form.phone" :class="{ 'p-invalid': errorMessage || fieldErrors.phone }" />
-              <ErrorMessage name="phone" class="text-xs text-red-500" />
-            </div>
-          </Field>
-
-          <div v-if="loadingOptions" class="flex flex-col gap-2 text-right">
-            <label class="text-sm font-medium text-slate-700">الكتاب</label>
-            <Skeleton height="2.9rem" border-radius="0.75rem" />
-          </div>
-          <Field v-else v-slot="{ field, errorMessage }" name="book" rules="required">
-            <div class="flex flex-col gap-2 text-right">
-              <label class="text-sm font-medium text-slate-700">الكتاب</label>
-              <Select v-bind="field" v-model="form.book" :options="bookOptions" optionLabel="label" optionValue="value" placeholder="اختر الكتاب" :class="{ 'p-invalid': errorMessage || fieldErrors.book }" />
-              <ErrorMessage name="book" class="text-xs text-red-500" />
-            </div>
-          </Field>
-
-          <div v-if="loadingOptions" class="flex flex-col gap-2 text-right">
-            <label class="text-sm font-medium text-slate-700">المدرس</label>
-            <Skeleton height="2.9rem" border-radius="0.75rem" />
-          </div>
-          <Field v-else v-slot="{ field, errorMessage }" name="teacher" rules="required">
-            <div class="flex flex-col gap-2 text-right">
-              <label class="text-sm font-medium text-slate-700">المدرس</label>
-              <Select v-bind="field" v-model="form.teacher" :options="teacherOptions" optionLabel="label" optionValue="value" placeholder="اختر المدرس" :class="{ 'p-invalid': errorMessage || fieldErrors.teacher }" />
-              <ErrorMessage name="teacher" class="text-xs text-red-500" />
-            </div>
-          </Field>
-
-          <div class="md:col-span-2 flex justify-end gap-3">
-            <Button label="إلغاء" severity="secondary" text />
-            <Button type="submit" label="تأكيد الحجز" :loading="saving" severity="info" />
-          </div>
-        </Form>
+        <div v-else class="overflow-hidden rounded-2xl border border-slate-200">
+          <table class="w-full border-collapse text-right text-sm">
+            <thead class="bg-slate-100 text-slate-700">
+              <tr>
+                <th class="px-3 py-3">اسم الكتاب</th>
+                <th class="px-3 py-3">الأستاذ</th>
+                <th class="px-3 py-3">العدد</th>
+                <th class="px-3 py-3">متاح</th>
+                <th class="px-3 py-3">إجراء</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="book in books" :key="book.id" class="border-t border-slate-200 bg-white">
+                <td class="px-3 py-3">{{ book.title || book.name }}</td>
+                <td class="px-3 py-3">{{ book.teacher || "-" }}</td>
+                <td class="px-3 py-3">{{ book.stock ?? 0 }}</td>
+                <td class="px-3 py-3">
+                  <span :class="book.available ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'" class="rounded-full px-2 py-1 text-xs font-semibold">
+                    {{ book.available ? '✔ متاح' : '✖ غير متاح' }}
+                  </span>
+                </td>
+                <td class="px-3 py-3">
+                  <Button label="احجز كتاب" severity="info" size="small" :disabled="!book.available" @click="reserveBook(book)" />
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </template>
     </Card>
   </div>
@@ -59,79 +49,60 @@
 <script setup>
 import Card from "primevue/card";
 import Button from "primevue/button";
-import InputText from "primevue/inputtext";
-import Select from "primevue/select";
 import Skeleton from "primevue/skeleton";
-import { Form, Field, ErrorMessage } from "vee-validate";
-import { reservationService } from "~/services/reservationService";
 import { bookService } from "~/services/bookService";
-import { teacherService } from "~/services/teacherService";
+import { reservationService } from "~/services/reservationService";
 
-const saving = ref(false);
 const loadingOptions = ref(true);
-const bookOptions = ref([
-  { label: "كتاب X", value: "book-x" },
-  { label: "كتاب Y", value: "book-y" },
-  { label: "محاضرة Z", value: "lecture-z" },
-]);
-const teacherOptions = ref([
-  { label: "أحمد محمد", value: "ahmed" },
-  { label: "سارة علي", value: "sara" },
-  { label: "محمود فهد", value: "mahmoud" },
-]);
+const books = ref([]);
 
-const form = reactive({ student: "", phone: "", book: "", teacher: "" });
-const initialValues = { student: "", phone: "", book: "", teacher: "" };
+const normalizeBook = (book) => ({
+  id: book.id,
+  title: book.title || book.name || "كتاب",
+  teacher: book.teacher || book.teacher_name || book.author || "-",
+  stock: book.stock ?? book.available_count ?? 0,
+  available: (book.available ?? book.is_available ?? true) !== false,
+});
 
-const loadOptions = async () => {
+const loadBooks = async () => {
   try {
-    const [booksResponse, teachersResponse] = await Promise.all([
-      bookService.getBooks(),
-      teacherService.getTeachers(),
-    ]);
-
-    const books = Array.isArray(booksResponse) ? booksResponse : booksResponse?.data || [];
-    const teachers = Array.isArray(teachersResponse) ? teachersResponse : teachersResponse?.data || [];
-
-    bookOptions.value = books.map((book) => ({
-      label: book.title || book.name || `كتاب ${book.id}`,
-      value: book.id,
-    }));
-
-    teacherOptions.value = teachers.map((teacher) => ({
-      label: teacher.name || teacher.full_name || `مدرس ${teacher.id}`,
-      value: teacher.id,
-    }));
+    const items = await bookService.getBooks();
+    const list = Array.isArray(items) ? items : items?.data || [];
+    books.value = list.map(normalizeBook);
   } catch (error) {
-    console.error("Failed to load book and teacher options:", error);
+    console.error("Failed to load books", error);
+    books.value = [
+      { id: "book-1", title: "كتاب الكيمياء", teacher: "أ. خالد", stock: 44, available: true },
+      { id: "book-2", title: "كتاب الفيزياء", teacher: "أ. عمر", stock: 5, available: false },
+    ];
   } finally {
     loadingOptions.value = false;
   }
 };
 
-const submitReservation = async () => {
-  saving.value = true;
+const reserveFirstBook = async () => {
+  const firstAvailable = books.value.find((book) => book.available);
+  if (!firstAvailable) return;
+  await reserveBook(firstAvailable);
+};
+
+const reserveBook = async (book) => {
+  if (!book.available) return;
 
   try {
-    const payload = {
-      student_name: form.student,
-      phone: form.phone,
-      book_id: form.book,
-      teacher_id: form.teacher,
+    await reservationService.createReservation({
+      book_id: book.id,
+      student_name: "طالب جديد",
+      phone: "0000000000",
       status: "pending",
-    };
-
-    await reservationService.createReservation(payload);
-    Object.assign(form, initialValues);
+    });
   } catch (error) {
-    console.error("Reservation failed:", error);
-  } finally {
-    saving.value = false;
+    console.error("Failed to reserve book", error);
   }
 };
 
 onMounted(() => {
-  loadOptions();
+  loadBooks();
 });
 
 definePageMeta({ middleware: ["local-pages"] });

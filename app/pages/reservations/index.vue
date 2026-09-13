@@ -1,85 +1,73 @@
 <template>
   <div class="space-y-6">
-    <div class="grid gap-4 md:grid-cols-3">
-      <Card v-for="stat in stats" :key="stat.label">
-        <template #content>
-          <div class="flex items-center justify-between">
-            <div>
-              <p class="text-sm text-slate-500">{{ stat.label }}</p>
-              <p class="mt-2 text-2xl font-bold text-slate-900">{{ stat.value }}</p>
-            </div>
-            <span class="rounded-xl px-2 py-1 text-xs font-semibold" :class="stat.badgeClass">{{ stat.tag }}</span>
-          </div>
-        </template>
-      </Card>
-    </div>
-
     <Card>
       <template #title>
-        <div class="flex items-center justify-between gap-3">
-          <span class="text-lg font-bold text-slate-900">الحجوزات</span>
-          <Button label="حجز جديد" icon="pi pi-plus" severity="info" @click="toggleForm" />
-        </div>
+        <span class="text-lg font-bold text-slate-900">حجز الكتب</span>
       </template>
 
       <template #content>
-        <div v-if="showForm" class="mb-5 rounded-2xl border border-slate-200 bg-slate-50 p-4">
-          <Form v-slot="{ errors: fieldErrors }" @submit="submitReservation" :initial-values="formInitialValues" class="grid gap-4 md:grid-cols-2">
-            <Field v-slot="{ field, errorMessage }" name="student" rules="required">
-              <div class="flex flex-col gap-2 text-right">
-                <label class="text-sm font-medium text-slate-700">اسم الطالب</label>
-                <InputText v-bind="field" v-model="form.student" :class="{ 'p-invalid': errorMessage || fieldErrors.student }" />
-                <ErrorMessage name="student" class="text-xs text-red-500" />
-              </div>
-            </Field>
-
-            <Field v-slot="{ field, errorMessage }" name="book" rules="required">
-              <div class="flex flex-col gap-2 text-right">
-                <label class="text-sm font-medium text-slate-700">اسم الكتاب</label>
-                <InputText v-bind="field" v-model="form.book" :class="{ 'p-invalid': errorMessage || fieldErrors.book }" />
-                <ErrorMessage name="book" class="text-xs text-red-500" />
-              </div>
-            </Field>
-
-            <Field v-slot="{ field, errorMessage }" name="date" rules="required">
-              <div class="flex flex-col gap-2 text-right">
-                <label class="text-sm font-medium text-slate-700">تاريخ الاستلام</label>
-                <Calendar v-bind="field" v-model="form.date" dateFormat="dd/mm/yy" :class="{ 'p-invalid': errorMessage || fieldErrors.date }" />
-                <ErrorMessage name="date" class="text-xs text-red-500" />
-              </div>
-            </Field>
-
-            <Field v-slot="{ field, errorMessage }" name="status" rules="required">
-              <div class="flex flex-col gap-2 text-right">
-                <label class="text-sm font-medium text-slate-700">الحالة</label>
-                <Select v-bind="field" v-model="form.status" :options="statusOptions" optionLabel="label" optionValue="value" placeholder="اختر" :class="{ 'p-invalid': errorMessage || fieldErrors.status }" />
-                <ErrorMessage name="status" class="text-xs text-red-500" />
-              </div>
-            </Field>
-
-            <div class="md:col-span-2 flex justify-end gap-3">
-              <Button label="إلغاء" severity="secondary" text @click="toggleForm" />
-              <Button type="submit" label="حفظ الحجز" :loading="saving" severity="info" />
+        <Form v-slot="{ errors: fieldErrors }" @submit="submitReservation" :initial-values="initialValues" class="grid gap-4 md:grid-cols-2">
+          <Field v-slot="{ field, errorMessage }" name="stage" rules="required">
+            <div class="flex flex-col gap-2 text-right">
+              <label class="text-sm font-medium text-slate-700">السنة الدراسية</label>
+              <Select v-bind="field" v-model="form.stage" :options="stageOptions" optionLabel="label" optionValue="value" placeholder="اختر السنة" :class="{ 'p-invalid': errorMessage || fieldErrors.stage }" />
+              <ErrorMessage name="stage" class="text-xs text-red-500" />
             </div>
-          </Form>
-        </div>
+          </Field>
 
-        <div v-if="pending" class="grid gap-4">
-          <Skeleton v-for="i in 5" :key="i" width="100%" height="3rem" border-radius="12px" />
-        </div>
+          <Field v-slot="{ field, errorMessage }" name="teacher" rules="required">
+            <div class="flex flex-col gap-2 text-right">
+              <label class="text-sm font-medium text-slate-700">اسم المدرس</label>
+              <Select v-bind="field" v-model="form.teacher" :options="teacherOptions" optionLabel="label" optionValue="value" placeholder="اختر المدرس" :class="{ 'p-invalid': errorMessage || fieldErrors.teacher }" />
+              <ErrorMessage name="teacher" class="text-xs text-red-500" />
+            </div>
+          </Field>
 
-        <DataTable v-else :value="filteredReservations" paginator :rows="8" tableStyle="min-width: 100%" :emptyMessage="emptyMessage">
-          <Column field="id" header="الكود" />
-          <Column field="student" header="الطالب" />
-          <Column field="book" header="الكتاب" />
-          <Column field="date" header="تاريخ الاستلام" />
-          <Column field="branch" header="الفرع" />
-          <Column field="status" header="الحالة">
-            <template #body="slotProps">
-              <Tag :value="slotProps.data.status" :severity="slotProps.data.statusSeverity" />
-            </template>
-          </Column>
-        </DataTable>
+          <Field v-slot="{ field, errorMessage }" name="product" rules="required">
+            <div class="flex flex-col gap-2 text-right">
+              <label class="text-sm font-medium text-slate-700">المنتج</label>
+              <Select v-bind="field" v-model="form.product" :options="productOptions" optionLabel="label" optionValue="value" placeholder="اختر المنتج" :class="{ 'p-invalid': errorMessage || fieldErrors.product }" />
+              <ErrorMessage name="product" class="text-xs text-red-500" />
+            </div>
+          </Field>
+
+          <Field v-slot="{ field, errorMessage }" name="student" rules="required">
+            <div class="flex flex-col gap-2 text-right">
+              <label class="text-sm font-medium text-slate-700">اسم الطالب</label>
+              <InputText v-bind="field" v-model="form.student" :class="{ 'p-invalid': errorMessage || fieldErrors.student }" />
+              <ErrorMessage name="student" class="text-xs text-red-500" />
+            </div>
+          </Field>
+
+          <Field v-slot="{ field, errorMessage }" name="phone" rules="required|min:10">
+            <div class="flex flex-col gap-2 text-right">
+              <label class="text-sm font-medium text-slate-700">رقم الموبايل</label>
+              <InputText v-bind="field" v-model="form.phone" :class="{ 'p-invalid': errorMessage || fieldErrors.phone }" />
+              <ErrorMessage name="phone" class="text-xs text-red-500" />
+            </div>
+          </Field>
+
+          <Field v-slot="{ field, errorMessage }" name="amount" rules="required|min_value:1">
+            <div class="flex flex-col gap-2 text-right">
+              <label class="text-sm font-medium text-slate-700">المبلغ المدفوع (مقدم)</label>
+              <InputNumber v-bind="field" v-model="form.amount" mode="currency" currency="EGP" locale="ar-EG" :class="{ 'p-invalid': errorMessage || fieldErrors.amount }" />
+              <ErrorMessage name="amount" class="text-xs text-red-500" />
+            </div>
+          </Field>
+
+          <Field v-slot="{ field, errorMessage }" name="paymentMethod" rules="required">
+            <div class="flex flex-col gap-2 text-right md:col-span-2">
+              <label class="text-sm font-medium text-slate-700">طريقة الدفع</label>
+              <Select v-bind="field" v-model="form.paymentMethod" :options="paymentOptions" optionLabel="label" optionValue="value" placeholder="اختر طريقة الدفع" :class="{ 'p-invalid': errorMessage || fieldErrors.paymentMethod }" />
+              <ErrorMessage name="paymentMethod" class="text-xs text-red-500" />
+            </div>
+          </Field>
+
+          <div class="md:col-span-2 flex justify-end gap-3">
+            <Button label="إلغاء" severity="secondary" text />
+            <Button type="submit" label="حفظ الحجز" :loading="saving" severity="info" />
+          </div>
+        </Form>
       </template>
     </Card>
   </div>
@@ -88,93 +76,79 @@
 <script setup>
 import Card from "primevue/card";
 import Button from "primevue/button";
-import DataTable from "primevue/datatable";
-import Column from "primevue/column";
-import Tag from "primevue/tag";
 import InputText from "primevue/inputtext";
+import InputNumber from "primevue/inputnumber";
 import Select from "primevue/select";
-import Calendar from "primevue/calendar";
-import Skeleton from "primevue/skeleton";
 import { Form, Field, ErrorMessage } from "vee-validate";
 import { reservationService } from "~/services/reservationService";
+import { teacherService } from "~/services/teacherService";
+import { productService } from "~/services/productService";
 
-const pending = ref(true);
 const saving = ref(false);
-const showForm = ref(false);
-const search = ref("");
-const statusOptions = [
-  { label: "قيد التنفيذ", value: "pending" },
-  { label: "مكتمل", value: "complete" },
-  { label: "ملغي", value: "cancelled" },
+const teacherOptions = ref([]);
+const productOptions = ref([]);
+const stageOptions = [
+  { label: "ثانوية عامة", value: "secondary" },
+  { label: "بكالوريا", value: "baccalaureate" },
+  { label: "جامعي", value: "university" },
+];
+const paymentOptions = [
+  { label: "كاش", value: "cash" },
+  { label: "فودافون كاش", value: "vodafone" },
+  { label: "انستاباي", value: "instapay" },
+  { label: "أخرى", value: "other" },
 ];
 
-const form = reactive({ student: "", book: "", date: null, status: "pending" });
-const formInitialValues = { student: "", book: "", date: null, status: "pending" };
-const reservations = ref([]);
+const form = reactive({ stage: "", teacher: "", product: "", student: "", phone: "", amount: null, paymentMethod: "" });
+const initialValues = { stage: "", teacher: "", product: "", student: "", phone: "", amount: null, paymentMethod: "" };
 
-const normalizeReservation = (reservation) => ({
-  id: reservation.id || "-",
-  student: reservation.student || reservation.student_name || "-",
-  book: reservation.book || reservation.book_name || "-",
-  date: reservation.date || reservation.reservation_date || "-",
-  branch: reservation.branch || reservation.branch_name || "الرياض",
-  status: reservation.status === "complete" ? "مكتمل" : reservation.status === "cancelled" ? "ملغي" : "قيد التنفيذ",
-  statusSeverity: reservation.status === "complete" ? "success" : reservation.status === "cancelled" ? "danger" : "warning",
-});
-
-const loadReservations = async () => {
+const loadOptions = async () => {
   try {
-    const items = await reservationService.getReservations();
-    const list = Array.isArray(items) ? items : items?.data || [];
-    reservations.value = list.map(normalizeReservation);
+    const [teachers, products] = await Promise.all([
+      teacherService.getTeachers(),
+      productService.getProducts(),
+    ]);
+
+    const teacherList = Array.isArray(teachers) ? teachers : teachers?.data || [];
+    const productList = Array.isArray(products) ? products : products?.data || [];
+
+    teacherOptions.value = teacherList.map((teacher) => ({
+      label: teacher.name || teacher.full_name || `مدرس ${teacher.id}`,
+      value: teacher.id,
+    }));
+
+    productOptions.value = productList.map((product) => ({
+      label: product.name || product.title || `منتج ${product.id}`,
+      value: product.id,
+    }));
   } catch (error) {
-    console.error("Failed to load reservations", error);
-    reservations.value = [];
-  } finally {
-    pending.value = false;
+    console.error("Failed to load reservation options", error);
   }
-};
-
-const filteredReservations = computed(() => {
-  const term = search.value.trim().toLowerCase();
-  if (!term) return reservations.value;
-  return reservations.value.filter((item) => JSON.stringify(item).toLowerCase().includes(term));
-});
-
-const stats = computed(() => [
-  { label: "إجمالي الحجوزات", value: String(reservations.value.length || 0), tag: "جديدة", badgeClass: "bg-sky-100 text-sky-700" },
-  { label: "قيد التنفيذ", value: String(reservations.value.filter((item) => item.status === "قيد التنفيذ").length || 0), tag: "نشط", badgeClass: "bg-amber-100 text-amber-700" },
-  { label: "مكتملة", value: String(reservations.value.filter((item) => item.status === "مكتمل").length || 0), tag: "مؤكد", badgeClass: "bg-green-100 text-green-700" },
-]);
-
-const emptyMessage = "لا توجد حجوزات متاحة.";
-
-const toggleForm = () => {
-  showForm.value = !showForm.value;
 };
 
 const submitReservation = async () => {
   saving.value = true;
 
   try {
-    const result = await reservationService.createReservation({
-      student: form.student,
-      book: form.book,
-      reservation_date: form.date,
-      status: form.status,
-      branch: "الرياض",
+    await reservationService.createReservation({
+      stage: form.stage,
+      teacher_id: form.teacher,
+      product_id: form.product,
+      student_name: form.student,
+      phone: form.phone,
+      amount: form.amount,
+      payment_method: form.paymentMethod,
+      status: "pending",
     });
 
-    reservations.value.unshift(normalizeReservation(result || { ...form, id: `RES-${Date.now().toString().slice(-4)}` }));
-    Object.assign(form, formInitialValues);
-    showForm.value = false;
+    Object.assign(form, initialValues);
   } finally {
     saving.value = false;
   }
 };
 
 onMounted(() => {
-  loadReservations();
+  loadOptions();
 });
 
 definePageMeta({ middleware: ["local-pages"] });
