@@ -51,7 +51,27 @@
         class="rounded-sm border border-slate-700 bg-[#0f172a] px-3 py-2 text-right shadow-sm"
       >
         <p class="text-sm text-slate-300">{{ stat.label }}</p>
-        <p class="mt-2 text-3xl font-bold text-slate-100">{{ stat.value }}</p>
+        <template v-if="stat?.value?.length > 0">
+          <div v-for="item in stat.value" :key="item.all">
+            <div class="flex justify-between">
+              <div>
+                <p>كل</p>
+                <p>{{ item.all }}</p>
+              </div>
+              <div>
+                <p>محجوز</p>
+                <p>{{ item.reserved }}</p>
+              </div>
+              <div>
+                <p>بيع مباشر</p>
+                <p>{{ item.directSale }}</p>
+              </div>
+            </div>
+          </div>
+        </template>
+        <p v-else class="mt-2 text-3xl font-bold text-slate-100">
+          {{ stat.value }}
+        </p>
       </div>
     </div>
 
@@ -208,7 +228,7 @@ const stats = [
   { label: "إجمالي المبيعات", value: "8,750" },
   { label: "الحجوزات", value: "24" },
   { label: "المخزون", value: "124" },
-  { label: "البيع المباشر", value: "30" },
+  { label: "الكتب", value: [{ all: 50, reserved: 30, directSale: 20 }] },
 ];
 
 const reportRows = [
