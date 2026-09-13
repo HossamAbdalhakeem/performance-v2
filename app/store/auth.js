@@ -1,129 +1,84 @@
 import { defineStore } from "pinia";
+
+const roleMap = {
+  admin: { label: "مدير", role: "admin" },
+  branch: { label: "فرع", role: "branch" },
+  social: { label: "اجتماعي", role: "social" },
+};
+
 export const useAuthStore = defineStore("authStore", {
   state: () => ({
     user: {},
     token: null,
     loggedIn: false,
     loading: false,
-    baseURL: useRuntimeConfig()?.public?.baseUrl || "",
-    organizationId: useRuntimeConfig()?.public?.organizationId || "",
+    baseURL: useRuntimeConfig()?.public?.baseUrl || "/api",
   }),
   getters: {
     getUser: (state) => state.user,
     isLoggedIn: (state) => state.loggedIn,
-    getOrganizationId: (state) => state.user?.organization_id,
-    getFundraiserId: () => useRuntimeConfig()?.public?.fundraiserId,
+    getRole: (state) => state.user?.role || "admin",
   },
   actions: {
+    inferRole(email, password) {
+      const normalized = `${email || ""} ${password || ""}`.toLowerCase();
+      if (normalized.includes("admin")) return "admin";
+      if (normalized.includes("branch")) return "branch";
+      if (normalized.includes("social")) return "social";
+      return "admin";
+    },
     async login(data) {
-      console.log("Login data:aaaaaaaaaa", data);
-      console.log("Base URL:", this.baseURL);
-      const router = useRouter();
-
       this.loading = true;
-      const response = await $fetch(`/app-api/users/login`, {
-        method: "POST",
-        baseURL: this.baseURL,
-        body: { ...data, organization_id: this.organizationId },
-      });
+      const role = this.inferRole(data?.email, data?.password);
+      const user = {
+        id: `demo-${role}`,
+        name: roleMap[role]?.label || "مدير",
+        email: data?.email || "admin@library.local",
+        role,
+        branch_id: role === "branch" ? "branch-01" : null,
+      };
+
+      this.setUser(user);
       this.loading = false;
-      if (response?.status !== "SUCCESS") return;
-      console.log("Login response:bbbbbbbbb", response.data);
-      await this.setUser(response.data);
-      router.push("/");
-      return response;
-    },
-    removeTokens() {
-      this.token = null;
-      const tokenCookie = useCookie("token");
-      tokenCookie.value = null;
-      const refreshTokenCookie = useCookie("refresh_token");
-      refreshTokenCookie.value = null;
-    },
-    async fetchUser() {
-      console.log("Fetching user with token: 22");
-      const token = this.token;
-      console.log("Token in fetchUser:", token);
-      if (!token) return;
-
-      const { data, error } = await useFetch(`/app-api/users/profile`, {
-        key: `auth-profile-${token}`,
-        method: "GET",
-        baseURL: this.baseURL,
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      // console.log("my error auth", error.value);
-      if (error.value) {
-        console.error("Fetch user failed:", error.value);
-        // console.error("Fetch user failed:", error.value);
-        this.removeTokens();
-        return;
-      }
-
-      const responseData = data.value;
-      const user = responseData?.data;
-      console.log("Fetch user response:ccccccccc1112", responseData);
-      if (!user?._id) return;
-
-      await this.setUser(user);
-      return user;
+      await navigateTo("/");
+      return { data: user, message: "نجح تسجيل الدخول" };
     },
     async setUser(data) {
       this.user = data;
-      if (data?.api_token || data?.access_token) {
-        this.setUserToken(data.api_token || data?.access_token);
-      }
-
-      if (data?.refresh_token) {
-        this.setUserRefreshToken({ refresh_token: data?.refresh_token });
-      }
+      this.token = `demo-token-${data?.role || "admin"}`;
       this.loggedIn = true;
-    },
-    setUserToken(token) {
-      this.token = token;
-      const tokenCookie = useCookie("token", token);
-      tokenCookie.value = token;
-    },
-    setUserRefreshToken({ refresh_token }) {
-      const refreshTokenCookie = useCookie("refresh_token", refresh_token);
-      refreshTokenCookie.value = refresh_token;
-    },
-    async logoutCurrent() {
-      const response = await $fetch(`/app-api/users/logout-current`, {
-        method: "POST",
-        baseURL: this.baseURL,
-        headers: {
-          Authorization: `Bearer ${this.token}`,
-        },
-        body: {
-          access_token: this.token,
-        },
-      });
-      return response;
-    },
-    async logoutAll() {
-      await this.logoutCurrent();
-      this.removeUser();
-      this.removeTokens();
-    },
-    async logout() {
-      // Best-effort server call - always clear the local session even
-      // if the network call fails (offline / expired token)
-      try {
-        await this.logoutCurrent();
-      } catch {
-        // ignore - local logout below is whats important
-      }
-      this.removeUser();
-      this.removeTokens();
-      const router = useRouter();
-      router.push("/");
+
+      const roleCookie = useCookie("dashboard_role");
+      roleCookie.value = data?.role || "admin";
+
+      const userCookie = useCookie("dashboard_user");
+      userCookie.value = JSON.stringify(data);
     },
     removeUser() {
       this.user = {};
+      this.token = null;
       this.loggedIn = false;
+      useCookie("dashboard_role").value = null;
+      useCookie("dashboard_user").value = null;
+    },
+    async logout() {
+      this.removeUser();
+      await navigateTo("/login");
+    },
+    hydrateFromStorage() {
+      const dashboardRole = useCookie("dashboard_role");
+      const dashboardUser = useCookie("dashboard_user");
+
+      if (!dashboardRole.value || !dashboardUser.value) return;
+
+      try {
+        const parsed = JSON.parse(dashboardUser.value);
+        this.user = parsed;
+        this.token = `demo-token-${parsed?.role || "admin"}`;
+        this.loggedIn = true;
+      } catch (error) {
+        this.removeUser();
+      }
     },
   },
 });

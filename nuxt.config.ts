@@ -8,6 +8,7 @@ export default defineNuxtConfig({
     '@pinia/nuxt',
     '@nuxtjs/tailwindcss',
     '@primevue/nuxt-module',
+    '@vee-validate/nuxt',
     '@nuxtjs/robots',
     '@nuxtjs/sitemap',
     'nuxt-schema-org',
@@ -15,19 +16,16 @@ export default defineNuxtConfig({
   css: ['~/assets/css/tailwind.css'],
   app: {
     head: {
-      htmlAttrs: { class: 'app-dark' },
+      htmlAttrs: { class: 'app-dark', lang: 'ar', dir: 'rtl' },
       link: [
-        // Favicon (served from /public/favicon.ico)
         { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
         { rel: 'shortcut icon', type: 'image/x-icon', href: '/favicon.ico' },
         { rel: 'apple-touch-icon', href: '/favicon.ico' },
       ],
       meta: [
-        {
-          name: 'google-site-verification',
-          content: 'p8nu92PVNlSJHyCctN8Da3D6FhUDqxycWVSR15lqUl8'
-        }
-      ]
+        { name: 'google-site-verification', content: 'p8nu92PVNlSJHyCctN8Da3D6FhUDqxycWVSR15lqUl8' },
+        { name: 'viewport', content: 'width=device-width, initial-scale=1' },
+      ],
     },
   },
   primevue: {
@@ -43,24 +41,9 @@ export default defineNuxtConfig({
   experimental: {
     payloadExtraction: false,
   },
-  // ssr: true,
+  ssr: false,
   routeRules: {
-    '/': { ssr: true },
-    '/privacy': { prerender: true },
-    '/products/**': { isr: 3600 },
-    '/shop/**': { prerender: true },
-    '/how/**': { prerender: true },
-    '/features/**': { prerender: true },
-    '/products/preview/**': { ssr: true },
-    // Creators list stays ISR (cached, rebuilt hourly), while creator
-    // detail pages render on the server: the details component fetches
-    // the web-clients API through useFetch and Nuxt waits for it during
-    // SSR before sending the HTML
-    '/creators': { isr: 3600 },
-    '/creators/**': { ssr: true },
-    '/notifications': { ssr: true },
-    '/login': { ssr: false },
-
+    '/**': { ssr: false },
   },
   devtools: { enabled: true },
   compatibilityDate: '2024-04-03',
@@ -75,12 +58,11 @@ export default defineNuxtConfig({
   },
   runtimeConfig: {
     public: {
-      baseUrl: process.env.NUXT_ENV_BASE_URL,
-      organizationId: process.env.NUXT_ENV_ORGANIZATION_ID,
-      fundraiserId: process.env.NUXT_ENV_FUNDRAISER_ID,
+      baseUrl: process.env.NUXT_ENV_BASE_URL || '/api',
       // Public site URL (used for OG tags & canonical URLs)
       siteUrl: process.env.NUXT_PUBLIC_SITE_URL,
-      supaBaseKey: process.env.NUXT_ENV_SUPABASE_KEY,
+      supabaseUrl: process.env.NUXT_PUBLIC_SUPABASE_URL,
+      supabaseKey: process.env.NUXT_PUBLIC_SUPABASE_ANON_KEY || process.env.NUXT_ENV_SUPABASE_KEY,
     },
   },
 

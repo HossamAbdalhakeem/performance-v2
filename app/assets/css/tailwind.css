@@ -3,18 +3,31 @@
 @tailwind utilities;
 
 :root {
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 html,
 body,
 #__nuxt {
   min-height: 100%;
+  direction: rtl;
+  text-align: right;
 }
 
 body {
   margin: 0;
-  background: #172521;
-  color: #dff1e8;
-  font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+  background: #f5f7fb;
+  color: #122033;
+  font-family: "Tahoma", "Segoe UI", sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
 }

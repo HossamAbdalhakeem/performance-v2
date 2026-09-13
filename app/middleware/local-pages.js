@@ -1,10 +1,14 @@
 import { useAuthStore } from "~/store/auth";
-export default defineNuxtRouteMiddleware(async (to, from) => {
+
+export default defineNuxtRouteMiddleware(async (to) => {
   const authStore = useAuthStore();
-  const user = authStore.user;
-  const token = authStore.token;
-  if (!user?._id && !token) {
+  authStore.hydrateFromStorage();
+
+  if (!authStore.isLoggedIn && to.path !== "/login") {
     return navigateTo("/login");
   }
-  return;
+
+  if (authStore.isLoggedIn && to.path === "/login") {
+    return navigateTo("/");
+  }
 });

@@ -4,6 +4,7 @@
     <NuxtPage />
   </NuxtLayout>
 </template>
+
 <script setup>
 import { useAuthStore } from "~/store/auth.js";
 
@@ -11,14 +12,12 @@ const route = useRoute();
 const authStore = useAuthStore();
 
 const layoutName = computed(() => {
-  // Home routes dynamically between the authenticated layout and the
-  // public landing layout- depending on whether user is loggedgedgedged in.
-  if (route.path === "/") {
-    return authStore.isLoggedIn ? "default" : "non-loggedin";
-  }
+  if (!authStore.isLoggedIn) return "login";
 
-  const metaLayout = route.meta?.layout;
-  return metaLayout || "default";
+  const role = authStore.user?.role || "admin";
+  if (role === "branch") return "branch";
+  if (role === "social") return "social";
+  return "admin";
 });
 </script>
 
