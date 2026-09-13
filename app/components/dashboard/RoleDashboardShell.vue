@@ -102,9 +102,9 @@ const menuItems = computed(() => {
 
   if (props.role === "branch") {
     return [
-      { label: "الرئيسية", icon: "⌂", to: "/", active: isActive("/") },
       { label: "البيع المباشر", icon: "◫", to: "/sales/direct", active: isActive("/sales/direct") },
       { label: "حجز الكتب", icon: "✓", to: "/reservations", active: isActive("/reservations") },
+      { label: "تسليم الحجز", icon: "✔", to: "/reservations/deliver", active: isActive("/reservations/deliver") },
     ];
   }
 
@@ -115,7 +115,6 @@ const menuItems = computed(() => {
   }
 
   return [
-    { label: "الرئيسية", icon: "⌂", to: "/", active: isActive("/") },
     { label: "إضافة منتج", icon: "＋", to: "/products/create", active: isActive("/products/create") },
     { label: "إضافة للمخزن", icon: "▣", to: "/inventory/add", active: isActive("/inventory/add") },
     { label: "سحب من المخزن", icon: "−", to: "/inventory/remove", active: isActive("/inventory/remove") },
