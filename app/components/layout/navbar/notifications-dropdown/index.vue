@@ -52,7 +52,7 @@
 
       <NuxtLink
         class="block border-t border-forest/40 px-4 py-3 text-center text-sm font-semibold text-forest hover:bg-forest/20"
-        to="/notifications"
+        to="/"
         @click="isOpen = false"
       >
         See all notifications
