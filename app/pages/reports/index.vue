@@ -51,20 +51,20 @@
         class="rounded-sm border border-slate-700 bg-[#0f172a] px-3 py-2 text-right shadow-sm"
       >
         <p class="text-sm text-slate-300">{{ stat.label }}</p>
-        <template v-if="stat?.value?.length > 0">
-          <div v-for="item in stat.value" :key="item.all">
-            <div class="flex justify-between">
+        <template v-if="Array.isArray(stat.value)">
+          <div v-for="item in stat.value" :key="item.all" class="mt-2">
+            <div class="grid grid-cols-3 gap-2 text-center">
               <div>
-                <p>كل</p>
-                <p>{{ item.all }}</p>
+                <p class="text-xs text-slate-400">كل</p>
+                <p class="text-lg font-bold text-slate-100">{{ item.all }}</p>
               </div>
               <div>
-                <p>محجوز</p>
-                <p>{{ item.reserved }}</p>
+                <p class="text-xs text-slate-400">محجوز</p>
+                <p class="text-lg font-bold text-slate-100">{{ item.reserved }}</p>
               </div>
               <div>
-                <p>بيع مباشر</p>
-                <p>{{ item.directSale }}</p>
+                <p class="text-xs text-slate-400">بيع مباشر</p>
+                <p class="text-lg font-bold text-slate-100">{{ item.directSale }}</p>
               </div>
             </div>
           </div>
@@ -228,7 +228,10 @@ const stats = [
   { label: "إجمالي المبيعات", value: "8,750" },
   { label: "الحجوزات", value: "24" },
   { label: "المخزون", value: "124" },
-  { label: "الكتب", value: [{ all: 50, reserved: 30, directSale: 20 }] },
+  {
+    label: "الكتب",
+    value: [{ all: 44, reserved: 14, directSale: 30 }],
+  },
 ];
 
 const reportRows = [
