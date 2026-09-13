@@ -3,44 +3,78 @@
     <Card>
       <template #title>
         <div class="flex items-center justify-between gap-3">
-          <span class="text-lg font-bold text-slate-900">الكتب</span>
-          <Button label="احجز كتاب 📖" severity="info" @click="reserveFirstBook" />
+          <span class="text-lg font-bold text-slate-900">احجز كتاب</span>
+          <NuxtLink to="/books" class="inline-flex items-center rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-700 hover:bg-slate-100">
+            ← رجوع للكتب
+          </NuxtLink>
         </div>
       </template>
 
       <template #content>
-        <div v-if="loadingOptions" class="grid gap-3">
-          <Skeleton v-for="i in 4" :key="i" height="3rem" border-radius="12px" />
-        </div>
+        <p class="mb-4 text-sm text-slate-500">يتم تسجيل الحجز ويظهر رقم حجز للطالب</p>
 
-        <div v-else class="overflow-hidden rounded-2xl border border-slate-200">
-          <table class="w-full border-collapse text-right text-sm">
-            <thead class="bg-slate-100 text-slate-700">
-              <tr>
-                <th class="px-3 py-3">اسم الكتاب</th>
-                <th class="px-3 py-3">الأستاذ</th>
-                <th class="px-3 py-3">العدد</th>
-                <th class="px-3 py-3">متاح</th>
-                <th class="px-3 py-3">إجراء</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="book in books" :key="book.id" class="border-t border-slate-200 bg-white">
-                <td class="px-3 py-3">{{ book.title || book.name }}</td>
-                <td class="px-3 py-3">{{ book.teacher || "-" }}</td>
-                <td class="px-3 py-3">{{ book.stock ?? 0 }}</td>
-                <td class="px-3 py-3">
-                  <span :class="book.available ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'" class="rounded-full px-2 py-1 text-xs font-semibold">
-                    {{ book.available ? '✔ متاح' : '✖ غير متاح' }}
-                  </span>
-                </td>
-                <td class="px-3 py-3">
-                  <Button label="احجز كتاب" severity="info" size="small" :disabled="!book.available" @click="reserveBook(book)" />
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+        <Form v-slot="{ errors: fieldErrors }" @submit="submitReservation" :initial-values="initialValues" class="grid gap-4 md:grid-cols-2">
+          <Field v-slot="{ field, errorMessage }" name="stage" rules="required">
+            <div class="flex flex-col gap-2 text-right">
+              <label class="text-sm font-medium text-slate-700">السنة الدراسية</label>
+              <Select v-bind="field" v-model="form.stage" :options="stageOptions" optionLabel="label" optionValue="value" placeholder="اختر السنة" :class="{ 'p-invalid': errorMessage || fieldErrors.stage }" />
+              <ErrorMessage name="stage" class="text-xs text-red-500" />
+            </div>
+          </Field>
+
+          <Field v-slot="{ field, errorMessage }" name="teacher" rules="required">
+            <div class="flex flex-col gap-2 text-right">
+              <label class="text-sm font-medium text-slate-700">اسم المدرس</label>
+              <Select v-bind="field" v-model="form.teacher" :options="teacherOptions" optionLabel="label" optionValue="value" placeholder="اختر المدرس" :class="{ 'p-invalid': errorMessage || fieldErrors.teacher }" />
+              <ErrorMessage name="teacher" class="text-xs text-red-500" />
+            </div>
+          </Field>
+
+          <Field v-slot="{ field, errorMessage }" name="product" rules="required">
+            <div class="flex flex-col gap-2 text-right">
+              <label class="text-sm font-medium text-slate-700">المنتج</label>
+              <Select v-bind="field" v-model="form.product" :options="productOptions" optionLabel="label" optionValue="value" placeholder="اختر المنتج" :class="{ 'p-invalid': errorMessage || fieldErrors.product }" />
+              <ErrorMessage name="product" class="text-xs text-red-500" />
+            </div>
+          </Field>
+
+          <Field v-slot="{ field, errorMessage }" name="student" rules="required">
+            <div class="flex flex-col gap-2 text-right">
+              <label class="text-sm font-medium text-slate-700">اسم الطالب</label>
+              <InputText v-bind="field" v-model="form.student" :class="{ 'p-invalid': errorMessage || fieldErrors.student }" />
+              <ErrorMessage name="student" class="text-xs text-red-500" />
+            </div>
+          </Field>
+
+          <Field v-slot="{ field, errorMessage }" name="phone" rules="required|min:10">
+            <div class="flex flex-col gap-2 text-right">
+              <label class="text-sm font-medium text-slate-700">رقم الموبايل</label>
+              <InputText v-bind="field" v-model="form.phone" :class="{ 'p-invalid': errorMessage || fieldErrors.phone }" />
+              <ErrorMessage name="phone" class="text-xs text-red-500" />
+            </div>
+          </Field>
+
+          <Field v-slot="{ field, errorMessage }" name="amount" rules="required|min_value:1">
+            <div class="flex flex-col gap-2 text-right">
+              <label class="text-sm font-medium text-slate-700">المبلغ المدفوع (مقدم)</label>
+              <InputNumber v-bind="field" v-model="form.amount" mode="currency" currency="EGP" locale="ar-EG" :class="{ 'p-invalid': errorMessage || fieldErrors.amount }" />
+              <ErrorMessage name="amount" class="text-xs text-red-500" />
+            </div>
+          </Field>
+
+          <Field v-slot="{ field, errorMessage }" name="paymentMethod" rules="required">
+            <div class="flex flex-col gap-2 text-right md:col-span-2">
+              <label class="text-sm font-medium text-slate-700">طريقة الدفع</label>
+              <Select v-bind="field" v-model="form.paymentMethod" :options="paymentOptions" optionLabel="label" optionValue="value" placeholder="اختر طريقة الدفع" :class="{ 'p-invalid': errorMessage || fieldErrors.paymentMethod }" />
+              <ErrorMessage name="paymentMethod" class="text-xs text-red-500" />
+            </div>
+          </Field>
+
+          <div class="md:col-span-2 flex justify-end gap-3">
+            <Button label="إلغاء" severity="secondary" text />
+            <Button type="submit" label="تأكيد الحجز" :loading="saving" severity="info" />
+          </div>
+        </Form>
       </template>
     </Card>
   </div>
@@ -49,60 +83,79 @@
 <script setup>
 import Card from "primevue/card";
 import Button from "primevue/button";
-import Skeleton from "primevue/skeleton";
-import { bookService } from "~/services/bookService";
+import InputText from "primevue/inputtext";
+import InputNumber from "primevue/inputnumber";
+import Select from "primevue/select";
+import { Form, Field, ErrorMessage } from "vee-validate";
 import { reservationService } from "~/services/reservationService";
+import { teacherService } from "~/services/teacherService";
+import { productService } from "~/services/productService";
 
-const loadingOptions = ref(true);
-const books = ref([]);
+const saving = ref(false);
+const teacherOptions = ref([]);
+const productOptions = ref([]);
+const stageOptions = [
+  { label: "ثانوية عامة", value: "secondary" },
+  { label: "بكالوريا", value: "baccalaureate" },
+  { label: "جامعي", value: "university" },
+];
+const paymentOptions = [
+  { label: "كاش", value: "cash" },
+  { label: "فودافون كاش", value: "vodafone" },
+  { label: "انستا باي", value: "instapay" },
+  { label: "محفظة إلكترونية", value: "wallet" },
+];
 
-const normalizeBook = (book) => ({
-  id: book.id,
-  title: book.title || book.name || "كتاب",
-  teacher: book.teacher || book.teacher_name || book.author || "-",
-  stock: book.stock ?? book.available_count ?? 0,
-  available: (book.available ?? book.is_available ?? true) !== false,
-});
+const form = reactive({ stage: "", teacher: "", product: "", student: "", phone: "", amount: null, paymentMethod: "" });
+const initialValues = { stage: "", teacher: "", product: "", student: "", phone: "", amount: null, paymentMethod: "" };
 
-const loadBooks = async () => {
+const loadOptions = async () => {
   try {
-    const items = await bookService.getBooks();
-    const list = Array.isArray(items) ? items : items?.data || [];
-    books.value = list.map(normalizeBook);
+    const [teachers, products] = await Promise.all([
+      teacherService.getTeachers(),
+      productService.getProducts(),
+    ]);
+
+    const teacherList = Array.isArray(teachers) ? teachers : teachers?.data || [];
+    const productList = Array.isArray(products) ? products : products?.data || [];
+
+    teacherOptions.value = teacherList.map((teacher) => ({
+      label: teacher.name || teacher.full_name || `مدرس ${teacher.id}`,
+      value: teacher.id,
+    }));
+
+    productOptions.value = productList.map((product) => ({
+      label: product.name || product.title || `منتج ${product.id}`,
+      value: product.id,
+    }));
   } catch (error) {
-    console.error("Failed to load books", error);
-    books.value = [
-      { id: "book-1", title: "كتاب الكيمياء", teacher: "أ. خالد", stock: 44, available: true },
-      { id: "book-2", title: "كتاب الفيزياء", teacher: "أ. عمر", stock: 5, available: false },
-    ];
-  } finally {
-    loadingOptions.value = false;
+    console.error("Failed to load reservation options", error);
   }
 };
 
-const reserveFirstBook = async () => {
-  const firstAvailable = books.value.find((book) => book.available);
-  if (!firstAvailable) return;
-  await reserveBook(firstAvailable);
-};
-
-const reserveBook = async (book) => {
-  if (!book.available) return;
+const submitReservation = async () => {
+  saving.value = true;
 
   try {
     await reservationService.createReservation({
-      book_id: book.id,
-      student_name: "طالب جديد",
-      phone: "0000000000",
+      stage: form.stage,
+      teacher_id: form.teacher,
+      product_id: form.product,
+      student_name: form.student,
+      phone: form.phone,
+      amount: form.amount,
+      payment_method: form.paymentMethod,
       status: "pending",
     });
-  } catch (error) {
-    console.error("Failed to reserve book", error);
+
+    Object.assign(form, initialValues);
+  } finally {
+    saving.value = false;
   }
 };
 
 onMounted(() => {
-  loadBooks();
+  loadOptions();
 });
 
 definePageMeta({ middleware: ["local-pages"] });

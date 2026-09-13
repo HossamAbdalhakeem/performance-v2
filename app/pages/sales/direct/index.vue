@@ -65,7 +65,7 @@
 
           <div class="md:col-span-2 flex justify-end gap-3">
             <Button label="إلغاء" severity="secondary" text />
-            <Button type="submit" label="حفظ البيع" :loading="saving" severity="info" />
+            <Button type="submit" label="تأكيد الحجز" :loading="saving" severity="info" />
           </div>
         </Form>
       </template>

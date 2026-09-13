@@ -10,7 +10,7 @@ const authStore = useAuthStore();
 const roleFirstPageMap = {
   admin: "/products/create",
   branch: "/sales/direct",
-  social: "/books/reserve",
+  social: "/books",
 };
 
 definePageMeta({
