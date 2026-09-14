@@ -10,47 +10,44 @@ import {
   alpha,
   between,
 } from "@vee-validate/rules";
-export default defineNuxtPlugin((NuxtApp) => {
-  defineRule("required", (value, [target], ctx) => {
-    const fieldName = ctx.field || "Field";
-    const capitalizedField = fieldName.charAt(0).toUpperCase() + fieldName.slice(1);
 
-    // Handle arrays (e.g., tags)
+export default defineNuxtPlugin(() => {
+  defineRule("required", (value, _params, ctx) => {
+    const fieldName = ctx.label || ctx.field || "الحقل";
+    const message = `${fieldName} مطلوب`;
+
     if (Array.isArray(value)) {
-      if (value.length === 0) {
-        return `${capitalizedField} is Required`;
-      }
-      return true;
+      return value.length === 0 ? message : true;
     }
 
     if (value instanceof Date) {
-      return Number.isNaN(value.getTime()) ? `${capitalizedField} is Required` : true;
+      return Number.isNaN(value.getTime()) ? message : true;
     }
 
-    // Handle objects (e.g., main_photo with file_url)
     if (value && typeof value === "object" && !Array.isArray(value)) {
-      // Check if it's an image object with file_url
       if (value.file_url !== undefined) {
         if (
           !value.file_url ||
           (typeof value.file_url === "string" && !value.file_url.trim())
         ) {
-          return `${capitalizedField} is Required`;
+          return message;
         }
         return true;
       }
-      // For other objects, check if it's empty
+
       if (Object.keys(value).length === 0) {
-        return `${capitalizedField} is Required`;
+        return message;
       }
       return true;
     }
-    // Handle strings
-    if (!value || (typeof value === "string" && !value.trim())) {
-      return `${capitalizedField} is Required`;
+
+    if (value == null || (typeof value === "string" && !value.trim())) {
+      return message;
     }
+
     return true;
   });
+
   defineRule("email", email);
   defineRule("min", min);
   defineRule("alpha", alpha);
@@ -59,24 +56,26 @@ export default defineNuxtPlugin((NuxtApp) => {
   defineRule("min_value", min_value);
   defineRule("max_value", max_value);
   defineRule("between", between);
+
   defineRule("fullName", (value) => {
-    if (!value) return "Please enter your full name";
-    const split = value?.split(" ");
+    if (!value) return "من فضلك أدخل الاسم بالكامل";
+    const split = String(value).split(" ");
     if (split.length > 1 && split[1].length) {
       return true;
     }
-    return "Please enter your full name";
+    return "من فضلك أدخل الاسم بالكامل";
   });
+
   defineRule("url", (value) => {
-    if (!value || (typeof value === "string" && !value.trim())) return true; // required handles empty
+    if (!value || (typeof value === "string" && !value.trim())) return true;
     const trimmed = typeof value === "string" ? value.trim() : String(value);
     try {
       const u = new URL(trimmed);
       return u.protocol === "http:" || u.protocol === "https:"
         ? true
-        : "Must be a valid URL";
+        : "يجب إدخال رابط صالح";
     } catch {
-      return "Must be a valid URL";
+      return "يجب إدخال رابط صالح";
     }
   });
 });
