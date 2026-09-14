@@ -2,15 +2,7 @@
   <div class="space-y-6" dir="rtl">
     <Card>
       <template #title>
-        <div class="flex flex-wrap items-center justify-between gap-3">
-          <span class="text-lg font-bold text-slate-900">البيع المباشر</span>
-          <Button
-            :label="showForm ? 'إخفاء النموذج' : 'بيع جديد'"
-            :icon="showForm ? 'pi pi-minus' : 'pi pi-plus'"
-            severity="info"
-            @click="toggleForm"
-          />
-        </div>
+        <span class="text-lg font-bold text-slate-900">البيع المباشر</span>
       </template>
 
       <template #content>
@@ -22,194 +14,145 @@
           {{ feedback.message }}
         </p>
 
-        <div v-if="showForm" class="mb-6 rounded-2xl border border-slate-200 bg-slate-50 p-4">
-          <Form
-            v-slot="{ errors: fieldErrors }"
-            :key="formKey"
-            :initial-values="formInitialValues"
-            class="grid gap-4 md:grid-cols-2"
-            @submit="submitSale"
-          >
-            <Field v-slot="{ field, errorMessage }" name="studentId" rules="required">
-              <div class="flex flex-col gap-2 text-right">
-                <label class="text-sm font-medium text-slate-700">اسم الطالب</label>
-                <Select
-                  v-bind="field"
-                  v-model="form.studentId"
-                  :options="studentNameOptions"
-                  optionLabel="label"
-                  optionValue="value"
-                  placeholder="ابحث باسم الطالب"
-                  filter
-                  :filter-fields="['label', 'phone']"
-                  :loading="searchingStudents"
-                  showClear
-                  class="w-full"
-                  :class="{ 'p-invalid': errorMessage || fieldErrors.studentId }"
-                  @filter="onStudentNameFilter"
-                  @update:modelValue="onStudentSelected"
-                />
-                <ErrorMessage name="studentId" class="text-xs text-red-500" />
-              </div>
-            </Field>
-
-            <Field v-slot="{ field, errorMessage }" name="studentPhoneId" rules="required">
-              <div class="flex flex-col gap-2 text-right">
-                <label class="text-sm font-medium text-slate-700">رقم الهاتف</label>
-                <Select
-                  v-bind="field"
-                  v-model="form.studentPhoneId"
-                  :options="studentPhoneOptions"
-                  optionLabel="label"
-                  optionValue="value"
-                  placeholder="ابحث برقم الهاتف"
-                  filter
-                  :filter-fields="['label', 'name']"
-                  :loading="searchingStudents"
-                  showClear
-                  class="w-full"
-                  :class="{ 'p-invalid': errorMessage || fieldErrors.studentPhoneId }"
-                  @filter="onStudentPhoneFilter"
-                  @update:modelValue="onStudentPhoneSelected"
-                />
-                <ErrorMessage name="studentPhoneId" class="text-xs text-red-500" />
-              </div>
-            </Field>
-
-            <Field v-slot="{ field, errorMessage }" name="productId" rules="required">
-              <div class="flex flex-col gap-2 text-right">
-                <label class="text-sm font-medium text-slate-700">المنتج</label>
-                <Select
-                  v-bind="field"
-                  v-model="form.productId"
-                  :options="productOptions"
-                  optionLabel="label"
-                  optionValue="value"
-                  placeholder="اختر المنتج"
-                  filter
-                  class="w-full"
-                  :class="{ 'p-invalid': errorMessage || fieldErrors.productId }"
-                />
-                <ErrorMessage name="productId" class="text-xs text-red-500" />
-              </div>
-            </Field>
-
-            <Field
-              v-slot="{ errorMessage }"
-              v-model="form.quantity"
-              name="quantity"
-              rules="required|min_value:1"
-            >
-              <div class="flex flex-col gap-2 text-right">
-                <label class="text-sm font-medium text-slate-700">الكمية</label>
-                <AppInputNumber
-                  v-model="form.quantity"
-                  :min="1"
-                  :max-fraction-digits="0"
-                  :invalid="!!(errorMessage || fieldErrors.quantity)"
-                />
-                <ErrorMessage name="quantity" class="text-xs text-red-500" />
-              </div>
-            </Field>
-
-            <div class="md:col-span-2 rounded-xl border border-sky-100 bg-sky-50 px-4 py-3 text-right text-sm text-slate-700">
-              <div class="flex flex-wrap items-center justify-between gap-2">
-                <span>سعر المنتج:</span>
-                <strong class="text-slate-900">{{ formatMoney(unitPrice) }}</strong>
-              </div>
-              <div class="mt-2 flex flex-wrap items-center justify-between gap-2">
-                <span>المبلغ المطلوب:</span>
-                <strong class="text-sky-700">{{ formatMoney(requiredAmount) }}</strong>
-              </div>
-            </div>
-
-            <Field v-slot="{ field, errorMessage }" name="method" rules="required">
-              <div class="flex flex-col gap-2 text-right">
-                <label class="text-sm font-medium text-slate-700">طريقة الدفع</label>
-                <Select
-                  v-bind="field"
-                  v-model="form.method"
-                  :options="paymentOptions"
-                  optionLabel="label"
-                  optionValue="value"
-                  placeholder="اختر طريقة الدفع"
-                  class="w-full"
-                  :class="{ 'p-invalid': errorMessage || fieldErrors.method }"
-                />
-                <ErrorMessage name="method" class="text-xs text-red-500" />
-              </div>
-            </Field>
-
-            <Field
-              v-slot="{ errorMessage }"
-              v-model="form.paidAmount"
-              name="paidAmount"
-              :rules="paidAmountRules"
-            >
-              <div class="flex flex-col gap-2 text-right">
-                <label class="text-sm font-medium text-slate-700">المبلغ المدفوع</label>
-                <AppInputNumber
-                  v-model="form.paidAmount"
-                  mode="currency"
-                  currency="EGP"
-                  :min="0"
-                  :min-fraction-digits="2"
-                  :use-grouping="true"
-                  :invalid="!!(errorMessage || fieldErrors.paidAmount || amountTooLow)"
-                />
-                <ErrorMessage name="paidAmount" class="text-xs text-red-500" />
-                <p v-if="amountTooLow" class="text-xs text-red-500">
-                  المبلغ المدفوع أقل من المطلوب ({{ formatMoney(requiredAmount) }}).
-                </p>
-              </div>
-            </Field>
-
-            <div v-if="needsProof" class="md:col-span-2">
-              <ImageUpload
-                v-model="proofFile"
-                label="صورة إثبات الدفع"
-                placeholder="ارفع صورة المحفظة / إنستاباي"
-                :max-size-mb="0.5"
-                :invalid="proofRequiredError"
-                @select="onProofSelected"
-                @clear="proofDataUrl = ''"
-              />
-              <p v-if="proofRequiredError" class="mt-1 text-xs text-red-500">
-                صورة إثبات الدفع مطلوبة لطريقة الدفع المحددة.
-              </p>
-            </div>
-
-            <div class="md:col-span-2 flex justify-end gap-3">
-              <Button type="button" label="إلغاء" severity="secondary" text @click="resetForm" />
-              <Button type="submit" label="تأكيد البيع" :loading="saving" severity="info" />
-            </div>
-          </Form>
-        </div>
-
-        <div v-if="pending" class="grid gap-4">
-          <Skeleton v-for="i in 5" :key="i" width="100%" height="3rem" border-radius="12px" />
-        </div>
-
-        <DataTable
-          v-else
-          :value="sales"
-          paginator
-          :rows="8"
-          tableStyle="min-width: 100%"
-          emptyMessage="لا توجد مبيعات."
+        <Form
+          v-slot="{ errors: fieldErrors }"
+          :key="formKey"
+          :initial-values="formInitialValues"
+          class="grid gap-4 md:grid-cols-2"
+          @submit="submitSale"
         >
-          <Column field="saleNumber" header="الكود" />
-          <Column field="studentName" header="الطالب" />
-          <Column field="productName" header="المنتج" />
-          <Column field="branchName" header="الفرع" />
-          <Column field="amountLabel" header="المبلغ" />
-          <Column field="methodLabel" header="الدفع">
-            <template #body="{ data }">
-              <Tag :value="data.methodLabel" :severity="data.methodSeverity" />
-            </template>
-          </Column>
-          <Column field="createdAtLabel" header="التاريخ" />
-        </DataTable>
+          <Field v-slot="{ field, errorMessage }" name="studentId" rules="required">
+            <div class="flex flex-col gap-2 text-right">
+              <label class="text-sm font-medium text-slate-700">اسم الطالب</label>
+              <Select
+                v-bind="field"
+                v-model="form.studentId"
+                :options="studentNameOptions"
+                optionLabel="label"
+                optionValue="value"
+                placeholder="ابحث باسم الطالب"
+                filter
+                :filter-fields="['label', 'phone']"
+                :loading="searchingStudents"
+                showClear
+                class="w-full"
+                :class="{ 'p-invalid': errorMessage || fieldErrors.studentId }"
+                @filter="onStudentNameFilter"
+                @update:modelValue="onStudentSelected"
+              />
+              <ErrorMessage name="studentId" class="text-xs text-red-500" />
+            </div>
+          </Field>
+
+          <Field v-slot="{ field, errorMessage }" name="studentPhoneId" rules="required">
+            <div class="flex flex-col gap-2 text-right">
+              <label class="text-sm font-medium text-slate-700">رقم الهاتف</label>
+              <Select
+                v-bind="field"
+                v-model="form.studentPhoneId"
+                :options="studentPhoneOptions"
+                optionLabel="label"
+                optionValue="value"
+                placeholder="ابحث برقم الهاتف"
+                filter
+                :filter-fields="['label', 'name']"
+                :loading="searchingStudents"
+                showClear
+                class="w-full"
+                :class="{ 'p-invalid': errorMessage || fieldErrors.studentPhoneId }"
+                @filter="onStudentPhoneFilter"
+                @update:modelValue="onStudentPhoneSelected"
+              />
+              <ErrorMessage name="studentPhoneId" class="text-xs text-red-500" />
+            </div>
+          </Field>
+
+          <Field v-slot="{ field, errorMessage }" name="productId" rules="required">
+            <div class="flex flex-col gap-2 text-right">
+              <label class="text-sm font-medium text-slate-700">المنتج</label>
+              <Select
+                v-bind="field"
+                v-model="form.productId"
+                :options="productOptions"
+                optionLabel="label"
+                optionValue="value"
+                placeholder="اختر المنتج"
+                filter
+                class="w-full"
+                :class="{ 'p-invalid': errorMessage || fieldErrors.productId }"
+              />
+              <ErrorMessage name="productId" class="text-xs text-red-500" />
+            </div>
+          </Field>
+
+          <Field
+            v-slot="{ errorMessage }"
+            v-model="form.quantity"
+            name="quantity"
+            rules="required|min_value:1"
+          >
+            <div class="flex flex-col gap-2 text-right">
+              <label class="text-sm font-medium text-slate-700">الكمية</label>
+              <AppInputNumber
+                v-model="form.quantity"
+                :min="1"
+                :max-fraction-digits="0"
+                :invalid="!!(errorMessage || fieldErrors.quantity)"
+              />
+              <ErrorMessage name="quantity" class="text-xs text-red-500" />
+            </div>
+          </Field>
+
+          <div
+            class="md:col-span-2 rounded-2xl border border-amber-400/40 bg-gradient-to-l from-amber-500/20 via-orange-500/10 to-slate-900 px-6 py-8 text-center"
+          >
+            <p class="mb-2 text-sm font-medium text-amber-100/80">مبلغ المنتج</p>
+            <p class="text-4xl font-extrabold tracking-tight text-amber-300 md:text-5xl">
+              {{ formatMoney(requiredAmount) }}
+            </p>
+          </div>
+
+          <Field v-slot="{ errorMessage }" v-model="form.method" name="method" rules="required">
+            <div class="md:col-span-2 flex flex-col gap-2 text-right">
+              <label class="text-sm font-medium text-slate-700">طريقة الدفع</label>
+              <div class="space-y-2 rounded-xl border border-white/10 bg-slate-950/60 p-3">
+                <label
+                  v-for="option in paymentOptions"
+                  :key="option.value"
+                  class="flex cursor-pointer items-center justify-end gap-2 text-sm text-slate-200"
+                >
+                  <span>{{ option.label }}</span>
+                  <input
+                    v-model="form.method"
+                    type="radio"
+                    :value="option.value"
+                    class="accent-sky-400"
+                  />
+                </label>
+              </div>
+              <ErrorMessage name="method" class="text-xs text-red-500" />
+            </div>
+          </Field>
+
+          <div v-if="needsProof" class="md:col-span-2">
+            <ImageUpload
+              v-model="proofFile"
+              label="صورة إثبات الدفع"
+              placeholder="ارفع صورة المحفظة / إنستاباي"
+              :max-size-mb="0.5"
+              :invalid="proofRequiredError"
+              @select="onProofSelected"
+              @clear="proofDataUrl = ''"
+            />
+            <p v-if="proofRequiredError" class="mt-1 text-xs text-red-500">
+              صورة إثبات الدفع مطلوبة لطريقة الدفع المحددة.
+            </p>
+          </div>
+
+          <div class="md:col-span-2 flex justify-center">
+            <Button type="submit" label="تأكيد البيع" :loading="saving" severity="info" class="min-w-[200px]" />
+          </div>
+        </Form>
       </template>
     </Card>
   </div>
@@ -218,11 +161,7 @@
 <script setup>
 import Card from "primevue/card";
 import Button from "primevue/button";
-import DataTable from "primevue/datatable";
-import Column from "primevue/column";
-import Tag from "primevue/tag";
 import Select from "primevue/select";
-import Skeleton from "primevue/skeleton";
 import AppInputNumber from "~/components/dashboard/AppInputNumber.vue";
 import ImageUpload from "~/components/dashboard/ImageUpload.vue";
 import { Form, Field, ErrorMessage } from "vee-validate";
@@ -231,9 +170,7 @@ import { productService } from "~/services/productService";
 import { studentService } from "~/services/studentService";
 import { useThrottledCallback } from "~/composables/useThrottledCallback";
 
-const pending = ref(true);
 const saving = ref(false);
-const showForm = ref(true);
 const searchingStudents = ref(false);
 const formKey = ref(0);
 const proofFile = ref(null);
@@ -242,16 +179,10 @@ const proofRequiredError = ref(false);
 const feedback = reactive({ type: "success", message: "" });
 
 const paymentOptions = [
-  { label: "نقدي", value: "CASH" },
-  { label: "محفظة", value: "WALLET" },
-  { label: "إنستاباي", value: "INSTAPAY" },
+  { label: "كاش", value: "CASH" },
+  { label: "انستا باي", value: "INSTAPAY" },
+  { label: "محفظة إلكترونية", value: "WALLET" },
 ];
-
-const METHOD_META = {
-  CASH: { label: "نقدي", severity: "info" },
-  WALLET: { label: "محفظة", severity: "warning" },
-  INSTAPAY: { label: "إنستاباي", severity: "success" },
-};
 
 const form = reactive({
   studentId: null,
@@ -259,7 +190,6 @@ const form = reactive({
   productId: null,
   quantity: 1,
   method: "CASH",
-  paidAmount: null,
 });
 
 const formInitialValues = {
@@ -268,12 +198,10 @@ const formInitialValues = {
   productId: null,
   quantity: 1,
   method: "CASH",
-  paidAmount: null,
 };
 
 const products = ref([]);
 const students = ref([]);
-const sales = ref([]);
 
 const productOptions = computed(() =>
   products.value.map((product) => ({
@@ -312,55 +240,12 @@ const needsProof = computed(
   () => form.method === "WALLET" || form.method === "INSTAPAY",
 );
 
-const amountTooLow = computed(() => {
-  if (form.paidAmount == null || requiredAmount.value <= 0) return false;
-  return Number(form.paidAmount) < requiredAmount.value;
-});
-
-const paidAmountRules = computed(() => {
-  if (requiredAmount.value > 0) {
-    return `required|min_value:${requiredAmount.value}`;
-  }
-  return "required|min_value:0.01";
-});
-
 const formatMoney = (value) => `${Number(value || 0).toFixed(2)} ج.م`;
-
-const formatDate = (value) => {
-  if (!value) return "-";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "-";
-  return date.toLocaleString("ar-EG");
-};
-
-const normalizeSale = (sale) => {
-  const method = sale.payments?.[0]?.method || sale.method || "CASH";
-  const meta = METHOD_META[method] || { label: method, severity: "secondary" };
-  const productName =
-    sale.items?.map((item) => item.product?.name).filter(Boolean).join("، ") || "-";
-
-  return {
-    id: sale.id,
-    saleNumber: sale.id?.slice(0, 8)?.toUpperCase() || "-",
-    studentName: sale.student?.name || "-",
-    productName,
-    branchName: sale.branch?.name || "-",
-    amountLabel: formatMoney(sale.totalAmount),
-    methodLabel: meta.label,
-    methodSeverity: meta.severity,
-    createdAtLabel: formatDate(sale.createdAt),
-  };
-};
 
 const loadProducts = async () => {
   const items = await productService.getProducts();
   const list = Array.isArray(items) ? items : items?.data || [];
   products.value = list.filter((product) => product.status !== "INACTIVE");
-};
-
-const loadSales = async () => {
-  const items = await saleService.getSales();
-  sales.value = (items || []).map(normalizeSale);
 };
 
 const searchStudents = async (term = "") => {
@@ -416,28 +301,17 @@ const onProofSelected = async (file) => {
   }
 };
 
-const toggleForm = () => {
-  showForm.value = !showForm.value;
-};
-
 const resetForm = () => {
   Object.assign(form, { ...formInitialValues });
   proofFile.value = null;
   proofDataUrl.value = "";
   proofRequiredError.value = false;
   formKey.value += 1;
-  showForm.value = false;
 };
 
 const submitSale = async () => {
   feedback.message = "";
   proofRequiredError.value = false;
-
-  if (amountTooLow.value) {
-    feedback.type = "error";
-    feedback.message = `المبلغ المدفوع أقل من المطلوب (${formatMoney(requiredAmount.value)}).`;
-    return;
-  }
 
   if (needsProof.value && !proofFile.value) {
     proofRequiredError.value = true;
@@ -463,7 +337,6 @@ const submitSale = async () => {
     feedback.type = "success";
     feedback.message = "تم تسجيل البيع بنجاح.";
     resetForm();
-    await loadSales();
   } catch (error) {
     feedback.type = "error";
     feedback.message = error?.message || "تعذر تسجيل البيع.";
@@ -483,21 +356,12 @@ watch(
   },
 );
 
-watch([() => form.productId, () => form.quantity], () => {
-  if (form.paidAmount == null && requiredAmount.value > 0) {
-    form.paidAmount = requiredAmount.value;
-  }
-});
-
 onMounted(async () => {
-  pending.value = true;
   try {
-    await Promise.all([loadProducts(), loadSales(), searchStudents("")]);
+    await Promise.all([loadProducts(), searchStudents("")]);
   } catch (error) {
     feedback.type = "error";
     feedback.message = error?.message || "تعذر تحميل بيانات المبيعات.";
-  } finally {
-    pending.value = false;
   }
 });
 </script>
