@@ -95,6 +95,19 @@ textarea {
 .p-datatable .p-datatable-thead > tr > th {
   background: #1e293b !important;
   font-weight: 700 !important;
+  text-align: center !important;
+}
+
+.p-datatable .p-datatable-tbody > tr > td {
+  text-align: center !important;
+}
+
+.p-datatable .p-datatable-column-header-content,
+.p-datatable [data-pc-section="columnheadercontent"] {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  width: 100% !important;
 }
 
 .p-datatable .p-datatable-tbody > tr:hover > td {

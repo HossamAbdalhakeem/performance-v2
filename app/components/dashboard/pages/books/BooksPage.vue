@@ -14,43 +14,24 @@
           <span class="text-sm text-slate-300">إجمالي الكتب: {{ filteredBooks.length }}</span>
         </div>
 
-        <div v-if="pending" class="grid gap-4">
-          <Skeleton v-for="i in 4" :key="i" width="100%" height="4rem" border-radius="12px" />
-        </div>
-
-        <div v-else class="overflow-hidden rounded-2xl border border-white/10">
-          <table class="w-full border-collapse text-center text-sm">
-            <thead class="bg-slate-800 text-white">
-              <tr>
-                <th class="px-3 py-3">اسم الكتاب</th>
-                <th class="px-3 py-3">الأستاذ</th>
-                <th class="px-3 py-3">العدد</th>
-                <th class="px-3 py-3">متاح</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr
-                v-for="book in filteredBooks"
-                :key="book.id"
-                class="cursor-pointer border-t border-white/10"
-                :class="selectedId === book.id ? 'bg-sky-500/15' : 'hover:bg-white/5'"
-                @click="selectedId = book.id"
-              >
-                <td class="px-3 py-3">{{ book.title }}</td>
-                <td class="px-3 py-3">{{ book.teacher }}</td>
-                <td class="px-3 py-3">{{ book.stock }}</td>
-                <td class="px-3 py-3">
-                  <span
-                    class="rounded-full px-2 py-1 text-xs font-semibold"
-                    :class="book.available ? 'bg-green-700 text-white' : 'bg-red-800 text-white'"
-                  >
-                    {{ book.available ? "✔ متاح" : "✖ غير متاح" }}
-                  </span>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+        <AppDataTable
+          :value="filteredBooks"
+          :columns="bookColumns"
+          :loading="pending"
+          :row-class="getBookRowClass"
+          empty-message="لا توجد كتب."
+          :skeleton-rows="4"
+          @row-click="onBookRowClick"
+        >
+          <template #available="{ data }">
+            <span
+              class="rounded-full px-2 py-1 text-xs font-semibold"
+              :class="data.available ? 'bg-green-700 text-white' : 'bg-red-800 text-white'"
+            >
+              {{ data.available ? "✔ متاح" : "✖ غير متاح" }}
+            </span>
+          </template>
+        </AppDataTable>
 
         <p class="mt-4 text-sm text-slate-400">اختيار كتاب + الضغط على زر «احجز كتاب» يفتح صفحة الحجز</p>
       </template>
@@ -62,7 +43,7 @@
 import Card from "primevue/card";
 import Button from "primevue/button";
 import InputText from "primevue/inputtext";
-import Skeleton from "primevue/skeleton";
+import AppDataTable from "~/components/shared/app-data-table/index.vue";
 import { bookService } from "~/services/bookService";
 import { productService } from "~/services/productService";
 
@@ -70,6 +51,20 @@ const pending = ref(true);
 const search = ref("");
 const selectedId = ref("");
 const books = ref([]);
+
+const bookColumns = [
+  { field: "title", header: "اسم الكتاب" },
+  { field: "teacher", header: "الأستاذ" },
+  { field: "stock", header: "العدد" },
+  { field: "available", header: "متاح", slot: "available" },
+];
+
+const getBookRowClass = (data) =>
+  selectedId.value === data.id ? "app-row-matched cursor-pointer" : "cursor-pointer";
+
+const onBookRowClick = (event) => {
+  selectedId.value = event?.data?.id || "";
+};
 
 const filteredBooks = computed(() => {
   const term = search.value.trim().toLowerCase();
@@ -96,7 +91,7 @@ const loadBooks = async () => {
     books.value = source.map((item) => ({
       id: item.id,
       title: item.title || item.name,
-      teacher: item.teacher || item.teacher_name || "-",
+      teacher: item.teacher?.name || "-",
       stock: item.stock ?? 0,
       available: item.available ?? Number(item.stock || 0) > 10,
     }));

@@ -112,26 +112,11 @@
 
         <div>
           <p class="mb-3 text-center text-sm font-semibold text-white">طلاب كل مدرس</p>
-          <div class="overflow-hidden rounded-xl border border-white/10">
-            <table class="w-full text-center text-sm">
-              <thead class="bg-slate-800 text-white">
-                <tr>
-                  <th class="px-2 py-2">اسم الطالب</th>
-                  <th class="px-2 py-2">المدرس</th>
-                  <th class="px-2 py-2">الموبايل</th>
-                  <th class="px-2 py-2">اشترى ايه</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="row in studentRows" :key="row.phone" class="border-t border-white/10 text-slate-200">
-                  <td class="px-2 py-2">{{ row.student }}</td>
-                  <td class="px-2 py-2">{{ row.teacher }}</td>
-                  <td class="px-2 py-2">{{ row.phone }}</td>
-                  <td class="px-2 py-2">{{ row.product }}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+          <AppDataTable
+            :value="studentRows"
+            :columns="studentColumns"
+            empty-message="لا توجد بيانات طلاب."
+          />
         </div>
       </div>
     </div>
@@ -148,6 +133,7 @@
 <script setup>
 import Select from "primevue/select";
 import Button from "primevue/button";
+import AppDataTable from "~/components/shared/app-data-table/index.vue";
 import { productService } from "~/services/productService";
 import { branchService } from "~/services/branchService";
 
@@ -163,6 +149,13 @@ const dateOptions = [
 
 const branchOptions = ref([{ label: "كل الفروع", value: "all" }]);
 const bookOptions = ref([{ label: "كل الكتب", value: "all" }]);
+
+const studentColumns = [
+  { field: "student", header: "اسم الطالب" },
+  { field: "teacher", header: "المدرس" },
+  { field: "phone", header: "الموبايل" },
+  { field: "product", header: "اشترى ايه" },
+];
 
 const studentRows = [
   { student: "أحمد محمد", teacher: "أ. خالد", phone: "01012845678", product: "كتاب X" },

@@ -1,44 +1,28 @@
 <template>
-  <div>
-    <div v-if="loading" class="grid gap-4">
-      <Skeleton v-for="i in 5" :key="i" width="100%" height="3rem" border-radius="12px" />
-    </div>
-
-    <DataTable
-      v-else
-      :value="products"
-      paginator
-      :rows="10"
-      tableStyle="min-width: 100%"
-      emptyMessage="لا توجد منتجات."
-    >
-      <Column field="name" header="اسم المنتج" />
-      <Column field="sellingPriceLabel" header="سعر البيع" />
-      <Column field="teacherName" header="المدرس" />
-      <Column field="studyYearName" header="السنة الدراسية" />
-      <Column field="typeLabel" header="النوع" />
-      <Column field="reservationLabel" header="الحجز" />
-      <Column header="إجراء" style="width: 8rem">
-        <template #body="{ data }">
-          <Button
-            label="تعديل"
-            icon="pi pi-pencil"
-            text
-            size="small"
-            severity="info"
-            @click="$emit('edit', data)"
-          />
-        </template>
-      </Column>
-    </DataTable>
-  </div>
+  <AppDataTable
+    :value="products"
+    :columns="columns"
+    :loading="loading"
+    paginator
+    :rows="10"
+    empty-message="لا توجد منتجات."
+  >
+    <template #actions="{ data }">
+      <Button
+        label="تعديل"
+        icon="pi pi-pencil"
+        text
+        size="small"
+        severity="info"
+        @click="$emit('edit', data)"
+      />
+    </template>
+  </AppDataTable>
 </template>
 
 <script setup>
-import DataTable from "primevue/datatable";
-import Column from "primevue/column";
 import Button from "primevue/button";
-import Skeleton from "primevue/skeleton";
+import AppDataTable from "~/components/shared/app-data-table/index.vue";
 
 defineProps({
   products: { type: Array, default: () => [] },
@@ -46,4 +30,14 @@ defineProps({
 });
 
 defineEmits(["edit"]);
+
+const columns = [
+  { field: "name", header: "اسم المنتج" },
+  { field: "sellingPriceLabel", header: "سعر البيع" },
+  { field: "teacherName", header: "المدرس" },
+  { field: "studyYearName", header: "السنة الدراسية" },
+  { field: "typeLabel", header: "النوع" },
+  { field: "reservationLabel", header: "الحجز" },
+  { field: "actions", header: "إجراء", slot: "actions", style: "width: 8rem" },
+];
 </script>

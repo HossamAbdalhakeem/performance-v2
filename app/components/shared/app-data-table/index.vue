@@ -28,19 +28,23 @@
         </div>
       </template>
 
+      <template v-if="$slots.expansion" #expansion="slotProps">
+        <slot name="expansion" v-bind="slotProps" />
+      </template>
+
       <slot>
         <Column
-          v-for="col in columns"
+          v-for="col in resolvedColumns"
           :key="col.key || col.field || col.header"
           :field="col.field"
           :header="col.header"
           :sortable="col.sortable"
           :style="col.style"
-          :header-style="col.headerStyle"
-          :body-style="col.bodyStyle"
+          :header-style="col.headerStyle || col.style"
+          :body-style="col.bodyStyle || col.style"
           :class="col.class"
-          :header-class="col.headerClass || 'text-center'"
-          :body-class="col.bodyClass || 'text-center'"
+          :header-class="col.headerClass"
+          :body-class="col.bodyClass"
           :expander="col.expander"
         >
           <template v-if="hasCustomBody(col)" #body="slotProps">
@@ -66,9 +70,12 @@ import DataTable from "primevue/datatable";
 import Column from "primevue/column";
 import Skeleton from "primevue/skeleton";
 
-defineOptions({ inheritAttrs: false });
+defineOptions({
+  name: "AppDataTable",
+  inheritAttrs: false,
+});
 
-defineProps({
+const props = defineProps({
   value: { type: Array, default: () => [] },
   columns: { type: Array, default: () => [] },
   loading: { type: Boolean, default: false },
@@ -86,6 +93,16 @@ const slots = useSlots();
 const tableAttrs = computed(() => {
   const { class: _class, ...rest } = attrs;
   return rest;
+});
+
+const resolvedColumns = computed(() => {
+  const cols = props.columns || [];
+  const autoWidth = cols.length ? `${(100 / cols.length).toFixed(4)}%` : undefined;
+
+  return cols.map((col) => ({
+    ...col,
+    style: col.style || (autoWidth ? `width: ${autoWidth}` : undefined),
+  }));
 });
 
 const hasCustomBody = (col) =>
@@ -110,27 +127,14 @@ const resolveCell = (row, col) => {
   background: #0f172a !important;
   border: none !important;
   border-collapse: collapse !important;
+  width: 100% !important;
 }
 
-.app-data-table-wrap :deep(.p-datatable-thead > tr > th) {
-  background: #1e293b !important;
-  color: #e2e8f0 !important;
-  border: none !important;
-  border-bottom: 1px solid #334155 !important;
-  padding: 0.85rem 0.75rem !important;
-  font-weight: 700 !important;
-  font-size: 0.875rem !important;
-  text-align: center !important;
-  white-space: nowrap;
-  box-shadow: none !important;
+.app-data-table-wrap :deep(.p-datatable-table) {
+  table-layout: fixed !important;
 }
 
-.app-data-table-wrap :deep(.p-datatable-tbody > tr) {
-  background: #0f172a !important;
-  color: #e2e8f0 !important;
-  transition: background-color 0.15s ease;
-}
-
+.app-data-table-wrap :deep(.p-datatable-thead > tr > th),
 .app-data-table-wrap :deep(.p-datatable-tbody > tr > td) {
   background: transparent !important;
   color: #e2e8f0 !important;
@@ -138,8 +142,21 @@ const resolveCell = (row, col) => {
   border-bottom: 1px solid #334155 !important;
   padding: 0.85rem 0.75rem !important;
   text-align: center !important;
+  vertical-align: middle !important;
   font-size: 0.875rem !important;
   box-shadow: none !important;
+}
+
+.app-data-table-wrap :deep(.p-datatable-thead > tr > th) {
+  background: #1e293b !important;
+  font-weight: 700 !important;
+  white-space: nowrap;
+}
+
+.app-data-table-wrap :deep(.p-datatable-tbody > tr) {
+  background: #0f172a !important;
+  color: #e2e8f0 !important;
+  transition: background-color 0.15s ease;
 }
 
 .app-data-table-wrap :deep(.p-datatable-tbody > tr:last-child > td) {
@@ -159,7 +176,6 @@ const resolveCell = (row, col) => {
   background: rgba(14, 165, 233, 0.12) !important;
 }
 
-/* PrimeVue 4 empty row class */
 .app-data-table-wrap :deep(.p-datatable-empty-message > td),
 .app-data-table-wrap :deep(.p-datatable-emptymessage > td) {
   text-align: center !important;
@@ -204,5 +220,38 @@ const resolveCell = (row, col) => {
   background: #1e293b !important;
   color: #f8fafc !important;
   border-color: #475569 !important;
+}
+</style>
+
+<!-- Unscoped so Aura theme cannot beat header flex alignment -->
+<style>
+.app-data-table-wrap .p-datatable-thead > tr > th {
+  text-align: center !important;
+}
+
+.app-data-table-wrap .p-datatable-column-header-content,
+.app-data-table-wrap [data-pc-section="columnheadercontent"] {
+  display: flex !important;
+  width: 100% !important;
+  justify-content: center !important;
+  align-items: center !important;
+  gap: 0.25rem;
+}
+
+.app-data-table-wrap .p-datatable-column-title,
+.app-data-table-wrap [data-pc-section="columntitle"] {
+  display: inline-block !important;
+  width: auto !important;
+  text-align: center !important;
+  margin: 0 auto !important;
+}
+
+.app-data-table-wrap .p-datatable-tbody > tr > td {
+  text-align: center !important;
+}
+
+.app-data-table-wrap .p-datatable-tbody > tr > td > * {
+  margin-left: auto !important;
+  margin-right: auto !important;
 }
 </style>
