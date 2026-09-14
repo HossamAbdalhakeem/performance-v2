@@ -84,8 +84,32 @@ textarea {
 
 .p-datatable,
 .p-datatable .p-datatable-wrapper,
+.p-datatable .p-datatable-table-container,
 .p-datatable .p-datatable-thead > tr > th,
 .p-datatable .p-datatable-tbody > tr > td {
+  background: #0f172a !important;
+  color: #e2e8f0 !important;
+  border-color: #334155 !important;
+}
+
+.p-datatable .p-datatable-thead > tr > th {
+  background: #1e293b !important;
+  font-weight: 700 !important;
+}
+
+.p-datatable .p-datatable-tbody > tr:hover > td {
+  background: #1e293b !important;
+}
+
+.p-datatable .p-datatable-emptymessage > td,
+.p-datatable .p-datatable-empty-message > td {
+  text-align: center !important;
+  color: #94a3b8 !important;
+  padding: 2rem 1rem !important;
+  border: none !important;
+}
+
+.p-paginator {
   background: #0f172a !important;
   color: #e2e8f0 !important;
   border-color: #334155 !important;

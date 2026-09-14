@@ -24,67 +24,27 @@
 
     <div class="grid gap-4 xl:grid-cols-[minmax(0,1.8fr)_minmax(260px,0.7fr)]">
       <div class="space-y-3">
-        <div v-if="loading" class="grid gap-4">
-          <Skeleton width="100%" height="4rem" border-radius="12px" />
-          <Skeleton width="100%" height="4rem" border-radius="12px" />
-        </div>
-
-        <div
-          v-else
-          class="overflow-hidden rounded-xl border border-slate-700 bg-slate-900"
+        <AppDataTable
+          :value="reservations"
+          :columns="tableColumns"
+          :loading="loading"
+          :empty-message="emptyMessage"
+          :row-class="getRowClass"
+          :skeleton-rows="2"
         >
-          <table class="w-full border-collapse text-sm">
-            <thead class="bg-slate-800 text-right text-slate-200">
-              <tr>
-                <th class="px-3 py-3 text-center">رقم الحجز</th>
-                <th class="px-3 py-3 text-center">اسم الطالب</th>
-                <th class="px-3 py-3 text-center">الموبايل</th>
-                <th class="px-3 py-3 text-center">المنتج</th>
-                <th class="px-3 py-3 text-center">المدرس</th>
-                <th class="px-3 py-3 text-center">المبلغ المدفوع</th>
-                <th class="px-3 py-3 text-center">المبلغ المتبقي</th>
-                <th class="px-3 py-3 text-center">الحالة</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr
-                v-for="item in reservations"
-                :key="item.id"
-                class="border-t border-slate-700 bg-slate-900 text-slate-200"
-                :class="matchedReservation?.id === item.id ? 'bg-sky-500/10' : ''"
-              >
-                <td class="px-3 py-3 text-center">{{ item.reservationNumber }}</td>
-                <td class="px-3 py-3 text-center">{{ item.studentName }}</td>
-                <td class="px-3 py-3 text-center">{{ item.phone || "-" }}</td>
-                <td class="px-3 py-3 text-center">{{ item.productName }}</td>
-                <td class="px-3 py-3 text-center">{{ item.teacherName }}</td>
-                <td class="px-3 py-3 text-center">{{ formatMoney(item.paidAmount) }}</td>
-                <td class="px-3 py-3 text-center">{{ formatMoney(item.remainingAmount) }}</td>
-                <td class="px-3 py-3 text-center">
-                  <span
-                    class="rounded-md px-2 py-1 text-xs font-bold"
-                    :class="
-                      item.hasRemaining
-                        ? 'bg-orange-500/20 text-orange-300'
-                        : 'bg-[#fef3c7] text-[#b45309]'
-                    "
-                  >
-                    {{ item.statusLabel }}
-                  </span>
-                </td>
-              </tr>
-              <tr v-if="!reservations.length">
-                <td colspan="8" class="px-3 py-8 text-center text-slate-400">
-                  {{
-                    search.trim()
-                      ? "لا توجد حجوزات مطابقة"
-                      : "ابدأ بالبحث لعرض الحجوزات"
-                  }}
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+          <template #status="{ data }">
+            <span
+              class="rounded-md px-2 py-1 text-xs font-bold"
+              :class="
+                data.hasRemaining
+                  ? 'bg-orange-500/20 text-orange-300'
+                  : 'bg-[#fef3c7] text-[#b45309]'
+              "
+            >
+              {{ data.statusLabel }}
+            </span>
+          </template>
+        </AppDataTable>
 
         <div
           class="flex flex-col gap-3 rounded-xl border border-slate-700 bg-[#111827] p-3 sm:flex-row sm:items-center sm:justify-between"
@@ -154,7 +114,7 @@
 <script setup>
 import Button from "primevue/button";
 import InputText from "primevue/inputtext";
-import Skeleton from "primevue/skeleton";
+import AppDataTable from "~/components/shared/app-data-table/index.vue";
 import AppInputNumber from "~/components/dashboard/AppInputNumber.vue";
 import { reservationService } from "~/services/reservationService";
 import { useThrottledCallback } from "~/composables/useThrottledCallback";
@@ -177,6 +137,23 @@ const reservations = ref([]);
 const feedback = reactive({ type: "success", message: "" });
 
 const formatMoney = (value) => `${Number(value || 0).toFixed(2)} ج.م`;
+
+const emptyMessage = computed(() =>
+  search.value.trim()
+    ? "لا توجد حجوزات مطابقة"
+    : "ابدأ بالبحث لعرض الحجوزات",
+);
+
+const tableColumns = [
+  { field: "reservationNumber", header: "رقم الحجز" },
+  { field: "studentName", header: "اسم الطالب" },
+  { field: "phone", header: "الموبايل", fallback: "-" },
+  { field: "productName", header: "المنتج" },
+  { field: "teacherName", header: "المدرس" },
+  { field: "paidAmount", header: "المبلغ المدفوع", format: formatMoney },
+  { field: "remainingAmount", header: "المبلغ المتبقي", format: formatMoney },
+  { field: "statusLabel", header: "الحالة", slot: "status" },
+];
 
 const getRemainingAmount = (item) => {
   if (item.remainingAmount != null) return Number(item.remainingAmount);
@@ -222,6 +199,9 @@ const matchedReservation = computed(() =>
     ? reservations.value[0]
     : null,
 );
+
+const getRowClass = (data) =>
+  matchedReservation.value?.id === data.id ? "app-row-matched" : "";
 
 const needsRemainingPayment = computed(() =>
   Boolean(matchedReservation.value?.hasRemaining),
