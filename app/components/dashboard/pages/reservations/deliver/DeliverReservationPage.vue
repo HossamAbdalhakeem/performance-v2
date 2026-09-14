@@ -1,14 +1,12 @@
 <template>
   <div class="space-y-4 bg-[#0f172a] p-4 text-right text-slate-100" dir="rtl">
-    <div class="relative w-[50%]">
-      <span
-        class="pointer-events-none absolute inset-y-0.5 right-3 flex items-center text-slate-400"
-        >⌕</span
-      >
+    <div class="relative w-full max-w-xl">
+      <span class="pointer-events-none absolute inset-y-0 right-3 flex items-center text-slate-400">⌕</span>
       <InputText
         v-model="search"
         placeholder="ابحث باسم الطالب أو رقم الموبايل أو رقم الحجز"
         class="w-full rounded-xl border border-slate-700 bg-slate-900 pr-10 text-right text-slate-100 placeholder:text-slate-400"
+        @update:modelValue="onSearchInput"
       />
     </div>
 
@@ -38,24 +36,30 @@
           <table class="w-full border-collapse text-sm">
             <thead class="bg-slate-800 text-right text-slate-200">
               <tr>
-                <th class="px-3 py-3 text-center">الحالة</th>
-                <th class="px-3 py-3 text-center">المبلغ</th>
-                <th class="px-3 py-3 text-center">المتبقي</th>
-                <th class="px-3 py-3 text-center">الفرع</th>
-                <th class="px-3 py-3 text-center">المدرس</th>
-                <th class="px-3 py-3 text-center">اسم الطالب</th>
                 <th class="px-3 py-3 text-center">رقم الحجز</th>
+                <th class="px-3 py-3 text-center">اسم الطالب</th>
+                <th class="px-3 py-3 text-center">الموبايل</th>
+                <th class="px-3 py-3 text-center">المنتج</th>
+                <th class="px-3 py-3 text-center">المدرس</th>
+                <th class="px-3 py-3 text-center">المبلغ المدفوع</th>
+                <th class="px-3 py-3 text-center">المبلغ المتبقي</th>
+                <th class="px-3 py-3 text-center">الحالة</th>
               </tr>
             </thead>
             <tbody>
               <tr
-                v-for="item in filteredReservations"
+                v-for="item in reservations"
                 :key="item.id"
                 class="border-t border-slate-700 bg-slate-900 text-slate-200"
-                :class="
-                  matchedReservation?.id === item.id ? 'bg-sky-500/10' : ''
-                "
+                :class="matchedReservation?.id === item.id ? 'bg-sky-500/10' : ''"
               >
+                <td class="px-3 py-3 text-center">{{ item.reservationNumber }}</td>
+                <td class="px-3 py-3 text-center">{{ item.studentName }}</td>
+                <td class="px-3 py-3 text-center">{{ item.phone || "-" }}</td>
+                <td class="px-3 py-3 text-center">{{ item.productName }}</td>
+                <td class="px-3 py-3 text-center">{{ item.teacherName }}</td>
+                <td class="px-3 py-3 text-center">{{ formatMoney(item.paidAmount) }}</td>
+                <td class="px-3 py-3 text-center">{{ formatMoney(item.remainingAmount) }}</td>
                 <td class="px-3 py-3 text-center">
                   <span
                     class="rounded-md px-2 py-1 text-xs font-bold"
@@ -68,21 +72,9 @@
                     {{ item.statusLabel }}
                   </span>
                 </td>
-                <td class="px-3 py-3 text-center">
-                  {{ formatMoney(item.totalAmount) }}
-                </td>
-                <td class="px-3 py-3 text-center">
-                  {{ formatMoney(item.remainingAmount) }}
-                </td>
-                <td class="px-3 py-3 text-center">{{ item.branchName }}</td>
-                <td class="px-3 py-3 text-center">{{ item.teacherName }}</td>
-                <td class="px-3 py-3 text-center">{{ item.studentName }}</td>
-                <td class="px-3 py-3 text-center">
-                  {{ item.reservationNumber }}
-                </td>
               </tr>
-              <tr v-if="!filteredReservations.length">
-                <td colspan="7" class="px-3 py-8 text-center text-slate-400">
+              <tr v-if="!reservations.length">
+                <td colspan="8" class="px-3 py-8 text-center text-slate-400">
                   {{
                     search.trim()
                       ? "لا توجد حجوزات مطابقة"
@@ -110,7 +102,7 @@
               :min-fraction-digits="2"
               :use-grouping="true"
             />
-            <p class="text-[11px] text-orange-300 leading-[1]">
+            <p class="text-[11px] leading-[1] text-orange-300">
               المتبقي: {{ formatMoney(matchedReservation?.remainingAmount) }}
             </p>
           </div>
@@ -134,7 +126,7 @@
         </div>
 
         <p
-          v-if="search.trim() && filteredReservations.length > 1"
+          v-if="search.trim() && reservations.length > 1"
           class="text-xs text-slate-400"
         >
           ضيّق البحث حتى تظهر نتيجة واحدة فقط لتفعيل التسليم.
@@ -165,6 +157,7 @@ import InputText from "primevue/inputtext";
 import Skeleton from "primevue/skeleton";
 import AppInputNumber from "~/components/dashboard/AppInputNumber.vue";
 import { reservationService } from "~/services/reservationService";
+import { useThrottledCallback } from "~/composables/useThrottledCallback";
 
 const DELIVERABLE_STATUSES = new Set([
   "PENDING",
@@ -174,7 +167,7 @@ const DELIVERABLE_STATUSES = new Set([
   "ready",
 ]);
 
-const loading = ref(true);
+const loading = ref(false);
 const delivering = ref(false);
 const search = ref("");
 const note = ref("");
@@ -198,6 +191,9 @@ const normalizeReservation = (item) => {
   const remainingAmount = getRemainingAmount(item);
   const status = String(item.status || "PENDING").toUpperCase();
   const hasRemaining = remainingAmount > 0;
+  const paidAmount = Number(
+    item.paidAmount ?? item.paid_amount ?? item.deposit ?? 0,
+  );
 
   return {
     ...item,
@@ -212,11 +208,8 @@ const normalizeReservation = (item) => {
       item.teacher_name ||
       item.teacher ||
       "-",
-    branchName: item.branch?.name || item.branch_name || item.branch || "-",
-    productName: item.product?.name || item.product_name || item.product || "",
-    totalAmount: Number(
-      item.totalAmount ?? item.total_amount ?? item.amount ?? 0
-    ),
+    productName: item.product?.name || item.product_name || item.product || "-",
+    paidAmount,
     remainingAmount,
     hasRemaining,
     status,
@@ -224,29 +217,14 @@ const normalizeReservation = (item) => {
   };
 };
 
-const filteredReservations = computed(() => {
-  const term = search.value.trim().toLowerCase();
-  const list = reservations.value.filter(
-    (item) => item.status !== "DELIVERED" && item.status !== "CANCELLED"
-  );
-
-  if (!term) return [];
-
-  return list.filter((item) =>
-    `${item.studentName} ${item.phone} ${item.productName} ${item.reservationNumber} ${item.id}`
-      .toLowerCase()
-      .includes(term)
-  );
-});
-
 const matchedReservation = computed(() =>
-  search.value.trim() && filteredReservations.value.length === 1
-    ? filteredReservations.value[0]
-    : null
+  search.value.trim() && reservations.value.length === 1
+    ? reservations.value[0]
+    : null,
 );
 
 const needsRemainingPayment = computed(() =>
-  Boolean(matchedReservation.value?.hasRemaining)
+  Boolean(matchedReservation.value?.hasRemaining),
 );
 
 const isDeliverableStatus = computed(() => {
@@ -269,21 +247,39 @@ const canDeliver = computed(() => {
   return true;
 });
 
-const loadReservations = async () => {
-  loading.value = true;
+const searchReservations = async (term = "") => {
+  const query = String(term || "").trim();
   feedback.message = "";
 
+  if (!query) {
+    reservations.value = [];
+    loading.value = false;
+    return;
+  }
+
+  loading.value = true;
+
   try {
-    const items = await reservationService.getReservations();
+    const items = await reservationService.getReservations({ search: query });
     const list = Array.isArray(items) ? items : items?.data || [];
-    reservations.value = list.map(normalizeReservation);
+    reservations.value = list
+      .map(normalizeReservation)
+      .filter((item) => item.status !== "DELIVERED" && item.status !== "CANCELLED");
   } catch (error) {
     reservations.value = [];
     feedback.type = "error";
-    feedback.message = error?.message || "تعذر تحميل الحجوزات.";
+    feedback.message = error?.message || "تعذر البحث في الحجوزات.";
   } finally {
     loading.value = false;
   }
+};
+
+const { run: runSearch } = useThrottledCallback((term) => {
+  searchReservations(term);
+}, 350);
+
+const onSearchInput = (value) => {
+  runSearch(value || "");
 };
 
 const deliverReservation = async () => {
@@ -305,13 +301,11 @@ const deliverReservation = async () => {
       method: "CASH",
     });
 
-    reservations.value = reservations.value.filter(
-      (item) => item.id !== matchedReservation.value.id
-    );
     deliveryCompleted.value = true;
     note.value = "";
     remainingPaidAmount.value = null;
     search.value = "";
+    reservations.value = [];
     feedback.type = "success";
     feedback.message = "تم تسليم الحجز بنجاح.";
   } catch (error) {
@@ -327,9 +321,5 @@ watch(matchedReservation, (item) => {
   if (item?.hasRemaining) {
     remainingPaidAmount.value = Number(item.remainingAmount || 0);
   }
-});
-
-onMounted(() => {
-  loadReservations();
 });
 </script>
