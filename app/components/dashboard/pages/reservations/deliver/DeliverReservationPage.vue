@@ -22,97 +22,116 @@
       {{ feedback.message }}
     </p>
 
-    <div class="grid gap-4 xl:grid-cols-[minmax(0,1.8fr)_minmax(260px,0.7fr)]">
-      <div class="space-y-3">
-        <AppDataTable
-          :value="reservations"
-          :columns="tableColumns"
-          :loading="loading"
-          :empty-message="emptyMessage"
-          :row-class="getRowClass"
-          :skeleton-rows="2"
+    <AppDataTable
+      :value="reservations"
+      :columns="tableColumns"
+      :loading="loading"
+      :empty-message="emptyMessage"
+      :skeleton-rows="2"
+    >
+      <template #status="{ data }">
+        <span
+          class="rounded-md px-2 py-1 text-xs font-bold"
+          :class="
+            data.hasRemaining
+              ? 'bg-orange-500/20 text-orange-300'
+              : 'bg-[#fef3c7] text-[#b45309]'
+          "
         >
-          <template #status="{ data }">
-            <span
-              class="rounded-md px-2 py-1 text-xs font-bold"
-              :class="
-                data.hasRemaining
-                  ? 'bg-orange-500/20 text-orange-300'
-                  : 'bg-[#fef3c7] text-[#b45309]'
-              "
-            >
-              {{ data.statusLabel }}
-            </span>
-          </template>
-        </AppDataTable>
+          {{ data.statusLabel }}
+        </span>
+      </template>
+
+      <template #actions="{ data }">
+        <Button
+          label="تسليم"
+          size="small"
+          class="rounded-lg bg-[#f59e0b] px-4 py-2 text-sm font-bold text-white"
+          :disabled="!isDeliverable(data)"
+          @click="openDeliverDialog(data)"
+        />
+      </template>
+    </AppDataTable>
+
+    <Dialog
+      v-model:visible="dialogVisible"
+      modal
+      dir="rtl"
+      :header="dialogTitle"
+      :style="{ width: '420px', maxWidth: '95vw' }"
+      :pt="{
+        root: { class: 'deliver-dialog' },
+        header: { class: 'text-right' },
+        content: { class: 'text-right' },
+      }"
+      @hide="closeDeliverDialog"
+    >
+      <div v-if="selectedReservation" class="flex flex-col gap-4">
+        <div class="rounded-xl border border-slate-700 bg-slate-900/60 px-3 py-2 text-sm text-slate-300">
+          <p>
+            <span class="text-slate-400">رقم الحجز:</span>
+            {{ selectedReservation.reservationNumber }}
+          </p>
+          <p class="mt-1">
+            <span class="text-slate-400">الطالب:</span>
+            {{ selectedReservation.studentName }}
+          </p>
+        </div>
 
         <div
-          class="flex flex-col gap-3 rounded-xl border border-slate-700 bg-[#111827] p-3 sm:flex-row sm:items-center sm:justify-between"
+          v-if="needsRemainingPayment"
+          class="flex flex-col gap-2 text-right"
         >
-          <div
-            v-if="needsRemainingPayment"
-            class="flex min-w-[30%] flex-col gap-2 text-right"
-          >
-            <label class="text-xs text-slate-300">سداد المبلغ المتبقي</label>
-            <AppInputNumber
-              v-model="remainingPaidAmount"
-              mode="currency"
-              currency="EGP"
-              :min="0"
-              :min-fraction-digits="2"
-              :use-grouping="true"
-            />
-            <p class="text-[11px] leading-[1] text-orange-300">
-              المتبقي: {{ formatMoney(matchedReservation?.remainingAmount) }}
-            </p>
-          </div>
+          <label class="text-xs text-slate-300">سداد المبلغ المتبقي</label>
+          <AppInputNumber
+            v-model="remainingPaidAmount"
+            mode="currency"
+            currency="EGP"
+            :min="0"
+            :min-fraction-digits="2"
+            :use-grouping="true"
+          />
+          <p class="text-[11px] leading-[1] text-orange-300">
+            المتبقي: {{ formatMoney(selectedReservation.remainingAmount) }}
+          </p>
+        </div>
 
-          <div class="flex min-w-[30%] flex-col gap-2 text-right">
-            <label class="text-xs text-slate-300">ملاحظة (اختياري)</label>
-            <InputText
-              v-model="note"
-              placeholder="سجّل ملاحظة إن وجدت"
-              class="w-full rounded-xl border border-slate-700 bg-slate-900 text-right text-slate-100 placeholder:text-slate-400"
-            />
-          </div>
-
-          <Button
-            label="تسليم الحجز"
-            class="rounded-xl bg-[#f59e0b] px-8 py-3 text-xl font-bold text-white shadow-md"
-            :disabled="!canDeliver"
-            :loading="delivering"
-            @click="deliverReservation"
+        <div class="flex flex-col gap-2 text-right">
+          <label class="text-xs text-slate-300">ملاحظة (اختياري)</label>
+          <InputText
+            v-model="note"
+            placeholder="سجّل ملاحظة إن وجدت"
+            class="w-full rounded-xl border border-slate-700 bg-slate-900 text-right text-slate-100 placeholder:text-slate-400"
           />
         </div>
 
-        <p
-          v-if="search.trim() && reservations.length > 1"
-          class="text-xs text-slate-400"
-        >
-          ضيّق البحث حتى تظهر نتيجة واحدة فقط لتفعيل التسليم.
-        </p>
+        <p v-if="dialogError" class="text-sm text-red-300">{{ dialogError }}</p>
       </div>
 
-      <div
-        v-if="deliveryCompleted"
-        class="flex min-h-[220px] items-center justify-center rounded-xl border border-slate-700 bg-[#111827] p-4"
-      >
-        <div class="text-center">
-          <div
-            class="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-[#22c55e] text-4xl font-bold text-white shadow-md"
-          >
-            ✓
-          </div>
-          <p class="text-xl font-bold text-[#34d399]">تم تسليم الحجز بنجاح</p>
-          <p class="mt-2 text-sm text-slate-300">تم خصم الكمية من المخزون</p>
+      <template #footer>
+        <div class="flex w-full justify-start gap-2">
+          <Button
+            label="تأكيد التسليم"
+            class="rounded-xl bg-[#f59e0b] px-5 py-2 font-bold text-white"
+            :disabled="!canConfirmDeliver"
+            :loading="delivering"
+            @click="deliverReservation"
+          />
+          <Button
+            label="إلغاء"
+            text
+            severity="secondary"
+            @click="closeDeliverDialog"
+          />
         </div>
-      </div>
-    </div>
+      </template>
+    </Dialog>
   </div>
 </template>
 
 <script setup>
 import Button from "primevue/button";
+import Dialog from "primevue/dialog";
 import InputText from "primevue/inputtext";
 import AppDataTable from "~/components/shared/app-data-table/index.vue";
 import AppInputNumber from "~/components/dashboard/AppInputNumber.vue";
@@ -132,7 +151,9 @@ const delivering = ref(false);
 const search = ref("");
 const note = ref("");
 const remainingPaidAmount = ref(null);
-const deliveryCompleted = ref(false);
+const dialogVisible = ref(false);
+const dialogError = ref("");
+const selectedReservation = ref(null);
 const reservations = ref([]);
 const feedback = reactive({ type: "success", message: "" });
 
@@ -153,7 +174,39 @@ const tableColumns = [
   { field: "paidAmount", header: "المبلغ المدفوع", format: formatMoney },
   { field: "remainingAmount", header: "المبلغ المتبقي", format: formatMoney },
   { field: "statusLabel", header: "الحالة", slot: "status" },
+  { field: "actions", header: "إجراء", slot: "actions", style: "width: 7rem" },
 ];
+
+const dialogTitle = computed(() =>
+  selectedReservation.value
+    ? `تسليم الحجز ${selectedReservation.value.reservationNumber}`
+    : "تسليم الحجز",
+);
+
+const needsRemainingPayment = computed(() =>
+  Boolean(selectedReservation.value?.hasRemaining),
+);
+
+const canConfirmDeliver = computed(() => {
+  if (!selectedReservation.value || !isDeliverable(selectedReservation.value)) {
+    return false;
+  }
+
+  if (needsRemainingPayment.value) {
+    return Number(remainingPaidAmount.value || 0) > 0;
+  }
+
+  return true;
+});
+
+const isDeliverable = (item) => {
+  if (!item) return false;
+  return (
+    DELIVERABLE_STATUSES.has(item.status) ||
+    item.statusLabel === "قيد الحجز" ||
+    item.hasRemaining
+  );
+};
 
 const getRemainingAmount = (item) => {
   if (item.remainingAmount != null) return Number(item.remainingAmount);
@@ -194,38 +247,26 @@ const normalizeReservation = (item) => {
   };
 };
 
-const matchedReservation = computed(() =>
-  search.value.trim() && reservations.value.length === 1
-    ? reservations.value[0]
-    : null,
-);
+const openDeliverDialog = (item) => {
+  if (!isDeliverable(item)) return;
 
-const getRowClass = (data) =>
-  matchedReservation.value?.id === data.id ? "app-row-matched" : "";
+  selectedReservation.value = item;
+  note.value = "";
+  dialogError.value = "";
+  remainingPaidAmount.value = item.hasRemaining
+    ? Number(item.remainingAmount || 0)
+    : null;
+  dialogVisible.value = true;
+  feedback.message = "";
+};
 
-const needsRemainingPayment = computed(() =>
-  Boolean(matchedReservation.value?.hasRemaining),
-);
-
-const isDeliverableStatus = computed(() => {
-  const item = matchedReservation.value;
-  if (!item) return false;
-  return (
-    DELIVERABLE_STATUSES.has(item.status) ||
-    item.statusLabel === "قيد الحجز" ||
-    item.hasRemaining
-  );
-});
-
-const canDeliver = computed(() => {
-  if (!matchedReservation.value || !isDeliverableStatus.value) return false;
-
-  if (needsRemainingPayment.value) {
-    return Number(remainingPaidAmount.value || 0) > 0;
-  }
-
-  return true;
-});
+const closeDeliverDialog = () => {
+  dialogVisible.value = false;
+  selectedReservation.value = null;
+  note.value = "";
+  remainingPaidAmount.value = null;
+  dialogError.value = "";
+};
 
 const searchReservations = async (term = "") => {
   const query = String(term || "").trim();
@@ -263,14 +304,14 @@ const onSearchInput = (value) => {
 };
 
 const deliverReservation = async () => {
-  if (!canDeliver.value || !matchedReservation.value) return;
+  if (!canConfirmDeliver.value || !selectedReservation.value) return;
 
   delivering.value = true;
+  dialogError.value = "";
   feedback.message = "";
-  deliveryCompleted.value = false;
 
   try {
-    await reservationService.deliverReservation(matchedReservation.value.id, {
+    await reservationService.deliverReservation(selectedReservation.value.id, {
       note: note.value || undefined,
       remainingAmount: needsRemainingPayment.value
         ? Number(remainingPaidAmount.value || 0)
@@ -281,25 +322,15 @@ const deliverReservation = async () => {
       method: "CASH",
     });
 
-    deliveryCompleted.value = true;
-    note.value = "";
-    remainingPaidAmount.value = null;
-    search.value = "";
-    reservations.value = [];
+    const deliveredId = selectedReservation.value.id;
+    closeDeliverDialog();
+    reservations.value = reservations.value.filter((item) => item.id !== deliveredId);
     feedback.type = "success";
-    feedback.message = "تم تسليم الحجز بنجاح.";
+    feedback.message = "تم تسليم الحجز بنجاح وتم خصم الكمية من المخزون.";
   } catch (error) {
-    feedback.type = "error";
-    feedback.message = error?.message || "تعذر تسليم الحجز.";
+    dialogError.value = error?.message || "تعذر تسليم الحجز.";
   } finally {
     delivering.value = false;
   }
 };
-
-watch(matchedReservation, (item) => {
-  remainingPaidAmount.value = null;
-  if (item?.hasRemaining) {
-    remainingPaidAmount.value = Number(item.remainingAmount || 0);
-  }
-});
 </script>
