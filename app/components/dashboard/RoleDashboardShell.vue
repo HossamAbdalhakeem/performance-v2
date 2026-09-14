@@ -120,6 +120,7 @@ const menuItems = computed(() => {
   return [
     { label: "المنتجات", icon: "＋", to: "/products", active: isActive("/products") },
     { label: "المدرسون", icon: "◉", to: "/teachers", active: isActive("/teachers") },
+    { label: "الفروع", icon: "⌂", to: "/branches", active: isActive("/branches") },
     { label: "إضافة للمخزن", icon: "▣", to: "/inventory/add", active: isActive("/inventory/add") },
     { label: "سحب من المخزن", icon: "−", to: "/inventory/remove", active: isActive("/inventory/remove") },
     { label: "إلغاء حجز", icon: "↺", to: "/reservations/cancel", active: isActive("/reservations/cancel") },

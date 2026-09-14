@@ -1,166 +1,197 @@
 <template>
   <div class="space-y-6">
-    <div class="grid gap-4 md:grid-cols-3">
-      <Card v-for="stat in stats" :key="stat.label">
-        <template #content>
-          <div class="flex items-center justify-between">
-            <div>
-              <p class="text-sm text-slate-500">{{ stat.label }}</p>
-              <p class="mt-2 text-2xl font-bold text-slate-900">{{ stat.value }}</p>
-            </div>
-            <span class="rounded-xl px-2 py-1 text-xs font-semibold" :class="stat.badgeClass">{{ stat.tag }}</span>
-          </div>
-        </template>
-      </Card>
-    </div>
-
     <Card>
       <template #title>
-        <div class="flex items-center justify-between gap-3">
-          <span class="text-lg font-bold text-slate-900">الفروع</span>
-          <Button label="إضافة فرع" icon="pi pi-plus" severity="info" @click="toggleForm" />
-        </div>
+        <span class="text-lg font-bold text-slate-900">الفروع</span>
       </template>
 
       <template #content>
-        <div v-if="showForm" class="mb-5 rounded-2xl border border-slate-200 bg-slate-50 p-4">
-          <Form v-slot="{ errors: fieldErrors }" @submit="submitBranch" :initial-values="formInitialValues" class="grid gap-4 md:grid-cols-2">
-            <Field v-slot="{ field, errorMessage }" name="name" rules="required">
-              <div class="flex flex-col gap-2 text-right">
-                <label class="text-sm font-medium text-slate-700">اسم الفرع</label>
-                <InputText v-bind="field" v-model="form.name" :class="{ 'p-invalid': errorMessage || fieldErrors.name }" />
-                <ErrorMessage name="name" class="text-xs text-red-500" />
-              </div>
-            </Field>
+        <p
+          v-if="feedback.message"
+          class="mb-4 rounded-xl px-3 py-2 text-sm"
+          :class="feedback.type === 'error' ? 'bg-red-50 text-red-600' : 'bg-emerald-50 text-emerald-700'"
+        >
+          {{ feedback.message }}
+        </p>
 
-            <Field v-slot="{ field, errorMessage }" name="manager" rules="required">
-              <div class="flex flex-col gap-2 text-right">
-                <label class="text-sm font-medium text-slate-700">مدير الفرع</label>
-                <InputText v-bind="field" v-model="form.manager" :class="{ 'p-invalid': errorMessage || fieldErrors.manager }" />
-                <ErrorMessage name="manager" class="text-xs text-red-500" />
-              </div>
-            </Field>
-
-            <Field v-slot="{ field, errorMessage }" name="city" rules="required">
-              <div class="flex flex-col gap-2 text-right">
-                <label class="text-sm font-medium text-slate-700">المدينة</label>
-                <InputText v-bind="field" v-model="form.city" :class="{ 'p-invalid': errorMessage || fieldErrors.city }" />
-                <ErrorMessage name="city" class="text-xs text-red-500" />
-              </div>
-            </Field>
-
-            <Field v-slot="{ field, errorMessage }" name="status" rules="required">
-              <div class="flex flex-col gap-2 text-right">
-                <label class="text-sm font-medium text-slate-700">الحالة</label>
-                <Select v-bind="field" v-model="form.status" :options="statusOptions" optionLabel="label" optionValue="value" placeholder="اختر" :class="{ 'p-invalid': errorMessage || fieldErrors.status }" />
-                <ErrorMessage name="status" class="text-xs text-red-500" />
-              </div>
-            </Field>
-
-            <div class="md:col-span-2 flex justify-end gap-3">
-              <Button label="إلغاء" severity="secondary" text @click="toggleForm" />
-              <Button type="submit" label="حفظ الفرع" :loading="saving" severity="info" />
-            </div>
-          </Form>
-        </div>
-
-        <div v-if="pending" class="grid gap-4">
-          <Skeleton v-for="i in 5" :key="i" width="100%" height="3rem" border-radius="12px" />
-        </div>
-
-        <DataTable v-else :value="branches" paginator :rows="8" tableStyle="min-width: 100%" :emptyMessage="emptyMessage">
-          <Column field="name" header="الفرع" />
-          <Column field="manager" header="المدير" />
-          <Column field="city" header="المدينة" />
-          <Column field="status" header="الحالة">
-            <template #body="slotProps">
-              <Tag :value="slotProps.data.status" :severity="slotProps.data.statusSeverity" />
-            </template>
-          </Column>
-        </DataTable>
+        <BranchesTable
+          :branches="branches"
+          :loading="loading"
+          @add-stock="openAddStock"
+          @remove-stock="openRemoveStock"
+        />
       </template>
     </Card>
+
+    <Drawer
+      v-model:visible="addDrawerVisible"
+      header="إضافة منتج للفرع"
+      position="right"
+      :modal="true"
+      :blockScroll="true"
+      :baseZIndex="1400"
+      class="branch-stock-drawer"
+      :pt="{
+        root: {
+          class: 'branch-stock-drawer-panel',
+          style: { width: '420px', maxWidth: '420px' },
+        },
+        header: { class: 'text-right' },
+        content: { class: 'overflow-y-auto' },
+      }"
+    >
+      <AddStockForm
+        v-if="addDrawerVisible && selectedBranch"
+        :locked-branch-id="selectedBranch.id"
+        :branch-name="selectedBranch.name"
+        @saved="handleAddSaved"
+        @cancel="addDrawerVisible = false"
+      />
+    </Drawer>
+
+    <Drawer
+      v-model:visible="removeDrawerVisible"
+      header="سحب منتج من الفرع"
+      position="right"
+      :modal="true"
+      :blockScroll="true"
+      :baseZIndex="1400"
+      class="branch-stock-drawer"
+      :pt="{
+        root: {
+          class: 'branch-stock-drawer-panel',
+          style: { width: '420px', maxWidth: '420px' },
+        },
+        header: { class: 'text-right' },
+        content: { class: 'overflow-y-auto' },
+      }"
+    >
+      <RemoveStockForm
+        v-if="removeDrawerVisible && selectedBranch"
+        :locked-branch-id="selectedBranch.id"
+        :branch-name="selectedBranch.name"
+        @saved="handleRemoveSaved"
+        @cancel="removeDrawerVisible = false"
+      />
+    </Drawer>
   </div>
 </template>
 
 <script setup>
 import Card from "primevue/card";
-import Button from "primevue/button";
-import DataTable from "primevue/datatable";
-import Column from "primevue/column";
-import Tag from "primevue/tag";
-import InputText from "primevue/inputtext";
-import Select from "primevue/select";
-import Skeleton from "primevue/skeleton";
-import { Form, Field, ErrorMessage } from "vee-validate";
+import Drawer from "primevue/drawer";
+import BranchesTable from "~/components/dashboard/pages/branches/BranchesTable.vue";
+import AddStockForm from "~/components/dashboard/pages/inventory/AddStockForm.vue";
+import RemoveStockForm from "~/components/dashboard/pages/inventory/RemoveStockForm.vue";
 import { branchService } from "~/services/branchService";
+import { inventoryService } from "~/services/inventoryService";
 
-const pending = ref(true);
-const saving = ref(false);
-const showForm = ref(false);
-const statusOptions = [
-  { label: "نشط", value: "active" },
-  { label: "قيد التقييم", value: "review" },
-  { label: "مغلق", value: "closed" },
-];
-
-const form = reactive({ name: "", manager: "", city: "", status: "active" });
-const formInitialValues = { name: "", manager: "", city: "", status: "active" };
+const loading = ref(true);
 const branches = ref([]);
+const selectedBranch = ref(null);
+const addDrawerVisible = ref(false);
+const removeDrawerVisible = ref(false);
+const feedback = reactive({ type: "success", message: "" });
 
-const normalizeBranch = (branch) => ({
-  name: branch.name || branch.label || "فرع",
-  manager: branch.manager || branch.head || "-",
-  city: branch.city || branch.location || "-",
-  status: statusOptions.find((item) => item.value === branch.status)?.label || "نشط",
-  statusSeverity: branch.status === "active" ? "success" : branch.status === "review" ? "warning" : "danger",
+const statusMeta = (status) => {
+  if (status === "INACTIVE") {
+    return { label: "غير نشط", severity: "danger" };
+  }
+  return { label: "نشط", severity: "success" };
+};
+
+const normalizeInventoryItem = (item) => ({
+  productId: item.productId,
+  productName: item.product?.name || "-",
+  physicalQuantity: item.physicalQuantity ?? 0,
+  reservedQuantity: item.reservedQuantity ?? 0,
+  availableQuantity: item.availableQuantity ?? Math.max(0, (item.physicalQuantity || 0) - (item.reservedQuantity || 0)),
 });
 
-const loadBranches = async () => {
+const buildBranchRows = (branchList, inventoryList) => {
+  const byBranch = inventoryList.reduce((acc, item) => {
+    const key = item.branchId;
+    if (!acc[key]) acc[key] = [];
+    acc[key].push(normalizeInventoryItem(item));
+    return acc;
+  }, {});
+
+  return branchList.map((branch) => {
+    const meta = statusMeta(branch.status);
+    return {
+      id: branch.id,
+      name: branch.name || "-",
+      status: branch.status,
+      statusLabel: meta.label,
+      statusSeverity: meta.severity,
+      inventoryItems: byBranch[branch.id] || [],
+    };
+  });
+};
+
+const setFeedback = (type, message) => {
+  feedback.type = type;
+  feedback.message = message;
+};
+
+const loadData = async () => {
+  loading.value = true;
   try {
-    const items = await branchService.getBranches();
-    const list = Array.isArray(items) ? items : items?.data || [];
-    branches.value = list.map(normalizeBranch);
+    const [branchResult, inventoryResult] = await Promise.all([
+      branchService.getBranches(),
+      inventoryService.getInventory(),
+    ]);
+
+    const branchList = Array.isArray(branchResult) ? branchResult : branchResult?.data || [];
+    const inventoryList = Array.isArray(inventoryResult) ? inventoryResult : [];
+
+    branches.value = buildBranchRows(branchList, inventoryList);
   } catch (error) {
-    console.error("Failed to load branches", error);
+    setFeedback("error", error?.message || "تعذر تحميل الفروع.");
     branches.value = [];
   } finally {
-    pending.value = false;
+    loading.value = false;
   }
 };
 
-const stats = computed(() => [
-  { label: "إجمالي الفروع", value: String(branches.value.length || 0), tag: "نشط", badgeClass: "bg-sky-100 text-sky-700" },
-  { label: "نشطة", value: String(branches.value.filter((item) => item.status === "نشط").length || 0), tag: "حالة", badgeClass: "bg-green-100 text-green-700" },
-  { label: "قيد التقييم", value: String(branches.value.filter((item) => item.status === "قيد التقييم").length || 0), tag: "مهم", badgeClass: "bg-amber-100 text-amber-700" },
-]);
-
-const emptyMessage = "لا توجد فروع مسجلة.";
-
-const toggleForm = () => {
-  showForm.value = !showForm.value;
+const openAddStock = (branch) => {
+  selectedBranch.value = branch;
+  removeDrawerVisible.value = false;
+  addDrawerVisible.value = true;
 };
 
-const submitBranch = async () => {
-  saving.value = true;
-
-  try {
-    const result = await branchService.createBranch({
-      name: form.name,
-      manager: form.manager,
-      city: form.city,
-      status: form.status,
-    });
-
-    branches.value.unshift(normalizeBranch(result || { ...form, name: form.name, manager: form.manager, city: form.city, status: form.status }));
-    Object.assign(form, formInitialValues);
-    showForm.value = false;
-  } finally {
-    saving.value = false;
-  }
+const openRemoveStock = (branch) => {
+  selectedBranch.value = branch;
+  addDrawerVisible.value = false;
+  removeDrawerVisible.value = true;
 };
+
+const handleAddSaved = async () => {
+  addDrawerVisible.value = false;
+  selectedBranch.value = null;
+  setFeedback("success", "تم إضافة المنتج للفرع بنجاح.");
+  await loadData();
+};
+
+const handleRemoveSaved = async () => {
+  removeDrawerVisible.value = false;
+  selectedBranch.value = null;
+  setFeedback("success", "تم سحب المنتج من الفرع بنجاح.");
+  await loadData();
+};
+
+watch([addDrawerVisible, removeDrawerVisible], ([addVisible, removeVisible]) => {
+  if (!addVisible && !removeVisible) selectedBranch.value = null;
+});
 
 onMounted(() => {
-  loadBranches();
+  loadData();
 });
 </script>
+
+<style scoped>
+:deep(.branch-stock-drawer-panel) {
+  width: 420px !important;
+  max-width: 420px !important;
+}
+</style>
