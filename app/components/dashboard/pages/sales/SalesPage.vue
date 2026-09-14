@@ -93,9 +93,36 @@
                 optionValue="value"
                 placeholder="اختر المنتج"
                 filter
-                class="w-full"
+                :filter-fields="['name', 'teacherName', 'label']"
+                class="w-full product-select"
                 :class="{ 'p-invalid': errorMessage || fieldErrors.productId }"
-              />
+              >
+                <template #value="{ value, placeholder }">
+                  <div v-if="selectedProductOption" class="w-full py-0.5 text-right">
+                    <div class="flex items-start justify-between gap-3">
+                      <span class="font-medium text-slate-100">{{ selectedProductOption.name }}</span>
+                      <span class="shrink-0 text-sm text-sky-300">
+                        سعره {{ selectedProductOption.priceLabel }}
+                      </span>
+                    </div>
+                    <p class="mt-0.5 text-xs text-slate-400">
+                      مقدم من أ/ {{ selectedProductOption.teacherName || "-" }}
+                    </p>
+                  </div>
+                  <span v-else>{{ placeholder }}</span>
+                </template>
+                <template #option="{ option }">
+                  <div class="w-full py-1 text-right">
+                    <div class="flex items-start justify-between gap-3">
+                      <span class="font-medium">{{ option.name }}</span>
+                      <span class="shrink-0 text-sm text-sky-300">سعره {{ option.priceLabel }}</span>
+                    </div>
+                    <p class="mt-0.5 text-xs text-slate-400">
+                      مقدم من أ/ {{ option.teacherName || "-" }}
+                    </p>
+                  </div>
+                </template>
+              </Select>
               <ErrorMessage name="productId" class="text-xs text-red-500" />
             </div>
           </Field>
@@ -219,11 +246,25 @@ const products = ref([]);
 const students = ref([]);
 
 const productOptions = computed(() =>
-  products.value.map((product) => ({
-    label: `${product.name} — \u2066${Number(product.sellingPrice || 0).toFixed(2)} ج.م\u2069`,
-    value: product.id,
-    sellingPrice: Number(product.sellingPrice || 0),
-  })),
+  products.value.map((product) => {
+    const teacherName =
+      product.teacher?.name || product.teacherName || product.teacher_name || "";
+    const priceLabel = `${Number(product.sellingPrice || 0).toFixed(2)}ج.م`;
+    const name = product.name || "-";
+
+    return {
+      name,
+      teacherName,
+      priceLabel,
+      label: `${name} سعره ${priceLabel} مقدم من أ/ ${teacherName || "-"}`,
+      value: product.id,
+      sellingPrice: Number(product.sellingPrice || 0),
+    };
+  }),
+);
+
+const selectedProductOption = computed(() =>
+  productOptions.value.find((option) => option.value === form.productId) || null,
 );
 
 const studentNameOptions = computed(() =>
