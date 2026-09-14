@@ -1,35 +1,32 @@
-import { apiFetch, firstRow } from "~/utils/apiFetch";
+import { apiFetch, firstRow, asList } from "~/utils/apiFetch";
 
-const reservationBody = (payload: Record<string, any>) => ({
-  student: {
-    name: payload.student?.name || payload.student_name,
-    phone: payload.student?.phone || payload.phone,
-  },
-  study_year_id: payload.study_year_id || payload.stage,
-  branch_id: payload.branch_id,
-  items: payload.items || [
-    {
-      product_id: payload.product_id,
-      quantity: payload.quantity || 1,
-    },
-  ],
-  paid_amount: payload.paid_amount ?? payload.amount,
-  payment_method: payload.payment_method,
-  payment_proof_path: payload.payment_proof_path ?? payload.receipt_image ?? null,
-});
+const PAYMENT_METHODS = new Set(["CASH", "WALLET", "INSTAPAY"]);
 
-const exchangeBody = (payload: Record<string, any>) => ({
-  items: payload.items || [
-    {
-      product_id: payload.product_id,
-      quantity: payload.quantity || 1,
-    },
-  ],
-});
+const reservationBody = (payload: Record<string, any>) => {
+  const method = String(payload.method || payload.payment_method || "CASH").toUpperCase();
+
+  const body: Record<string, any> = {
+    studentId: payload.studentId ?? payload.student_id,
+    productId: payload.productId ?? payload.product_id,
+    quantity: Number(payload.quantity || 1),
+    deposit: Number(payload.deposit ?? payload.paid_amount ?? payload.amount),
+    method: PAYMENT_METHODS.has(method) ? method : "CASH",
+  };
+
+  const branchId = payload.branchId ?? payload.branch_id;
+  if (branchId) body.branchId = branchId;
+
+  if (payload.proofReference || payload.proof_reference || payload.payment_proof_path) {
+    body.proofReference =
+      payload.proofReference || payload.proof_reference || payload.payment_proof_path;
+  }
+
+  return body;
+};
 
 export const reservationService = {
   async getReservations(params: Record<string, any> = {}) {
-    return await apiFetch("/reservations", { method: "GET", params });
+    return asList(await apiFetch("/reservations", { method: "GET", params }));
   },
 
   async getReservation(id: string) {
@@ -41,37 +38,54 @@ export const reservationService = {
       await apiFetch("/reservations", {
         method: "POST",
         body: reservationBody(payload),
-      })
+      }),
     );
   },
 
-  async deliverReservation(id: string) {
+  async deliverReservation(id: string, payload: Record<string, any> | string = {}) {
+    const normalized =
+      typeof payload === "string"
+        ? { proofReference: payload, method: "CASH" }
+        : payload || {};
+
+    const method = String(normalized.method || normalized.payment_method || "CASH").toUpperCase();
     return firstRow(
       await apiFetch(`/reservations/${id}/deliver`, {
         method: "POST",
-        body: {},
-      })
+        body: {
+          method: PAYMENT_METHODS.has(method) ? method : "CASH",
+          ...(normalized.proofReference || normalized.proof_reference
+            ? {
+                proofReference:
+                  normalized.proofReference || normalized.proof_reference,
+              }
+            : {}),
+        },
+      }),
     );
   },
 
-  async cancelReservation(id: string, payload: Record<string, any> = {}) {
+  async cancelReservation(id: string) {
     return firstRow(
       await apiFetch(`/reservations/${id}/cancel`, {
         method: "POST",
+        body: {},
+      }),
+    );
+  },
+
+  async changeProduct(id: string, payload: Record<string, any>) {
+    return firstRow(
+      await apiFetch(`/reservations/${id}/change-product`, {
+        method: "POST",
         body: {
-          refund_amount: payload.refund_amount,
-          reason: payload.reason,
+          newProductId: payload.newProductId ?? payload.new_product_id ?? payload.productId ?? payload.product_id,
         },
-      })
+      }),
     );
   },
 
   async exchangeReservation(id: string, payload: Record<string, any>) {
-    return firstRow(
-      await apiFetch(`/reservations/${id}/exchange`, {
-        method: "POST",
-        body: exchangeBody(payload),
-      })
-    );
+    return this.changeProduct(id, payload);
   },
 };

@@ -1,0 +1,78 @@
+<template>
+  <Form
+    v-slot="{ errors: fieldErrors }"
+    :key="formKey"
+    :initial-values="initialValues"
+    class="grid gap-4"
+    @submit="submit"
+  >
+    <Field v-slot="{ field, errorMessage }" name="name" rules="required">
+      <div class="flex flex-col gap-2 text-right">
+        <label class="text-sm font-medium text-slate-700">اسم السنة الدراسية</label>
+        <InputText
+          v-bind="field"
+          v-model="form.name"
+          class="w-full"
+          placeholder="مثال: الصف الأول"
+          :class="{ 'p-invalid': errorMessage || fieldErrors.name }"
+        />
+        <ErrorMessage name="name" class="text-xs text-red-500" />
+      </div>
+    </Field>
+
+    <p v-if="feedback.message" class="rounded-xl bg-red-50 px-3 py-2 text-sm text-red-600">
+      {{ feedback.message }}
+    </p>
+
+    <div class="flex justify-end gap-2">
+      <Button type="button" label="إلغاء" severity="secondary" text @click="$emit('cancel')" />
+      <Button type="submit" :label="isEdit ? 'حفظ التعديل' : 'إضافة'" :loading="saving" severity="info" />
+    </div>
+  </Form>
+</template>
+
+<script setup>
+import Button from "primevue/button";
+import InputText from "primevue/inputtext";
+import { Form, Field, ErrorMessage } from "vee-validate";
+import { studyYearService } from "~/services/studyYearService";
+
+const props = defineProps({
+  studyYear: { type: Object, default: null },
+});
+
+const emit = defineEmits(["saved", "cancel"]);
+
+const saving = ref(false);
+const formKey = ref(0);
+const feedback = reactive({ message: "" });
+const isEdit = computed(() => Boolean(props.studyYear?.id));
+
+const form = reactive({ name: "" });
+const initialValues = computed(() => ({ name: props.studyYear?.name || "" }));
+
+watch(
+  () => props.studyYear,
+  (value) => {
+    form.name = value?.name || "";
+    formKey.value += 1;
+    feedback.message = "";
+  },
+  { immediate: true },
+);
+
+const submit = async () => {
+  saving.value = true;
+  feedback.message = "";
+  try {
+    const result = isEdit.value
+      ? await studyYearService.updateStudyYear(props.studyYear.id, { name: form.name })
+      : await studyYearService.createStudyYear({ name: form.name });
+    emit("saved", result);
+  } catch (error) {
+    feedback.message = error?.message || "تعذر حفظ السنة الدراسية.";
+  } finally {
+    saving.value = false;
+  }
+};
+</script>

@@ -121,8 +121,11 @@ const menuItems = computed(() => {
     { label: "المنتجات", icon: "＋", to: "/products", active: isActive("/products") },
     { label: "المدرسون", icon: "◉", to: "/teachers", active: isActive("/teachers") },
     { label: "الفروع", icon: "⌂", to: "/branches", active: isActive("/branches") },
-    { label: "إلغاء حجز", icon: "↺", to: "/reservations/cancel", active: isActive("/reservations/cancel") },
-    { label: "تبديل حجز", icon: "⇄", to: "/reservations/swap", active: isActive("/reservations/swap") },
+    { label: "الطلاب", icon: "◎", to: "/students", active: isActive("/students") },
+    { label: "السنوات الدراسية", icon: "▦", to: "/study-years", active: isActive("/study-years") },
+    { label: "المستخدمون", icon: "♟", to: "/users", active: isActive("/users") },
+    { label: "المصروفات", icon: "﷼", to: "/expenses", active: isActive("/expenses") },
+    { label: "الحجوزات", icon: "✓", to: "/reservations/manage", active: isActive("/reservations/manage") },
     { label: "التقارير", icon: "▤", to: "/reports", active: isActive("/reports") },
   ];
 });

@@ -3,8 +3,8 @@
     <Card>
       <template #title>
         <div class="flex flex-wrap items-center justify-between gap-3">
-          <span class="text-lg font-bold text-slate-900">المستخدمون</span>
-          <Button label="إضافة مستخدم" icon="pi pi-plus" severity="info" @click="openCreate" />
+          <span class="text-lg font-bold text-slate-900">المصروفات</span>
+          <Button label="إضافة مصروف" icon="pi pi-plus" severity="info" @click="openCreate" />
         </div>
       </template>
       <template #content>
@@ -21,31 +21,32 @@
             <label class="text-sm font-medium text-slate-700">بحث</label>
             <IconField>
               <InputIcon class="pi pi-search" />
-              <InputText v-model="filters.search" class="w-full" placeholder="اسم / بريد" />
+              <InputText v-model="filters.search" class="w-full" placeholder="تصنيف / وصف / فرع" />
             </IconField>
           </div>
           <div class="flex flex-col gap-2 text-right">
-            <label class="text-sm font-medium text-slate-700">الدور</label>
+            <label class="text-sm font-medium text-slate-700">الفرع</label>
             <Select
-              v-model="filters.role"
-              :options="roleOptions"
+              v-model="filters.branchId"
+              :options="branchOptions"
               optionLabel="label"
               optionValue="value"
-              placeholder="كل الأدوار"
+              placeholder="كل الفروع"
               showClear
+              filter
               class="w-full"
             />
           </div>
         </div>
 
-        <UsersTable :users="filteredUsers" :loading="loading" @edit="openEdit" />
+        <ExpensesTable :expenses="filteredExpenses" :loading="loading" @edit="openEdit" />
       </template>
     </Card>
 
     <EntityDrawer v-model:visible="drawerVisible" :title="drawerTitle" width="420px">
-      <UserForm
+      <ExpenseForm
         v-if="drawerVisible"
-        :user="editingItem"
+        :expense="editingItem"
         @saved="handleSaved"
         @cancel="drawerVisible = false"
       />
@@ -61,52 +62,50 @@ import Select from "primevue/select";
 import IconField from "primevue/iconfield";
 import InputIcon from "primevue/inputicon";
 import EntityDrawer from "~/components/dashboard/EntityDrawer.vue";
-import UsersTable from "~/components/dashboard/pages/users/UsersTable.vue";
-import UserForm from "~/components/dashboard/pages/users/UserForm.vue";
-import { userService } from "~/services/userService";
+import ExpensesTable from "~/components/dashboard/pages/expenses/ExpensesTable.vue";
+import ExpenseForm from "~/components/dashboard/pages/expenses/ExpenseForm.vue";
+import { expenseService } from "~/services/expenseService";
 import { branchService } from "~/services/branchService";
-
-const ROLE_LABELS = {
-  ADMIN: "مدير",
-  CUSTOMER_SERVICE: "خدمة العملاء",
-  BRANCH_EMPLOYEE: "موظف فرع",
-};
 
 const loading = ref(true);
 const drawerVisible = ref(false);
 const editingItem = ref(null);
-const users = ref([]);
-const filters = reactive({ search: "", role: null });
+const expenses = ref([]);
+const branchOptions = ref([]);
+const filters = reactive({ search: "", branchId: null });
 const feedback = reactive({ type: "success", message: "" });
 
-const roleOptions = [
-  { label: "مدير", value: "ADMIN" },
-  { label: "خدمة العملاء", value: "CUSTOMER_SERVICE" },
-  { label: "موظف فرع", value: "BRANCH_EMPLOYEE" },
-];
-
 const drawerTitle = computed(() =>
-  editingItem.value?.id ? "تعديل المستخدم" : "إضافة مستخدم",
+  editingItem.value?.id ? "تعديل المصروف" : "إضافة مصروف",
 );
 
-const normalizeUser = (user) => ({
-  ...user,
-  fullName: user.fullName || "-",
-  email: user.email || "-",
-  roleLabel: ROLE_LABELS[user.role] || user.role || "-",
-  branchName: user.branch?.name || "-",
-  statusLabel: user.status === "INACTIVE" ? "غير نشط" : "نشط",
-  statusSeverity: user.status === "INACTIVE" ? "danger" : "success",
+const formatMoney = (value) => `${Number(value || 0).toFixed(2)} ج.م`;
+
+const formatDate = (value) => {
+  if (!value) return "-";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return String(value);
+  return date.toLocaleDateString("ar-EG");
+};
+
+const normalizeExpense = (expense) => ({
+  ...expense,
+  categoryName: expense.category?.name || "-",
+  branchName: expense.branch?.name || "عام",
+  amountLabel: formatMoney(expense.amount),
+  expenseDateLabel: formatDate(expense.expenseDate),
+  description: expense.description || "-",
 });
 
-const filteredUsers = computed(() => {
+const filteredExpenses = computed(() => {
   const q = filters.search.trim().toLowerCase();
-  return users.value.filter((user) => {
-    if (filters.role && user.role !== filters.role) return false;
+  return expenses.value.filter((item) => {
+    if (filters.branchId && item.branchId !== filters.branchId) return false;
     if (!q) return true;
     return (
-      String(user.fullName || "").toLowerCase().includes(q) ||
-      String(user.email || "").toLowerCase().includes(q)
+      String(item.categoryName || "").toLowerCase().includes(q) ||
+      String(item.branchName || "").toLowerCase().includes(q) ||
+      String(item.description || "").toLowerCase().includes(q)
     );
   });
 });
@@ -115,26 +114,19 @@ const loadData = async () => {
   loading.value = true;
   try {
     const [items, branches] = await Promise.all([
-      userService.getUsers(),
+      expenseService.getExpenses(),
       branchService.getBranches(),
     ]);
-    const list = Array.isArray(items) ? items : items?.data || [];
     const branchList = Array.isArray(branches) ? branches : branches?.data || [];
-    const branchNameById = Object.fromEntries(
-      branchList.map((branch) => [branch.id, branch.name]),
-    );
-
-    users.value = list.map((user) => {
-      const normalized = normalizeUser(user);
-      return {
-        ...normalized,
-        branchName: branchNameById[user.branchId] || "-",
-      };
-    });
+    expenses.value = (items || []).map(normalizeExpense);
+    branchOptions.value = branchList.map((branch) => ({
+      label: branch.name,
+      value: branch.id,
+    }));
   } catch (error) {
     feedback.type = "error";
-    feedback.message = error?.message || "تعذر تحميل المستخدمين.";
-    users.value = [];
+    feedback.message = error?.message || "تعذر تحميل المصروفات.";
+    expenses.value = [];
   } finally {
     loading.value = false;
   }
@@ -154,7 +146,7 @@ const handleSaved = async () => {
   drawerVisible.value = false;
   editingItem.value = null;
   feedback.type = "success";
-  feedback.message = "تم حفظ المستخدم بنجاح.";
+  feedback.message = "تم حفظ المصروف بنجاح.";
   await loadData();
 };
 

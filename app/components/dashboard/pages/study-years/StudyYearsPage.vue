@@ -3,8 +3,8 @@
     <Card>
       <template #title>
         <div class="flex flex-wrap items-center justify-between gap-3">
-          <span class="text-lg font-bold text-slate-900">الطلاب</span>
-          <Button label="إضافة طالب" icon="pi pi-plus" severity="info" @click="openCreate" />
+          <span class="text-lg font-bold text-slate-900">السنوات الدراسية</span>
+          <Button label="إضافة سنة دراسية" icon="pi pi-plus" severity="info" @click="openCreate" />
         </div>
       </template>
       <template #content>
@@ -21,24 +21,22 @@
             <label class="text-sm font-medium text-slate-700">بحث</label>
             <IconField>
               <InputIcon class="pi pi-search" />
-              <InputText v-model="searchInput" class="w-full" placeholder="اسم / هاتف" />
+              <InputText v-model="searchInput" class="w-full" placeholder="ابحث بالاسم" />
             </IconField>
           </div>
         </div>
 
-        <StudentsTable
-          :students="filteredStudents"
-          :loading="loading"
-          @edit="openEdit"
-          @deactivate="handleDeactivate"
-        />
+        <StudyYearsTable :study-years="filteredYears" :loading="loading" @edit="openEdit" />
       </template>
     </Card>
 
-    <EntityDrawer v-model:visible="drawerVisible" :title="drawerTitle">
-      <StudentForm
+    <EntityDrawer
+      v-model:visible="drawerVisible"
+      :title="drawerTitle"
+    >
+      <StudyYearForm
         v-if="drawerVisible"
-        :student="editingItem"
+        :study-year="editingItem"
         @saved="handleSaved"
         @cancel="drawerVisible = false"
       />
@@ -53,48 +51,35 @@ import InputText from "primevue/inputtext";
 import IconField from "primevue/iconfield";
 import InputIcon from "primevue/inputicon";
 import EntityDrawer from "~/components/dashboard/EntityDrawer.vue";
-import StudentsTable from "~/components/dashboard/pages/students/StudentsTable.vue";
-import StudentForm from "~/components/dashboard/pages/students/StudentForm.vue";
-import { studentService } from "~/services/studentService";
+import StudyYearsTable from "~/components/dashboard/pages/study-years/StudyYearsTable.vue";
+import StudyYearForm from "~/components/dashboard/pages/study-years/StudyYearForm.vue";
+import { studyYearService } from "~/services/studyYearService";
 
 const loading = ref(true);
 const drawerVisible = ref(false);
 const editingItem = ref(null);
-const students = ref([]);
+const studyYears = ref([]);
 const searchInput = ref("");
 const feedback = reactive({ type: "success", message: "" });
 
 const drawerTitle = computed(() =>
-  editingItem.value?.id ? "تعديل الطالب" : "إضافة طالب",
+  editingItem.value?.id ? "تعديل السنة الدراسية" : "إضافة سنة دراسية",
 );
 
-const normalizeStudent = (student) => ({
-  ...student,
-  name: student.name || "-",
-  phone: student.phone || "-",
-  statusLabel: student.status === "INACTIVE" ? "غير نشط" : "نشط",
-  statusSeverity: student.status === "INACTIVE" ? "danger" : "success",
-});
-
-const filteredStudents = computed(() => {
+const filteredYears = computed(() => {
   const q = searchInput.value.trim().toLowerCase();
-  if (!q) return students.value;
-  return students.value.filter(
-    (item) =>
-      String(item.name || "").toLowerCase().includes(q) ||
-      String(item.phone || "").toLowerCase().includes(q),
-  );
+  if (!q) return studyYears.value;
+  return studyYears.value.filter((item) => String(item.name || "").toLowerCase().includes(q));
 });
 
 const loadData = async () => {
   loading.value = true;
   try {
-    const list = await studentService.getStudents();
-    students.value = list.map(normalizeStudent);
+    studyYears.value = await studyYearService.getStudyYears();
   } catch (error) {
     feedback.type = "error";
-    feedback.message = error?.message || "تعذر تحميل الطلاب.";
-    students.value = [];
+    feedback.message = error?.message || "تعذر تحميل السنوات الدراسية.";
+    studyYears.value = [];
   } finally {
     loading.value = false;
   }
@@ -114,21 +99,8 @@ const handleSaved = async () => {
   drawerVisible.value = false;
   editingItem.value = null;
   feedback.type = "success";
-  feedback.message = "تم حفظ الطالب بنجاح.";
+  feedback.message = "تم حفظ السنة الدراسية بنجاح.";
   await loadData();
-};
-
-const handleDeactivate = async (item) => {
-  if (!item?.id) return;
-  try {
-    await studentService.deleteStudent(item.id);
-    feedback.type = "success";
-    feedback.message = "تم تعطيل الطالب بنجاح.";
-    await loadData();
-  } catch (error) {
-    feedback.type = "error";
-    feedback.message = error?.message || "تعذر تعطيل الطالب.";
-  }
 };
 
 watch(drawerVisible, (visible) => {
