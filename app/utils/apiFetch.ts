@@ -16,30 +16,38 @@ const stripSlash = (value = "") => String(value || "").trim().replace(/\/$/, "")
 
 export const getApiOrigin = () => {
   const config = useRuntimeConfig();
-  return stripSlash(config.public.baseUrl || config.public.supabaseUrl);
+  return stripSlash(config.public.baseUrl || "");
 };
 
 const getAuthHeaders = (extra: Record<string, string> = {}) => {
-  const config = useRuntimeConfig();
-  const key = config.public.supabaseKey || "";
-  const token = useCookie("token").value || key;
+  const token = useCookie("token").value;
 
   return {
-    ...(key ? { apikey: key } : {}),
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
     ...extra,
   };
 };
 
+const extractMessage = (body: any): string => {
+  const message = body?.message;
+
+  if (typeof message === "string") return message;
+  if (Array.isArray(message)) return message.join(", ");
+  if (message && typeof message === "object") {
+    if (typeof message.message === "string") return message.message;
+    if (Array.isArray(message.message)) return message.message.join(", ");
+  }
+
+  return body?.error || "Request failed.";
+};
+
 const toApiError = (error: any) => {
   const body = error?.data || error;
-  const code = body?.error?.code || body?.code || body?.hint || "REQUEST_FAILED";
-  const message =
-    body?.error?.message ||
-    body?.message ||
-    error?.message ||
-    "Request failed.";
-  return new ApiError(String(code), String(message), error?.status || error?.statusCode);
+  const code = String(
+    body?.statusCode || body?.code || body?.error || "REQUEST_FAILED",
+  );
+  const message = extractMessage(body) || error?.message || "Request failed.";
+  return new ApiError(code, String(message), error?.status || error?.statusCode);
 };
 
 export const asData = <T = any>(response: any): T => {
@@ -74,7 +82,11 @@ const cleanParams = (params: Record<string, any> = {}) => {
   return out;
 };
 
-const request = async <T = any>(baseURL: string, path: string, options: FetchOptions = {}) => {
+const request = async <T = any>(
+  baseURL: string,
+  path: string,
+  options: FetchOptions = {},
+) => {
   if (!baseURL) {
     throw new ApiError("MISSING_API_BASE", "API base URL is not configured.");
   }
@@ -85,7 +97,6 @@ const request = async <T = any>(baseURL: string, path: string, options: FetchOpt
       params: cleanParams((options.params || {}) as Record<string, any>),
       baseURL,
       headers: getAuthHeaders({
-        Prefer: "return=representation",
         ...((options.headers || {}) as Record<string, string>),
       }),
     });
@@ -94,10 +105,18 @@ const request = async <T = any>(baseURL: string, path: string, options: FetchOpt
   }
 };
 
-export const apiFetch = async <T = any>(path: string, options: FetchOptions = {}) => {
-  return request<T>(`${getApiOrigin()}/rest/v1`, path, options);
+/** NestJS REST API requests */
+export const apiFetch = async <T = any>(
+  path: string,
+  options: FetchOptions = {},
+) => {
+  return request<T>(getApiOrigin(), path, options);
 };
 
-export const authFetch = async <T = any>(path: string, options: FetchOptions = {}) => {
-  return request<T>(`${getApiOrigin()}/auth/v1`, path, options);
+/** Auth endpoints on the same NestJS API */
+export const authFetch = async <T = any>(
+  path: string,
+  options: FetchOptions = {},
+) => {
+  return request<T>(getApiOrigin(), path, options);
 };

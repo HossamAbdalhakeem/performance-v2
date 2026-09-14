@@ -118,7 +118,7 @@ const menuItems = computed(() => {
   }
 
   return [
-    { label: "إضافة منتج", icon: "＋", to: "/products/create", active: isActive("/products/create") },
+    { label: "المنتجات", icon: "＋", to: "/products", active: isActive("/products") },
     { label: "إضافة للمخزن", icon: "▣", to: "/inventory/add", active: isActive("/inventory/add") },
     { label: "سحب من المخزن", icon: "−", to: "/inventory/remove", active: isActive("/inventory/remove") },
     { label: "إلغاء حجز", icon: "↺", to: "/reservations/cancel", active: isActive("/reservations/cancel") },

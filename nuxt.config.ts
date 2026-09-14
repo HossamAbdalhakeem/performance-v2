@@ -50,7 +50,10 @@ export default defineNuxtConfig({
   // Site config used by @nuxtjs/robots & @nuxtjs/sitemap
   // (NUXT_PUBLIC_SITE_URL comes from .env, set the real domain in production)
   site: {
-    url: process.env.NUXT_PUBLIC_SITE_URL ||process.env.SITE_URL || 'http://localhost:3000',
+    url: process.env.NUXT_PUBLIC_SITE_URL ||process.env.SITE_URL || 'http://localhost:8000',
+  },
+  devServer: {
+    port: 8000,
   },
   robots: {
     // Only /login is blocked from crawlers
@@ -58,10 +61,14 @@ export default defineNuxtConfig({
   },
   runtimeConfig: {
     public: {
-      baseUrl: process.env.NUXT_PUBLIC_API_BASE || process.env.NUXT_ENV_BASE_URL || process.env.NUXT_PUBLIC_SUPABASE_URL,
+      baseUrl: process.env.NUXT_ENV_BASE_URL || 'http://localhost:8000',
       siteUrl: process.env.NUXT_PUBLIC_SITE_URL,
-      supabaseUrl: process.env.NUXT_PUBLIC_SUPABASE_URL || process.env.NUXT_ENV_BASE_URL,
-      supabaseKey: process.env.NUXT_PUBLIC_SUPABASE_ANON_KEY || process.env.NUXT_ENV_SUPABASE_KEY,
+      // Optional legacy storage client (payment uploads). Not used for auth/API.
+      supabaseUrl: process.env.NUXT_PUBLIC_SUPABASE_URL || '',
+      supabaseKey:
+        process.env.NUXT_PUBLIC_SUPABASE_ANON_KEY ||
+        process.env.NUXT_ENV_SUPABASE_KEY ||
+        '',
     },
   },
 

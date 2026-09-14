@@ -34,13 +34,29 @@ export const useAuthStore = defineStore("authStore", {
       }
     },
     async fetchUser() {
-      const response = await authService.getCurrentUser();
-
-      if (response?.user?.id) {
-        this.setUser(response.user, response.token || this.token);
+      const token = this.token || useCookie("token").value;
+      if (!token) {
+        this.removeUser();
+        return null;
       }
 
-      return response?.user;
+      this.token = token;
+
+      try {
+        const response = await authService.getCurrentUser();
+
+        if (response?.user?.id) {
+          this.setUser(response.user, response.token || token);
+          return response.user;
+        }
+
+        this.removeUser();
+        return null;
+      } catch (error) {
+        // Invalid/expired JWT — clear local session
+        this.removeUser();
+        throw error;
+      }
     },
     async setUser(data, token) {
       this.user = data || {};

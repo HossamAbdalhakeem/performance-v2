@@ -1,5 +1,4 @@
 import { authFetch } from "~/utils/apiFetch";
-import { useSupabase } from "~/composables/useSupabase";
 
 const DASHBOARD_ROLES = {
   admin: "admin",
@@ -8,41 +7,46 @@ const DASHBOARD_ROLES = {
 } as const;
 
 export const mapDashboardRole = (roles: string[] = []) => {
-  if (roles.includes("admin")) return DASHBOARD_ROLES.admin;
-  if (roles.includes("library_employee")) return DASHBOARD_ROLES.library_employee;
-  if (roles.includes("customer_service")) return DASHBOARD_ROLES.customer_service;
+  const normalized = roles.map((role) => String(role || "").toUpperCase());
+
+  if (normalized.includes("ADMIN")) return DASHBOARD_ROLES.admin;
+  if (normalized.includes("BRANCH_EMPLOYEE") || normalized.includes("LIBRARY_EMPLOYEE")) {
+    return DASHBOARD_ROLES.library_employee;
+  }
+  if (normalized.includes("CUSTOMER_SERVICE")) {
+    return DASHBOARD_ROLES.customer_service;
+  }
+
   return DASHBOARD_ROLES.admin;
 };
 
 const toRoleList = (user: Record<string, any> = {}) => {
-  const meta = {
-    ...(user.app_metadata || {}),
-    ...(user.user_metadata || {}),
-  };
-  const roles = meta.roles || meta.role || user.roles || [];
+  if (user.role) return [user.role];
+  const roles = user.roles || [];
   return (Array.isArray(roles) ? roles : [roles]).filter(Boolean);
 };
 
-const normalizeAuth = (payload: Record<string, any> = {}, token: string | null = null) => {
+const normalizeAuth = (
+  payload: Record<string, any> = {},
+  token: string | null = null,
+) => {
   const user = payload.user || payload;
-  const meta = {
-    ...(user.app_metadata || {}),
-    ...(user.user_metadata || {}),
-  };
   const roles = toRoleList(user);
-  const branches = payload.branches || user.branches || meta.branches || [];
+  const branchId = user.branchId || user.branch_id || null;
+  const branches = branchId ? [{ id: branchId }] : payload.branches || [];
 
   return {
     user: {
       id: user.id,
       email: user.email,
-      full_name: meta.full_name || meta.name || user.full_name || user.email,
-      name: meta.full_name || meta.name || user.full_name || user.email,
-      phone: meta.phone || user.phone || "",
+      full_name: user.fullName || user.full_name || user.name || user.email,
+      name: user.fullName || user.full_name || user.name || user.email,
+      phone: user.phone || "",
       roles,
       branches,
       role: mapDashboardRole(roles),
-      branch_id: branches[0]?.id || meta.branch_id || null,
+      branch_id: branchId,
+      status: user.status,
     },
     roles,
     branches,
@@ -52,7 +56,10 @@ const normalizeAuth = (payload: Record<string, any> = {}, token: string | null =
 
 export const authService = {
   async login(payload: { email: string; password: string }) {
-    const session = await authFetch<Record<string, any>>("/token?grant_type=password", {
+    const session = await authFetch<{
+      accessToken: string;
+      user: Record<string, any>;
+    }>("/auth/login", {
       method: "POST",
       body: {
         email: payload.email,
@@ -60,41 +67,24 @@ export const authService = {
       },
     });
 
-    const token = session?.access_token || null;
-    if (token) useCookie("token").value = token;
-
-    try {
-      const supabase = useSupabase();
-      await supabase.auth.setSession({
-        access_token: session.access_token,
-        refresh_token: session.refresh_token,
-      });
-    } catch {
-      // Session cookie is enough for API calls if the client is unavailable.
+    const token = session?.accessToken || null;
+    if (!token) {
+      throw new Error("Login failed: no access token returned.");
     }
 
+    useCookie("token").value = token;
     return normalizeAuth(session, token);
   },
 
   async logout() {
-    try {
-      await authFetch("/logout", { method: "POST" });
-    } catch {
-      // Local logout still proceeds.
-    }
-
-    try {
-      const supabase = useSupabase();
-      await supabase.auth.signOut();
-    } catch {
-      // Ignore client sign-out failures.
-    }
-
+    // JWT logout is client-side only for this API.
     return { success: true };
   },
 
   async getCurrentUser() {
-    const user = await authFetch("/user", { method: "GET" });
+    const user = await authFetch<Record<string, any>>("/auth/me", {
+      method: "GET",
+    });
     return normalizeAuth({ user }, useCookie("token").value);
   },
 

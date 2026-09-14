@@ -8,7 +8,7 @@ import { useAuthStore } from "~/store/auth.js";
 const authStore = useAuthStore();
 
 const roleFirstPageMap = {
-  admin: "/products/create",
+  admin: "/products",
   branch: "/sales/direct",
   social: "/books",
 };
@@ -24,6 +24,6 @@ onMounted(async () => {
   }
 
   const role = authStore.user?.role || "admin";
-  await navigateTo(roleFirstPageMap[role] || "/products/create");
+  await navigateTo(roleFirstPageMap[role] || "/products");
 });
 </script>

@@ -85,7 +85,7 @@ const handleLogout = () => {
 
 const navigation = [
   { label: "home", to: "/", shortcut: "H" },
-  { label: "products", to: "/products", shortcut: "P" },
+  { label: "المنتجات", to: "/products", shortcut: "P" },
   { label: "creators", to: "/creators", shortcut: "C" },
 ];
 </script>

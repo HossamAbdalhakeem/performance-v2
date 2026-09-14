@@ -43,7 +43,7 @@
                     v-bind="field"
                     v-model="form.email"
                     type="email"
-                    placeholder="admin@library.com"
+                    placeholder="admin@library.local"
                     class="w-full"
                     :class="{ 'p-invalid': errorMessage || fieldErrors.email }"
                   />
@@ -85,9 +85,9 @@
             <div class="mt-8 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-right text-sm text-slate-600">
               <p class="font-semibold text-slate-800">بيانات تجريبية:</p>
               <ul class="mt-2 space-y-2">
-                <li>مدير: admin@library.com</li>
-                <li>فرع: branch@library.com</li>
-                <li>اجتماعي: social@library.com</li>
+                <li>مدير: admin@library.local / Password123!</li>
+                <li>خدمة العملاء: cs@library.local / Password123!</li>
+                <li>موظف فرع: employee1@library.local / Password123!</li>
               </ul>
             </div>
           </div>
@@ -108,9 +108,15 @@ import { useAuthStore } from "~/store/auth.js";
 const authStore = useAuthStore();
 const rememberMe = ref(false);
 const loginError = ref("");
-const form = reactive({ email: "admin@library.com", password: "admin123" });
+const form = reactive({
+  email: "admin@library.local",
+  password: "Password123!",
+});
 
-const initialValues = { email: "admin@library.com", password: "admin123" };
+const initialValues = {
+  email: "admin@library.local",
+  password: "Password123!",
+};
 
 definePageMeta({
   middleware: ["local-auth-user"],

@@ -1,17 +1,52 @@
 import { apiFetch, firstRow } from "~/utils/apiFetch";
 
 const productBody = (payload: Record<string, any>) => {
+  const purchasePrice = Number(payload.purchasePrice ?? payload.wholesale_price);
+  const sellingPrice = Number(payload.sellingPrice ?? payload.sale_price);
+  const profitPercentage =
+    payload.profitPercentage != null
+      ? Number(payload.profitPercentage)
+      : purchasePrice > 0
+        ? Number((((sellingPrice - purchasePrice) / purchasePrice) * 100).toFixed(2))
+        : 0;
+
   const body: Record<string, any> = {
     name: payload.name,
-    teacher_id: payload.teacher_id,
-    wholesale_price: payload.wholesale_price,
-    selling_price: payload.selling_price ?? payload.sale_price,
+    type: payload.type,
+    teacherId: payload.teacherId ?? payload.teacher_id,
+    purchasePrice,
+    sellingPrice,
+    profitPercentage,
+    reservationAllowed: Boolean(
+      payload.reservationAllowed ?? payload.reservation_allowed ?? false,
+    ),
   };
 
-  if (payload.type) body.type = payload.type;
-  if (payload.study_year_id) body.study_year_id = payload.study_year_id;
+  if (Object.prototype.hasOwnProperty.call(payload, "studyYearId")) {
+    body.studyYearId = payload.studyYearId;
+  } else if (Object.prototype.hasOwnProperty.call(payload, "study_year_id")) {
+    body.studyYearId = payload.study_year_id;
+  }
+
+  if (payload.academicYearId || payload.academic_year_id) {
+    body.academicYearId = payload.academicYearId ?? payload.academic_year_id;
+  }
+
+  if (Object.prototype.hasOwnProperty.call(payload, "reservationPrice")) {
+    body.reservationPrice = payload.reservationPrice;
+  } else if (Object.prototype.hasOwnProperty.call(payload, "reservation_price")) {
+    body.reservationPrice = payload.reservation_price;
+  }
 
   return body;
+};
+
+const statusBody = (payload: Record<string, any>) => {
+  if (payload.status) return { status: payload.status };
+  if (typeof payload.is_active === "boolean") {
+    return { status: payload.is_active ? "ACTIVE" : "INACTIVE" };
+  }
+  return payload;
 };
 
 export const productService = {
@@ -28,7 +63,7 @@ export const productService = {
       await apiFetch("/products", {
         method: "POST",
         body: productBody(payload),
-      })
+      }),
     );
   },
 
@@ -37,16 +72,19 @@ export const productService = {
       await apiFetch(`/products/${id}`, {
         method: "PATCH",
         body: productBody(payload),
-      })
+      }),
     );
   },
 
-  async updateProductStatus(id: string, is_active: boolean) {
+  async updateProductStatus(id: string, payload: Record<string, any> | boolean) {
+    const body =
+      typeof payload === "boolean" ? statusBody({ is_active: payload }) : statusBody(payload);
+
     return firstRow(
       await apiFetch(`/products/${id}/status`, {
         method: "PATCH",
-        body: { is_active },
-      })
+        body,
+      }),
     );
   },
 };
