@@ -3,7 +3,7 @@
     <aside class="fixed inset-y-0 right-0 z-20 w-72 border-l border-white/10 bg-[#0b1220] text-slate-100 shadow-xl">
       <div class="flex items-center justify-between border-b border-white/10 px-6 py-5">
         <div>
-          <p class="text-xs tracking-[0.28em] text-sky-200/80">LIBRARY</p>
+          <p class="text-xs tracking-[0.28em] text-sky-200/80">مكتبة</p>
           <h2 class="mt-1 text-xl font-bold">لوحة التحكم</h2>
         </div>
         <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-sky-500/20 text-sm font-bold text-sky-200">

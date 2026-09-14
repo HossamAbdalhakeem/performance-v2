@@ -23,57 +23,71 @@
         >
           <Field
             v-slot="{ errorMessage }"
-            v-model="form.studentId"
-            name="studentId"
+            v-model="form.studentName"
+            name="studentName"
             label="اسم الطالب"
             rules="required"
           >
             <div class="flex flex-col gap-2 text-right">
               <label class="text-sm font-medium text-slate-700">اسم الطالب</label>
-              <Select
-                v-model="form.studentId"
-                :options="studentNameOptions"
-                optionLabel="label"
-                optionValue="value"
-                placeholder="ابحث باسم الطالب"
-                filter
-                :filter-fields="['label', 'phone']"
+              <AutoComplete
+                v-model="form.studentName"
+                :suggestions="nameSuggestions"
+                optionLabel="name"
+                dropdown
+                :forceSelection="false"
                 :loading="searchingStudents"
-                showClear
+                placeholder="اكتب أو ابحث باسم الطالب"
                 class="w-full"
-                :class="{ 'p-invalid': errorMessage || fieldErrors.studentId }"
-                @filter="onStudentNameFilter"
-                @update:modelValue="(id) => syncStudentSelection(id, setFieldValue)"
-              />
-              <ErrorMessage name="studentId" class="text-xs text-red-500" />
+                input-class="w-full"
+                :invalid="!!(errorMessage || fieldErrors.studentName)"
+                @complete="onNameComplete"
+                @item-select="(event) => onStudentPicked(event.value, setFieldValue)"
+                @update:modelValue="(value) => onNameTyped(value, setFieldValue)"
+              >
+                <template #option="{ option }">
+                  <div class="flex w-full items-center justify-between gap-3 text-right">
+                    <span>{{ option.name }}</span>
+                    <span class="text-xs text-slate-400">{{ option.phone || "بدون رقم" }}</span>
+                  </div>
+                </template>
+              </AutoComplete>
+              <ErrorMessage name="studentName" class="text-xs text-red-500" />
             </div>
           </Field>
 
           <Field
             v-slot="{ errorMessage }"
-            v-model="form.studentPhoneId"
-            name="studentPhoneId"
+            v-model="form.studentPhone"
+            name="studentPhone"
             label="رقم الهاتف"
             rules="required"
           >
             <div class="flex flex-col gap-2 text-right">
               <label class="text-sm font-medium text-slate-700">رقم الهاتف</label>
-              <Select
-                v-model="form.studentPhoneId"
-                :options="studentPhoneOptions"
-                optionLabel="label"
-                optionValue="value"
-                placeholder="ابحث برقم الهاتف"
-                filter
-                :filter-fields="['label', 'name']"
+              <AutoComplete
+                v-model="form.studentPhone"
+                :suggestions="phoneSuggestions"
+                optionLabel="phone"
+                dropdown
+                :forceSelection="false"
                 :loading="searchingStudents"
-                showClear
+                placeholder="اكتب أو ابحث برقم الهاتف"
                 class="w-full"
-                :class="{ 'p-invalid': errorMessage || fieldErrors.studentPhoneId }"
-                @filter="onStudentPhoneFilter"
-                @update:modelValue="(id) => syncStudentSelection(id, setFieldValue)"
-              />
-              <ErrorMessage name="studentPhoneId" class="text-xs text-red-500" />
+                input-class="w-full"
+                :invalid="!!(errorMessage || fieldErrors.studentPhone)"
+                @complete="onPhoneComplete"
+                @item-select="(event) => onStudentPicked(event.value, setFieldValue)"
+                @update:modelValue="(value) => onPhoneTyped(value, setFieldValue)"
+              >
+                <template #option="{ option }">
+                  <div class="flex w-full items-center justify-between gap-3 text-right">
+                    <span>{{ option.phone || "بدون رقم" }}</span>
+                    <span class="text-xs text-slate-400">{{ option.name }}</span>
+                  </div>
+                </template>
+              </AutoComplete>
+              <ErrorMessage name="studentPhone" class="text-xs text-red-500" />
             </div>
           </Field>
 
@@ -97,7 +111,7 @@
                 class="w-full product-select"
                 :class="{ 'p-invalid': errorMessage || fieldErrors.productId }"
               >
-                <template #value="{ value, placeholder }">
+                <template #value="{ placeholder }">
                   <div v-if="selectedProductOption" class="w-full py-0.5 text-right">
                     <div class="flex items-start justify-between gap-3">
                       <span class="font-medium text-slate-100">{{ selectedProductOption.name }}</span>
@@ -154,7 +168,7 @@
             </p>
           </div>
 
-          <Field v-slot="{ errorMessage }" v-model="form.method" name="method" rules="required">
+          <Field v-slot="{}" v-model="form.method" name="method" rules="required">
             <div class="md:col-span-2 flex flex-col gap-2 text-right">
               <label class="text-sm font-medium text-slate-700">طريقة الدفع</label>
               <div class="space-y-2 rounded-xl border border-white/10 bg-slate-950/60 p-3">
@@ -204,6 +218,7 @@
 import Card from "primevue/card";
 import Button from "primevue/button";
 import Select from "primevue/select";
+import AutoComplete from "primevue/autocomplete";
 import AppInputNumber from "~/components/dashboard/AppInputNumber.vue";
 import ImageUpload from "~/components/dashboard/ImageUpload.vue";
 import { Form, Field, ErrorMessage } from "vee-validate";
@@ -219,6 +234,8 @@ const proofFile = ref(null);
 const proofDataUrl = ref("");
 const proofRequiredError = ref(false);
 const feedback = reactive({ type: "success", message: "" });
+const nameSuggestions = ref([]);
+const phoneSuggestions = ref([]);
 
 const paymentOptions = [
   { label: "كاش", value: "CASH" },
@@ -228,22 +245,22 @@ const paymentOptions = [
 
 const form = reactive({
   studentId: null,
-  studentPhoneId: null,
+  studentName: "",
+  studentPhone: "",
   productId: null,
   quantity: 1,
   method: "CASH",
 });
 
 const formInitialValues = {
-  studentId: null,
-  studentPhoneId: null,
+  studentName: "",
+  studentPhone: "",
   productId: null,
   quantity: 1,
   method: "CASH",
 };
 
 const products = ref([]);
-const students = ref([]);
 
 const productOptions = computed(() =>
   products.value.map((product) => {
@@ -267,22 +284,6 @@ const selectedProductOption = computed(() =>
   productOptions.value.find((option) => option.value === form.productId) || null,
 );
 
-const studentNameOptions = computed(() =>
-  students.value.map((student) => ({
-    label: student.name,
-    phone: student.phone || "",
-    value: student.id,
-  })),
-);
-
-const studentPhoneOptions = computed(() =>
-  students.value.map((student) => ({
-    label: student.phone || `${student.name} (بدون رقم)`,
-    name: student.name,
-    value: student.id,
-  })),
-);
-
 const selectedProduct = computed(() =>
   products.value.find((product) => product.id === form.productId) || null,
 );
@@ -298,6 +299,12 @@ const needsProof = computed(
 
 const formatMoney = (value) => `\u2066${Number(value || 0).toFixed(2)} ج.م\u2069`;
 
+const normalizeStudent = (student) => ({
+  id: student.id,
+  name: student.name || "",
+  phone: student.phone || "",
+});
+
 const loadProducts = async () => {
   const items = await productService.getProducts();
   const list = Array.isArray(items) ? items : items?.data || [];
@@ -307,33 +314,115 @@ const loadProducts = async () => {
 const searchStudents = async (term = "") => {
   searchingStudents.value = true;
   try {
-    students.value = await studentService.searchStudents(term);
+    const items = await studentService.searchStudents(term);
+    return (items || []).map(normalizeStudent);
   } catch (error) {
     console.error("Failed to search students", error);
-    students.value = [];
+    return [];
   } finally {
     searchingStudents.value = false;
   }
 };
 
-const { run: runStudentSearch } = useThrottledCallback((term) => {
-  searchStudents(term);
+const { run: runNameSearch } = useThrottledCallback(async (term) => {
+  nameSuggestions.value = await searchStudents(term);
 }, 350);
 
-const onStudentNameFilter = (event) => {
-  runStudentSearch(event.value || "");
+const { run: runPhoneSearch } = useThrottledCallback(async (term) => {
+  phoneSuggestions.value = await searchStudents(term);
+}, 350);
+
+const onNameComplete = (event) => {
+  runNameSearch(event.query || "");
 };
 
-const onStudentPhoneFilter = (event) => {
-  runStudentSearch(event.value || "");
+const onPhoneComplete = (event) => {
+  runPhoneSearch(event.query || "");
 };
 
-const syncStudentSelection = (studentId, setFieldValue) => {
-  const id = studentId || null;
-  form.studentId = id;
-  form.studentPhoneId = id;
-  setFieldValue?.("studentId", id);
-  setFieldValue?.("studentPhoneId", id);
+const onStudentPicked = (student, setFieldValue) => {
+  if (!student || typeof student === "string") return;
+
+  form.studentId = student.id || null;
+  form.studentName = student.name || "";
+  form.studentPhone = student.phone || "";
+  setFieldValue?.("studentName", form.studentName);
+  setFieldValue?.("studentPhone", form.studentPhone);
+
+  nextTick(() => {
+    form.studentName = student.name || "";
+    form.studentPhone = student.phone || "";
+  });
+};
+
+const onNameTyped = (value, setFieldValue) => {
+  if (value && typeof value === "object") {
+    onStudentPicked(value, setFieldValue);
+    return;
+  }
+
+  const text = String(value || "");
+  if (text !== form.studentName) form.studentId = null;
+  form.studentName = text;
+  setFieldValue?.("studentName", text);
+};
+
+const onPhoneTyped = (value, setFieldValue) => {
+  if (value && typeof value === "object") {
+    onStudentPicked(value, setFieldValue);
+    return;
+  }
+
+  const text = String(value || "");
+  if (text !== form.studentPhone) form.studentId = null;
+  form.studentPhone = text;
+  setFieldValue?.("studentPhone", text);
+};
+
+const resolveStudentText = (value) => {
+  if (value && typeof value === "object") {
+    return {
+      name: value.name || form.studentName || "",
+      phone: value.phone || form.studentPhone || "",
+      id: value.id || form.studentId || null,
+    };
+  }
+
+  return {
+    name: String(form.studentName || "").trim(),
+    phone: String(form.studentPhone || "").trim(),
+    id: form.studentId || null,
+  };
+};
+
+const ensureStudent = async () => {
+  const current = resolveStudentText();
+  const name = current.name;
+  const phone = current.phone;
+
+  if (!name || !phone) {
+    throw new Error("اسم الطالب ورقم الهاتف مطلوبان.");
+  }
+
+  if (current.id) {
+    return current.id;
+  }
+
+  const matches = await studentService.searchStudents(phone);
+  const existing = (matches || []).find(
+    (student) => String(student.phone || "").trim() === phone,
+  );
+
+  if (existing?.id) {
+    return existing.id;
+  }
+
+  const created = await studentService.createStudent({ name, phone });
+  if (!created?.id) {
+    throw new Error("تعذر إضافة الطالب الجديد.");
+  }
+
+  return created.id;
 };
 
 const fileToDataUrl = (file) =>
@@ -356,7 +445,16 @@ const onProofSelected = async (file) => {
 };
 
 const resetForm = () => {
-  Object.assign(form, { ...formInitialValues });
+  Object.assign(form, {
+    studentId: null,
+    studentName: "",
+    studentPhone: "",
+    productId: null,
+    quantity: 1,
+    method: "CASH",
+  });
+  nameSuggestions.value = [];
+  phoneSuggestions.value = [];
   proofFile.value = null;
   proofDataUrl.value = "";
   proofRequiredError.value = false;
@@ -372,16 +470,12 @@ const submitSale = async () => {
     return;
   }
 
-  if (form.studentId !== form.studentPhoneId) {
-    feedback.type = "error";
-    feedback.message = "اسم الطالب ورقم الهاتف يجب أن يخصا نفس الطالب.";
-    return;
-  }
-
   saving.value = true;
   try {
+    const studentId = await ensureStudent();
+
     await saleService.createSale({
-      studentId: form.studentId,
+      studentId,
       productId: form.productId,
       quantity: form.quantity,
       method: form.method,
@@ -412,7 +506,7 @@ watch(
 
 onMounted(async () => {
   try {
-    await Promise.all([loadProducts(), searchStudents("")]);
+    await loadProducts();
   } catch (error) {
     feedback.type = "error";
     feedback.message = error?.message || "تعذر تحميل بيانات المبيعات.";
