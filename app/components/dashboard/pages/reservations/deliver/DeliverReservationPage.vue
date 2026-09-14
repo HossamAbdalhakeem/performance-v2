@@ -1,11 +1,10 @@
 <template>
   <div class="space-y-4 bg-[#0f172a] p-4 text-right text-slate-100" dir="rtl">
     <div class="relative w-full max-w-xl">
-      <span class="pointer-events-none absolute inset-y-0 right-3 flex items-center text-slate-400">⌕</span>
       <InputText
         v-model="search"
-        placeholder="ابحث باسم الطالب أو رقم الموبايل أو رقم الحجز"
-        class="w-full rounded-xl border border-slate-700 bg-slate-900 pr-10 text-right text-slate-100 placeholder:text-slate-400"
+        placeholder="🔍 ابحث باسم الطالب أو رقم الموبايل أو رقم الحجز"
+        class="w-full rounded-xl border border-slate-700 bg-slate-900 text-right text-slate-100 placeholder:text-slate-400"
         @update:modelValue="onSearchInput"
       />
     </div>

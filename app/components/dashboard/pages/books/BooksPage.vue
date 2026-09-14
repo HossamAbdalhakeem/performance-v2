@@ -2,38 +2,58 @@
   <div class="space-y-6">
     <Card>
       <template #title>
-        <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <div
+          class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between"
+        >
           <span class="text-lg font-bold">الكتب</span>
-          <Button label="احجز كتاب 📖" severity="info" @click="navigateToReserve" />
+          <Button
+            label="احجز كتاب 📖"
+            severity="info"
+            @click="navigateToReserve"
+          />
         </div>
       </template>
 
       <template #content>
-        <div class="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <InputText v-model="search" placeholder="🔍 بحث عن كتاب أو أستاذ…" class="w-full max-w-md" />
-          <span class="text-sm text-slate-300">إجمالي الكتب: {{ filteredBooks.length }}</span>
+        <div
+          class="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between"
+        >
+          <InputText
+            v-model="search"
+            placeholder="🔍 بحث عن كتاب أو أستاذ…"
+            class="w-[80%] rounded-xl border border-slate-700 bg-slate-900  text-right text-slate-100 placeholder:text-slate-400"
+            @update:modelValue="onSearchInput"
+          />
+          <span class="text-sm text-slate-300 min-w-[110px]"
+            >إجمالي الكتب: {{ books.length }}</span
+          >
         </div>
 
+        <p
+          v-if="errorMessage"
+          class="mb-3 rounded-xl bg-red-500/15 px-3 py-2 text-sm text-red-300"
+        >
+          {{ errorMessage }}
+        </p>
+
         <AppDataTable
-          :value="filteredBooks"
+          :value="books"
           :columns="bookColumns"
           :loading="pending"
           :row-class="getBookRowClass"
-          empty-message="لا توجد كتب."
+          :empty-message="emptyMessage"
           :skeleton-rows="4"
           @row-click="onBookRowClick"
         >
-          <template #available="{ data }">
+          <template #status="{ data }">
             <span
               class="rounded-full px-2 py-1 text-xs font-semibold"
-              :class="data.available ? 'bg-green-700 text-white' : 'bg-red-800 text-white'"
+              :class="statusBadgeClass(data.status)"
             >
-              {{ data.available ? "✔ متاح" : "✖ غير متاح" }}
+              {{ data.statusLabel }}
             </span>
           </template>
         </AppDataTable>
-
-        <p class="mt-4 text-sm text-slate-400">اختيار كتاب + الضغط على زر «احجز كتاب» يفتح صفحة الحجز</p>
       </template>
     </Card>
   </div>
@@ -44,65 +64,110 @@ import Card from "primevue/card";
 import Button from "primevue/button";
 import InputText from "primevue/inputtext";
 import AppDataTable from "~/components/shared/app-data-table/index.vue";
-import { bookService } from "~/services/bookService";
 import { productService } from "~/services/productService";
+import { useThrottledCallback } from "~/composables/useThrottledCallback";
 
-const pending = ref(true);
+const pending = ref(false);
 const search = ref("");
 const selectedId = ref("");
 const books = ref([]);
+const errorMessage = ref("");
+
+const STATUS_META = {
+  AVAILABLE: { label: "متاح", className: "bg-green-700 text-white" },
+  ACTIVE: { label: "متاح", className: "bg-green-700 text-white" },
+  UPCOMING: { label: "قادم", className: "bg-amber-600 text-white" },
+  INACTIVE: { label: "غير متاح", className: "bg-red-800 text-white" },
+  OUT_OF_STOCK: { label: "غير متوفر", className: "bg-red-800 text-white" },
+};
 
 const bookColumns = [
   { field: "title", header: "اسم الكتاب" },
   { field: "teacher", header: "الأستاذ" },
-  { field: "stock", header: "العدد" },
-  { field: "available", header: "متاح", slot: "available" },
+  { field: "sellingPriceLabel", header: "سعر البيع" },
+  { field: "statusLabel", header: "الحالة", slot: "status" },
 ];
 
+const emptyMessage = computed(() =>
+  search.value.trim() ? "لا توجد كتب مطابقة" : "لا توجد كتب."
+);
+
+const statusBadgeClass = (status) =>
+  STATUS_META[status]?.className || "bg-slate-600 text-white";
+
 const getBookRowClass = (data) =>
-  selectedId.value === data.id ? "app-row-matched cursor-pointer" : "cursor-pointer";
+  selectedId.value === data.id
+    ? "app-row-matched cursor-pointer"
+    : "cursor-pointer";
 
 const onBookRowClick = (event) => {
   selectedId.value = event?.data?.id || "";
 };
 
-const filteredBooks = computed(() => {
-  const term = search.value.trim().toLowerCase();
-  if (!term) return books.value;
-
-  return books.value.filter((book) => `${book.title} ${book.teacher}`.toLowerCase().includes(term));
-});
-
 const navigateToReserve = async () => {
-  await navigateTo({ path: "/books/reserve", query: selectedId.value ? { book: selectedId.value } : {} });
+  await navigateTo({
+    path: "/books/reserve",
+    query: selectedId.value ? { book: selectedId.value } : {},
+  });
 };
 
-const loadBooks = async () => {
+const formatMoney = (value) => `${Number(value || 0).toFixed(2)} ج.م`;
+
+const normalizeBook = (item) => {
+  const status = String(item.status || "").toUpperCase();
+  const meta = STATUS_META[status] || {
+    label: item.status || "-",
+    className: "bg-slate-600 text-white",
+  };
+
+  return {
+    id: item.id,
+    title: item.title || item.name || "-",
+    teacher: item.teacher?.name || "-",
+    sellingPrice: item.sellingPrice,
+    sellingPriceLabel: formatMoney(item.sellingPrice),
+    status,
+    statusLabel: meta.label,
+    reservationAllowed: Boolean(item.reservationAllowed),
+  };
+};
+
+const searchBooks = async (term = "") => {
+  const query = String(term || "").trim();
+  pending.value = true;
+  errorMessage.value = "";
+
   try {
-    const [bookItems, products] = await Promise.all([
-      bookService.getBooks(),
-      productService.getProducts(),
-    ]);
+    const params = {};
+    if (query) params.search = query;
 
-    const bookList = Array.isArray(bookItems) ? bookItems : bookItems?.data || [];
-    const productList = Array.isArray(products) ? products : products?.data || [];
-    const source = bookList.length ? bookList : productList;
+    const items = await productService.getProducts(params);
+    const list = Array.isArray(items) ? items : items?.data || [];
+    books.value = list.map(normalizeBook);
 
-    books.value = source.map((item) => ({
-      id: item.id,
-      title: item.title || item.name,
-      teacher: item.teacher?.name || "-",
-      stock: item.stock ?? 0,
-      available: item.available ?? Number(item.stock || 0) > 10,
-    }));
+    if (
+      selectedId.value &&
+      !books.value.some((book) => book.id === selectedId.value)
+    ) {
+      selectedId.value = "";
+    }
   } catch (error) {
-    console.error("Failed to load books", error);
+    books.value = [];
+    errorMessage.value = error?.message || "تعذر البحث في الكتب.";
   } finally {
     pending.value = false;
   }
 };
 
+const { run: runSearch } = useThrottledCallback((term) => {
+  searchBooks(term);
+}, 350);
+
+const onSearchInput = (value) => {
+  runSearch(value || "");
+};
+
 onMounted(() => {
-  loadBooks();
+  searchBooks("");
 });
 </script>
