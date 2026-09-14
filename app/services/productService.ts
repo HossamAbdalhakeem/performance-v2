@@ -2,9 +2,7 @@ import { apiFetch, firstRow } from "~/utils/apiFetch";
 
 const productBody = (payload: Record<string, any>) => ({
   name: payload.name,
-  type: payload.type,
   teacher_id: payload.teacher_id,
-  study_year_id: payload.study_year_id,
   wholesale_price: payload.wholesale_price,
   selling_price: payload.selling_price ?? payload.sale_price,
 });

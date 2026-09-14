@@ -8,7 +8,6 @@
           show-header
           show-hint
           show-receipt
-          require-branch
           :submit-fn="submitReservation"
         />
       </template>

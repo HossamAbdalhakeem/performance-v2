@@ -8,7 +8,6 @@
           show-header
           show-hint
           show-receipt
-          require-branch
           back-to="/books"
           :initial-product="selectedBook"
           :submit-fn="submitReservation"
