@@ -191,6 +191,7 @@
           </Field>
 
           <div
+            v-if="selectedProductOption"
             class="md:col-span-2 rounded-2xl border border-amber-400/40 bg-gradient-to-l from-amber-500/20 via-orange-500/10 to-slate-900 px-6 py-8 text-center"
           >
             <p class="mb-2 text-sm font-medium text-amber-100/80">
