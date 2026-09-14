@@ -1,15 +1,15 @@
 <template>
   <div class="space-y-6 text-right" dir="rtl">
     <div class="flex flex-wrap items-center justify-between gap-3">
-      <h2 class="text-xl font-bold text-white">التقارير</h2>
-      <div class="flex flex-wrap gap-2">
+      <h2 class="shrink-0 text-xl font-bold text-white">التقارير</h2>
+      <div class="reports-filters flex flex-row flex-wrap items-center gap-2">
         <Select
           v-model="selectedBook"
           :options="bookOptions"
           optionLabel="label"
           optionValue="value"
           placeholder="اختيار الكتاب ▾"
-          class="w-40"
+          class="reports-filter-select"
         />
         <Select
           v-model="selectedBranch"
@@ -17,7 +17,7 @@
           optionLabel="label"
           optionValue="value"
           placeholder="الفرع: كل الفروع ▾"
-          class="w-44"
+          class="reports-filter-select reports-filter-select--branch"
         />
         <Select
           v-model="selectedDate"
@@ -25,7 +25,7 @@
           optionLabel="label"
           optionValue="value"
           placeholder="اختيار التاريخ ▾"
-          class="w-40"
+          class="reports-filter-select"
         />
       </div>
     </div>
@@ -206,3 +206,23 @@ onMounted(() => {
   loadFilters();
 });
 </script>
+
+<style scoped>
+.reports-filters {
+  flex: 0 1 auto;
+}
+
+.reports-filters :deep(.reports-filter-select.p-select),
+.reports-filters :deep(.p-select.reports-filter-select) {
+  width: 10rem !important;
+  min-width: 10rem;
+  max-width: 10rem;
+}
+
+.reports-filters :deep(.reports-filter-select--branch.p-select),
+.reports-filters :deep(.p-select.reports-filter-select--branch) {
+  width: 11rem !important;
+  min-width: 11rem;
+  max-width: 11rem;
+}
+</style>
