@@ -104,55 +104,84 @@
           </div>
         </Field>
 
-        <Field
-          v-slot="{ errorMessage }"
-          v-model="form.productId"
-          name="productId"
-          label="المنتج"
-          rules="required"
+        <div
+          class="md:col-span-2 grid gap-4"
+          :class="isCustomerService ? 'md:grid-cols-2' : 'md:grid-cols-1'"
         >
-          <div class="md:col-span-2 flex flex-col gap-2 text-right">
-            <label class="text-sm font-medium text-slate-700">المنتج</label>
-            <Select
-              v-model="form.productId"
-              :options="productOptions"
-              optionLabel="label"
-              optionValue="value"
-              placeholder="اختر المنتج"
-              filter
-              :filter-fields="['name', 'teacherName', 'label']"
-              class="w-full product-select"
-              :class="{ 'p-invalid': errorMessage || fieldErrors.productId }"
-            >
-              <template #value="{ placeholder }">
-                <div v-if="selectedProductOption" class="w-full py-0.5 text-right">
-                  <div class="flex items-start justify-between gap-3">
-                    <span class="font-medium text-slate-100">{{ selectedProductOption.name }}</span>
-                    <span class="shrink-0 text-sm text-sky-300">
-                      سعره {{ selectedProductOption.priceLabel }}
-                    </span>
+          <Field
+            v-slot="{ errorMessage }"
+            v-model="form.productId"
+            name="productId"
+            label="المنتج"
+            rules="required"
+          >
+            <div class="flex flex-col gap-2 text-right">
+              <label class="text-sm font-medium text-slate-700">المنتج</label>
+              <Select
+                v-model="form.productId"
+                :options="productOptions"
+                optionLabel="label"
+                optionValue="value"
+                placeholder="اختر المنتج"
+                filter
+                :filter-fields="['name', 'teacherName', 'label']"
+                class="w-full product-select"
+                :class="{ 'p-invalid': errorMessage || fieldErrors.productId }"
+              >
+                <template #value="{ placeholder }">
+                  <div v-if="selectedProductOption" class="w-full py-0.5 text-right">
+                    <div class="flex items-start justify-between gap-3">
+                      <span class="font-medium text-slate-100">{{ selectedProductOption.name }}</span>
+                      <span class="shrink-0 text-sm text-sky-300">
+                        سعره {{ selectedProductOption.priceLabel }}
+                      </span>
+                    </div>
+                    <p class="mt-0.5 text-xs text-slate-400">
+                      مقدم من أ/ {{ selectedProductOption.teacherName || "-" }}
+                    </p>
                   </div>
-                  <p class="mt-0.5 text-xs text-slate-400">
-                    مقدم من أ/ {{ selectedProductOption.teacherName || "-" }}
-                  </p>
-                </div>
-                <span v-else>{{ placeholder }}</span>
-              </template>
-              <template #option="{ option }">
-                <div class="w-full py-1 text-right">
-                  <div class="flex items-start justify-between gap-3">
-                    <span class="font-medium">{{ option.name }}</span>
-                    <span class="shrink-0 text-sm text-sky-300">سعره {{ option.priceLabel }}</span>
+                  <span v-else>{{ placeholder }}</span>
+                </template>
+                <template #option="{ option }">
+                  <div class="w-full py-1 text-right">
+                    <div class="flex items-start justify-between gap-3">
+                      <span class="font-medium">{{ option.name }}</span>
+                      <span class="shrink-0 text-sm text-sky-300">سعره {{ option.priceLabel }}</span>
+                    </div>
+                    <p class="mt-0.5 text-xs text-slate-400">
+                      مقدم من أ/ {{ option.teacherName || "-" }}
+                    </p>
                   </div>
-                  <p class="mt-0.5 text-xs text-slate-400">
-                    مقدم من أ/ {{ option.teacherName || "-" }}
-                  </p>
-                </div>
-              </template>
-            </Select>
-            <ErrorMessage name="productId" class="text-xs text-red-500" />
-          </div>
-        </Field>
+                </template>
+              </Select>
+              <ErrorMessage name="productId" class="text-xs text-red-500" />
+            </div>
+          </Field>
+
+          <Field
+            v-if="isCustomerService"
+            v-slot="{ errorMessage }"
+            v-model="form.branchId"
+            name="branchId"
+            label="الفرع"
+            rules="required"
+          >
+            <div class="flex h-full flex-col gap-2 text-right">
+              <label class="text-sm font-medium text-slate-700">اختيار الفرع</label>
+              <Select
+                v-model="form.branchId"
+                :options="branchOptions"
+                option-label="label"
+                option-value="value"
+                placeholder="اختر الفرع"
+                filter
+                class="w-full"
+                :class="{ 'p-invalid': errorMessage || fieldErrors.branchId }"
+              />
+              <ErrorMessage name="branchId" class="text-xs text-red-500" />
+            </div>
+          </Field>
+        </div>
 
         <div
           v-if="selectedProductOption"
@@ -257,6 +286,7 @@ import ImageUpload from "~/components/dashboard/ImageUpload.vue";
 import { Form, Field, ErrorMessage } from "vee-validate";
 import { productService } from "~/services/productService";
 import { studentService } from "~/services/studentService";
+import { branchService } from "~/services/branchService";
 import { useThrottledCallback } from "~/composables/useThrottledCallback";
 
 const props = defineProps({
@@ -267,7 +297,14 @@ const props = defineProps({
   showReceipt: { type: Boolean, default: false },
   backTo: { type: String, default: "" },
   initialProduct: { type: [String, Number], default: "" },
+  /** API role e.g. CUSTOMER_SERVICE, or dashboard role "social" */
+  role: { type: String, default: "" },
   submitFn: { type: Function, required: true },
+});
+
+const isCustomerService = computed(() => {
+  const role = String(props.role || "").toUpperCase();
+  return role === "CUSTOMER_SERVICE" || role === "SOCIAL" || role === "CUSTOMER-SERVICE";
 });
 
 const saving = ref(false);
@@ -280,29 +317,49 @@ const nameSuggestions = ref([]);
 const phoneSuggestions = ref([]);
 const selectedStudent = ref(null);
 const products = ref([]);
+const branches = ref([]);
 const feedback = reactive({ type: "success", message: "" });
 
-const paymentOptions = [
+const allPaymentOptions = [
   { label: "كاش", value: "cash" },
   { label: "انستا باي", value: "instapay" },
   { label: "محفظة إلكترونية", value: "wallet" },
 ];
 
+const paymentOptions = computed(() =>
+  isCustomerService.value
+    ? allPaymentOptions.filter((option) => option.value !== "cash")
+    : allPaymentOptions,
+);
+
+const defaultPaymentMethod = computed(() =>
+  isCustomerService.value ? "instapay" : "cash",
+);
+
 const form = reactive({
   studentName: "",
   studentPhone: "",
+  branchId: null,
   productId: props.initialProduct || null,
   amount: null,
-  paymentMethod: "cash",
+  paymentMethod: defaultPaymentMethod.value,
 });
 
-const formInitialValues = {
+const formInitialValues = computed(() => ({
   studentName: "",
   studentPhone: "",
+  branchId: null,
   productId: props.initialProduct || null,
   amount: null,
-  paymentMethod: "cash",
-};
+  paymentMethod: defaultPaymentMethod.value,
+}));
+
+const branchOptions = computed(() =>
+  branches.value.map((branch) => ({
+    label: branch.name || branch.id,
+    value: branch.id,
+  })),
+);
 
 const productOptions = computed(() =>
   products.value.map((product) => {
@@ -350,6 +407,17 @@ const loadProducts = async () => {
   const items = await productService.getProducts();
   const list = Array.isArray(items) ? items : items?.data || [];
   products.value = list.filter((product) => product.status !== "INACTIVE");
+};
+
+const loadBranches = async () => {
+  if (!isCustomerService.value) {
+    branches.value = [];
+    return;
+  }
+
+  const items = await branchService.getBranches();
+  const list = Array.isArray(items) ? items : items?.data || [];
+  branches.value = list.filter((branch) => branch.status !== "INACTIVE");
 };
 
 const searchStudents = async (term = "") => {
@@ -492,9 +560,10 @@ const resetForm = () => {
   Object.assign(form, {
     studentName: "",
     studentPhone: "",
+    branchId: null,
     productId: props.initialProduct || null,
     amount: null,
-    paymentMethod: "cash",
+    paymentMethod: defaultPaymentMethod.value,
   });
   selectedStudent.value = null;
   nameSuggestions.value = [];
@@ -508,6 +577,10 @@ const handleSubmit = async () => {
   saving.value = true;
 
   try {
+    if (isCustomerService.value && !form.branchId) {
+      throw new Error("اختيار الفرع مطلوب.");
+    }
+
     const studentId = await ensureStudent();
     const product = selectedProductOption.value;
 
@@ -524,6 +597,8 @@ const handleSubmit = async () => {
       deposit: form.amount,
       payment_method: form.paymentMethod,
       method: form.paymentMethod,
+      branchId: form.branchId || undefined,
+      branch_id: form.branchId || undefined,
       receipt_image: proofDataUrl.value || null,
       proofReference: proofDataUrl.value || undefined,
       quantity: 1,
@@ -556,10 +631,22 @@ watch(
   },
 );
 
+watch(isCustomerService, (value) => {
+  if (value && form.paymentMethod === "cash") {
+    form.paymentMethod = defaultPaymentMethod.value;
+  }
+  if (!value) {
+    form.branchId = null;
+  }
+});
+
 onMounted(async () => {
   try {
-    await loadProducts();
+    await Promise.all([loadProducts(), loadBranches()]);
     if (props.initialProduct) form.productId = props.initialProduct;
+    if (isCustomerService.value && form.paymentMethod === "cash") {
+      form.paymentMethod = defaultPaymentMethod.value;
+    }
   } catch (error) {
     feedback.type = "error";
     feedback.message = error?.message || "تعذر تحميل بيانات الحجز.";
