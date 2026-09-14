@@ -4,12 +4,13 @@ const fallbackStudents = [
   { id: 's3', name: 'لينا سالم', grade: 'الأولى', branch: 'madina', status: 'blocked' },
 ];
 
+import { apiFetch } from "~/utils/apiFetch";
+
 export const studentService = {
   async getStudents(params = {}) {
     try {
-      return await $fetch('/students', {
-        method: 'GET',
-        baseURL: useRuntimeConfig().public.baseUrl || '/api',
+      return await apiFetch("/students", {
+        method: "GET",
         params,
       });
     } catch {
@@ -18,17 +19,17 @@ export const studentService = {
   },
 
   async getStudent(id: string) {
-    return await $fetch(`/students/${id}`, {
-      method: 'GET',
-      baseURL: useRuntimeConfig().public.baseUrl || '/api',
+    const rows = await apiFetch<any>("/students", {
+      method: "GET",
+      params: { id: `eq.${id}` },
     });
+    return Array.isArray(rows) ? rows[0] : rows;
   },
 
   async createStudent(payload: Record<string, any>) {
     try {
-      return await $fetch('/students', {
-        method: 'POST',
-        baseURL: useRuntimeConfig().public.baseUrl || '/api',
+      return await apiFetch("/students", {
+        method: "POST",
         body: payload,
       });
     } catch {

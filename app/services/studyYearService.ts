@@ -7,12 +7,13 @@ const fallbackStudyYears = [
   { id: "bac2", name: "٢ بكالوريا", label: "٢ بكالوريا" },
 ];
 
+import { apiFetch } from "~/utils/apiFetch";
+
 export const studyYearService = {
   async getStudyYears(params = {}) {
     try {
-      return await $fetch("/study-years", {
+      return await apiFetch("/study_years", {
         method: "GET",
-        baseURL: useRuntimeConfig().public.baseUrl || "/api",
         params,
       });
     } catch {

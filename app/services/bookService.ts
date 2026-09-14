@@ -4,12 +4,13 @@ const fallbackBooks = [
   { id: "math", title: "كتاب الرياضيات", teacher: "أ. سارة", stock: 18, available: true },
 ];
 
+import { apiFetch } from "~/utils/apiFetch";
+
 export const bookService = {
   async getBooks(params = {}) {
     try {
-      return await $fetch('/books', {
-        method: 'GET',
-        baseURL: useRuntimeConfig().public.baseUrl || '/api',
+      return await apiFetch("/books", {
+        method: "GET",
         params,
       });
     } catch {
@@ -19,10 +20,11 @@ export const bookService = {
 
   async getBook(id: string) {
     try {
-      return await $fetch(`/books/${id}`, {
-        method: 'GET',
-        baseURL: useRuntimeConfig().public.baseUrl || '/api',
+      const rows = await apiFetch<any>("/books", {
+        method: "GET",
+        params: { id: `eq.${id}` },
       });
+      return Array.isArray(rows) ? rows[0] : rows;
     } catch {
       return fallbackBooks.find((book) => book.id === id) || null;
     }

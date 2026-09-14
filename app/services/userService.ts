@@ -1,23 +1,24 @@
+import { apiFetch } from "~/utils/apiFetch";
+
 export const userService = {
   async getUsers(params = {}) {
-    return await $fetch('/users', {
-      method: 'GET',
-      baseURL: useRuntimeConfig().public.baseUrl || '/api',
+    return await apiFetch("/users", {
+      method: "GET",
       params,
     });
   },
 
   async getUser(id: string) {
-    return await $fetch(`/users/${id}`, {
-      method: 'GET',
-      baseURL: useRuntimeConfig().public.baseUrl || '/api',
+    const rows = await apiFetch<any>("/users", {
+      method: "GET",
+      params: { id: `eq.${id}` },
     });
+    return Array.isArray(rows) ? rows[0] : rows;
   },
 
   async createUser(payload: Record<string, any>) {
-    return await $fetch('/users', {
-      method: 'POST',
-      baseURL: useRuntimeConfig().public.baseUrl || '/api',
+    return await apiFetch("/users", {
+      method: "POST",
       body: payload,
     });
   },

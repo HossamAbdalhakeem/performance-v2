@@ -4,12 +4,13 @@ const fallbackBranches = [
   { id: 'madina', name: 'فرع المدينة', manager: 'إبراهيم فهد', city: 'المدينة', status: 'closed' },
 ];
 
+import { apiFetch } from "~/utils/apiFetch";
+
 export const branchService = {
   async getBranches(params = {}) {
     try {
-      return await $fetch('/branches', {
-        method: 'GET',
-        baseURL: useRuntimeConfig().public.baseUrl || '/api',
+      return await apiFetch("/branches", {
+        method: "GET",
         params,
       });
     } catch {
@@ -19,9 +20,8 @@ export const branchService = {
 
   async createBranch(payload: Record<string, any>) {
     try {
-      return await $fetch('/branches', {
-        method: 'POST',
-        baseURL: useRuntimeConfig().public.baseUrl || '/api',
+      return await apiFetch("/branches", {
+        method: "POST",
         body: payload,
       });
     } catch {

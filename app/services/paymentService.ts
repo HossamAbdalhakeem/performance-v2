@@ -1,8 +1,9 @@
+import { apiFetch } from "~/utils/apiFetch";
+
 export const paymentService = {
   async getPayments(params = {}) {
-    return await $fetch('/payments', {
-      method: 'GET',
-      baseURL: useRuntimeConfig().public.baseUrl || '/api',
+    return await apiFetch("/payments", {
+      method: "GET",
       params,
     });
   },

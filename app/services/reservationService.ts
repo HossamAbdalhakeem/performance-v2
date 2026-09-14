@@ -41,12 +41,13 @@ const fallbackReservation = async (payload: Record<string, any>) => {
   };
 };
 
+import { apiFetch } from "~/utils/apiFetch";
+
 export const reservationService = {
   async getReservations(params = {}) {
     try {
-      return await $fetch('/reservations', {
-        method: 'GET',
-        baseURL: useRuntimeConfig().public.baseUrl || '/api',
+      return await apiFetch("/reservations", {
+        method: "GET",
         params,
       });
     } catch {
@@ -56,10 +57,11 @@ export const reservationService = {
 
   async getReservation(id: string) {
     try {
-      return await $fetch(`/reservations/${id}`, {
-        method: 'GET',
-        baseURL: useRuntimeConfig().public.baseUrl || '/api',
+      const rows = await apiFetch<any>("/reservations", {
+        method: "GET",
+        params: { id: `eq.${id}` },
       });
+      return Array.isArray(rows) ? rows[0] : rows;
     } catch {
       return null;
     }
@@ -67,9 +69,8 @@ export const reservationService = {
 
   async createReservation(payload: Record<string, any>) {
     try {
-      return await $fetch('/reservations', {
-        method: 'POST',
-        baseURL: useRuntimeConfig().public.baseUrl || '/api',
+      return await apiFetch("/reservations", {
+        method: "POST",
         body: payload,
       });
     } catch {
@@ -79,9 +80,10 @@ export const reservationService = {
 
   async deliverReservation(id: string) {
     try {
-      return await $fetch(`/reservations/${id}/deliver`, {
-        method: 'PATCH',
-        baseURL: useRuntimeConfig().public.baseUrl || '/api',
+      return await apiFetch("/reservations", {
+        method: "PATCH",
+        params: { id: `eq.${id}` },
+        body: { status: "delivered" },
       });
     } catch {
       return { id, delivered: true };
@@ -90,21 +92,21 @@ export const reservationService = {
 
   async cancelReservation(id: string, payload = {}) {
     try {
-      return await $fetch(`/reservations/${id}/cancel`, {
-        method: 'PATCH',
-        baseURL: useRuntimeConfig().public.baseUrl || '/api',
-        body: payload,
+      return await apiFetch("/reservations", {
+        method: "PATCH",
+        params: { id: `eq.${id}` },
+        body: { status: "cancelled", ...payload },
       });
     } catch {
-      return { id, status: 'cancelled', ...payload };
+      return { id, status: "cancelled", ...payload };
     }
   },
 
   async exchangeReservation(id: string, payload: Record<string, any>) {
     try {
-      return await $fetch(`/reservations/${id}/exchange`, {
-        method: 'PATCH',
-        baseURL: useRuntimeConfig().public.baseUrl || '/api',
+      return await apiFetch("/reservations", {
+        method: "PATCH",
+        params: { id: `eq.${id}` },
         body: payload,
       });
     } catch {

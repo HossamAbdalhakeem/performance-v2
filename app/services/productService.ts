@@ -45,12 +45,13 @@ const fallbackProducts = [
   },
 ];
 
+import { apiFetch } from "~/utils/apiFetch";
+
 export const productService = {
   async getProducts(params = {}) {
     try {
-      return await $fetch("/products", {
+      return await apiFetch("/products", {
         method: "GET",
-        baseURL: useRuntimeConfig().public.baseUrl || "/api",
         params,
       });
     } catch {
@@ -60,10 +61,10 @@ export const productService = {
 
   async getProduct(id: string) {
     try {
-      return await $fetch(`/products/${id}`, {
+      return await apiFetch(`/products`, {
         method: "GET",
-        baseURL: useRuntimeConfig().public.baseUrl || "/api",
-      });
+        params: { id: `eq.${id}` },
+      }).then((rows: any) => (Array.isArray(rows) ? rows[0] : rows) || null);
     } catch {
       return fallbackProducts.find((product) => product.id === id) || null;
     }
@@ -71,9 +72,8 @@ export const productService = {
 
   async createProduct(payload: Record<string, any>) {
     try {
-      return await $fetch("/products", {
+      return await apiFetch("/products", {
         method: "POST",
-        baseURL: useRuntimeConfig().public.baseUrl || "/api",
         body: payload,
       });
     } catch {

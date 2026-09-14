@@ -5,12 +5,13 @@ const fallbackAvailability = {
   "book-code": 20,
 };
 
+import { apiFetch } from "~/utils/apiFetch";
+
 export const inventoryService = {
   async getInventory(params = {}) {
     try {
-      return await $fetch("/inventory", {
+      return await apiFetch("/inventory", {
         method: "GET",
-        baseURL: useRuntimeConfig().public.baseUrl || "/api",
         params,
       });
     } catch {
@@ -20,9 +21,8 @@ export const inventoryService = {
 
   async addStock(payload: Record<string, any>) {
     try {
-      return await $fetch("/inventory/add", {
+      return await apiFetch("/inventory", {
         method: "POST",
-        baseURL: useRuntimeConfig().public.baseUrl || "/api",
         body: payload,
       });
     } catch {
@@ -32,10 +32,9 @@ export const inventoryService = {
 
   async removeStock(payload: Record<string, any>) {
     try {
-      return await $fetch("/inventory/remove", {
+      return await apiFetch("/inventory", {
         method: "POST",
-        baseURL: useRuntimeConfig().public.baseUrl || "/api",
-        body: payload,
+        body: { ...payload, type: "remove" },
       });
     } catch {
       return { ...payload, id: `stock-remove-${Date.now()}` };
@@ -44,9 +43,8 @@ export const inventoryService = {
 
   async getMovements(params = {}) {
     try {
-      return await $fetch("/inventory/movements", {
+      return await apiFetch("/inventory_movements", {
         method: "GET",
-        baseURL: useRuntimeConfig().public.baseUrl || "/api",
         params,
       });
     } catch {
@@ -56,9 +54,8 @@ export const inventoryService = {
 
   async getAvailability(params = {}) {
     try {
-      return await $fetch("/inventory/availability", {
+      return await apiFetch("/inventory", {
         method: "GET",
-        baseURL: useRuntimeConfig().public.baseUrl || "/api",
         params,
       });
     } catch {

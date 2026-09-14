@@ -1,3 +1,5 @@
+import { authFetch } from "~/utils/apiFetch";
+
 const roleMap = {
   admin: { label: "مدير", role: "admin" },
   branch: { label: "فرع", role: "branch" },
@@ -26,19 +28,38 @@ const demoSession = (payload: { email?: string; password?: string }) => {
   };
 };
 
-const authHeaders = () => {
-  const token = useCookie("token").value;
-  return token ? { Authorization: `Bearer ${token}` } : {};
+const mapAuthSession = (session: Record<string, any>, payload?: { email?: string; password?: string }) => {
+  const user = session?.user || {};
+  const role =
+    user.user_metadata?.role ||
+    user.app_metadata?.role ||
+    inferRole(user.email || payload?.email, payload?.password);
+
+  return {
+    ...session,
+    token: session?.access_token,
+    user: {
+      id: user.id,
+      email: user.email,
+      name: user.user_metadata?.name || user.email,
+      role,
+      branch_id: user.user_metadata?.branch_id || (role === "branch" ? "branch-01" : null),
+    },
+  };
 };
 
 export const authService = {
   async login(payload: { email: string; password: string; remember?: boolean }) {
     try {
-      return await $fetch("/auth/login", {
+      const session = await authFetch<Record<string, any>>("/token?grant_type=password", {
         method: "POST",
-        baseURL: useRuntimeConfig().public.baseUrl || "/api",
-        body: payload,
+        body: {
+          email: payload.email,
+          password: payload.password,
+        },
       });
+
+      return mapAuthSession(session, payload);
     } catch {
       return demoSession(payload);
     }
@@ -46,11 +67,7 @@ export const authService = {
 
   async logout() {
     try {
-      return await $fetch("/auth/logout", {
-        method: "POST",
-        baseURL: useRuntimeConfig().public.baseUrl || "/api",
-        headers: authHeaders(),
-      });
+      return await authFetch("/logout", { method: "POST" });
     } catch {
       return { success: true };
     }
@@ -58,11 +75,8 @@ export const authService = {
 
   async me() {
     try {
-      return await $fetch("/auth/me", {
-        method: "GET",
-        baseURL: useRuntimeConfig().public.baseUrl || "/api",
-        headers: authHeaders(),
-      });
+      const user = await authFetch<Record<string, any>>("/user");
+      return mapAuthSession({ user, access_token: useCookie("token").value });
     } catch {
       return null;
     }

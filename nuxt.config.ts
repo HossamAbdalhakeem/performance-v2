@@ -58,10 +58,10 @@ export default defineNuxtConfig({
   },
   runtimeConfig: {
     public: {
-      baseUrl: process.env.NUXT_ENV_BASE_URL || '/api',
+      baseUrl: process.env.NUXT_PUBLIC_SUPABASE_URL || process.env.NUXT_ENV_BASE_URL || '/api',
       // Public site URL (used for OG tags & canonical URLs)
       siteUrl: process.env.NUXT_PUBLIC_SITE_URL,
-      supabaseUrl: process.env.NUXT_PUBLIC_SUPABASE_URL,
+      supabaseUrl: process.env.NUXT_PUBLIC_SUPABASE_URL || process.env.NUXT_ENV_BASE_URL,
       supabaseKey: process.env.NUXT_PUBLIC_SUPABASE_ANON_KEY || process.env.NUXT_ENV_SUPABASE_KEY,
     },
   },

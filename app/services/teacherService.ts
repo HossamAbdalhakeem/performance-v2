@@ -5,12 +5,13 @@ const fallbackTeachers = [
   { id: "salah", name: "مستر محمد صلاح", subject: "اللغة العربية", branch: "riyadh", status: "active" },
 ];
 
+import { apiFetch } from "~/utils/apiFetch";
+
 export const teacherService = {
   async getTeachers(params = {}) {
     try {
-      return await $fetch('/teachers', {
-        method: 'GET',
-        baseURL: useRuntimeConfig().public.baseUrl || '/api',
+      return await apiFetch("/teachers", {
+        method: "GET",
         params,
       });
     } catch {
@@ -20,10 +21,11 @@ export const teacherService = {
 
   async getTeacher(id: string) {
     try {
-      return await $fetch(`/teachers/${id}`, {
-        method: 'GET',
-        baseURL: useRuntimeConfig().public.baseUrl || '/api',
+      const rows = await apiFetch<any>("/teachers", {
+        method: "GET",
+        params: { id: `eq.${id}` },
       });
+      return Array.isArray(rows) ? rows[0] : rows;
     } catch {
       return fallbackTeachers.find((teacher) => teacher.id === id) || null;
     }
@@ -31,9 +33,8 @@ export const teacherService = {
 
   async createTeacher(payload: Record<string, any>) {
     try {
-      return await $fetch('/teachers', {
-        method: 'POST',
-        baseURL: useRuntimeConfig().public.baseUrl || '/api',
+      return await apiFetch("/teachers", {
+        method: "POST",
         body: payload,
       });
     } catch {

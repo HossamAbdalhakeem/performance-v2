@@ -1,9 +1,10 @@
+import { apiFetch } from "~/utils/apiFetch";
+
 export const saleService = {
   async getSales(params = {}) {
     try {
-      return await $fetch("/sales", {
+      return await apiFetch("/sales", {
         method: "GET",
-        baseURL: useRuntimeConfig().public.baseUrl || "/api",
         params,
       });
     } catch {
@@ -13,10 +14,11 @@ export const saleService = {
 
   async getSale(id: string) {
     try {
-      return await $fetch(`/sales/${id}`, {
+      const rows = await apiFetch<any>("/sales", {
         method: "GET",
-        baseURL: useRuntimeConfig().public.baseUrl || "/api",
+        params: { id: `eq.${id}` },
       });
+      return Array.isArray(rows) ? rows[0] : rows;
     } catch {
       return null;
     }
@@ -24,9 +26,8 @@ export const saleService = {
 
   async createSale(payload: Record<string, any>) {
     try {
-      return await $fetch("/sales", {
+      return await apiFetch("/sales", {
         method: "POST",
-        baseURL: useRuntimeConfig().public.baseUrl || "/api",
         body: payload,
       });
     } catch {
