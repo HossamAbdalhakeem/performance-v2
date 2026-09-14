@@ -87,39 +87,28 @@
       </template>
     </Card>
 
-    <Drawer
+    <ProductDrawer
       v-model:visible="drawerVisible"
-      :header="drawerTitle"
-      position="right"
-      class="!w-[400px] max-w-[400px]"
-      :style="{ width: '400px' }"
-      :blockScroll="true"
-    >
-      <ProductForm
-        v-if="drawerVisible"
-        :product="editingProduct"
-        @saved="handleSaved"
-        @cancel="closeDrawer"
-      />
-    </Drawer>
+      :product="editingProduct"
+      :title="drawerTitle"
+      @saved="handleSaved"
+    />
   </div>
 </template>
 
 <script setup>
 import Card from "primevue/card";
 import Button from "primevue/button";
-import Drawer from "primevue/drawer";
 import InputText from "primevue/inputtext";
 import Select from "primevue/select";
 import IconField from "primevue/iconfield";
 import InputIcon from "primevue/inputicon";
 import ProductsTable from "~/components/dashboard/pages/products/ProductsTable.vue";
-import ProductForm from "~/components/dashboard/pages/products/ProductForm.vue";
+import ProductDrawer from "~/components/dashboard/pages/products/ProductDrawer.vue";
 import { productService } from "~/services/productService";
 import { teacherService } from "~/services/teacherService";
 import { studyYearService } from "~/services/studyYearService";
-
-const SEARCH_THROTTLE_MS = 400;
+import { useThrottledCallback } from "~/composables/useThrottledCallback";
 
 const loading = ref(true);
 const drawerVisible = ref(false);
@@ -219,31 +208,10 @@ const loadFilterOptions = async () => {
   }
 };
 
-let throttleTimer = null;
-let lastSearchRunAt = 0;
-
-const runThrottledSearch = () => {
-  const now = Date.now();
-  const remaining = SEARCH_THROTTLE_MS - (now - lastSearchRunAt);
-
-  if (throttleTimer) {
-    clearTimeout(throttleTimer);
-    throttleTimer = null;
-  }
-
-  const execute = () => {
-    lastSearchRunAt = Date.now();
-    filters.search = filters.searchInput;
-    loadProducts();
-  };
-
-  if (remaining <= 0) {
-    execute();
-    return;
-  }
-
-  throttleTimer = setTimeout(execute, remaining);
-};
+const { run: runThrottledSearch } = useThrottledCallback(() => {
+  filters.search = filters.searchInput;
+  loadProducts();
+}, 400);
 
 watch(
   () => filters.searchInput,
@@ -262,13 +230,11 @@ const openEdit = (product) => {
   drawerVisible.value = true;
 };
 
-const closeDrawer = () => {
-  drawerVisible.value = false;
-  editingProduct.value = null;
-};
+watch(drawerVisible, (visible) => {
+  if (!visible) editingProduct.value = null;
+});
 
 const handleSaved = async () => {
-  closeDrawer();
   setFeedback("success", "تم حفظ المنتج بنجاح.");
   await loadProducts();
 };
@@ -276,9 +242,5 @@ const handleSaved = async () => {
 onMounted(async () => {
   await loadFilterOptions();
   await loadProducts();
-});
-
-onBeforeUnmount(() => {
-  if (throttleTimer) clearTimeout(throttleTimer);
 });
 </script>

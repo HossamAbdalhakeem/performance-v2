@@ -1,168 +1,179 @@
 <template>
   <div class="space-y-6">
-    <div class="grid gap-4 md:grid-cols-3">
-      <Card v-for="stat in stats" :key="stat.label">
-        <template #content>
-          <div class="flex items-center justify-between">
-            <div>
-              <p class="text-sm text-slate-500">{{ stat.label }}</p>
-              <p class="mt-2 text-2xl font-bold text-slate-900">{{ stat.value }}</p>
-            </div>
-            <span class="rounded-xl px-2 py-1 text-xs font-semibold" :class="stat.badgeClass">{{ stat.tag }}</span>
-          </div>
-        </template>
-      </Card>
-    </div>
-
     <Card>
       <template #title>
-        <div class="flex items-center justify-between gap-3">
-          <span class="text-lg font-bold text-slate-900">المعلمين</span>
-          <Button label="إضافة مدرس" icon="pi pi-plus" severity="info" @click="toggleForm" />
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <span class="text-lg font-bold text-slate-900">المدرسون</span>
+          <Button
+            label="إضافة مدرس جديد"
+            icon="pi pi-plus"
+            severity="info"
+            @click="openCreate"
+          />
         </div>
       </template>
 
       <template #content>
-        <div v-if="showForm" class="mb-5 rounded-2xl border border-slate-200 bg-slate-50 p-4">
-          <Form v-slot="{ errors: fieldErrors }" @submit="submitTeacher" :initial-values="formInitialValues" class="grid gap-4 md:grid-cols-2">
-            <Field v-slot="{ field, errorMessage }" name="name" rules="required">
-              <div class="flex flex-col gap-2 text-right">
-                <label class="text-sm font-medium text-slate-700">اسم المعلم</label>
-                <InputText v-bind="field" v-model="form.name" :class="{ 'p-invalid': errorMessage || fieldErrors.name }" />
-                <ErrorMessage name="name" class="text-xs text-red-500" />
-              </div>
-            </Field>
+        <p
+          v-if="feedback.message"
+          class="mb-4 rounded-xl px-3 py-2 text-sm"
+          :class="feedback.type === 'error' ? 'bg-red-50 text-red-600' : 'bg-emerald-50 text-emerald-700'"
+        >
+          {{ feedback.message }}
+        </p>
 
-            <Field v-slot="{ field, errorMessage }" name="subject" rules="required">
-              <div class="flex flex-col gap-2 text-right">
-                <label class="text-sm font-medium text-slate-700">المادة</label>
-                <InputText v-bind="field" v-model="form.subject" :class="{ 'p-invalid': errorMessage || fieldErrors.subject }" />
-                <ErrorMessage name="subject" class="text-xs text-red-500" />
-              </div>
-            </Field>
+        <div class="mb-5 grid gap-3 md:grid-cols-2">
+          <div class="flex flex-col gap-2 text-right">
+            <label class="text-sm font-medium text-slate-700">بحث</label>
+            <IconField>
+              <InputIcon class="pi pi-search" />
+              <InputText
+                v-model="filters.searchInput"
+                class="w-full"
+                placeholder="ابحث باسم المدرس"
+              />
+            </IconField>
+          </div>
 
-            <Field v-slot="{ field, errorMessage }" name="branch" rules="required">
-              <div class="flex flex-col gap-2 text-right">
-                <label class="text-sm font-medium text-slate-700">الفرع</label>
-                <Select v-bind="field" v-model="form.branch" :options="branchOptions" optionLabel="label" optionValue="value" placeholder="اختر" :class="{ 'p-invalid': errorMessage || fieldErrors.branch }" />
-                <ErrorMessage name="branch" class="text-xs text-red-500" />
-              </div>
-            </Field>
-
-            <Field v-slot="{ field, errorMessage }" name="status" rules="required">
-              <div class="flex flex-col gap-2 text-right">
-                <label class="text-sm font-medium text-slate-700">الحالة</label>
-                <Select v-bind="field" v-model="form.status" :options="statusOptions" optionLabel="label" optionValue="value" placeholder="اختر" :class="{ 'p-invalid': errorMessage || fieldErrors.status }" />
-                <ErrorMessage name="status" class="text-xs text-red-500" />
-              </div>
-            </Field>
-
-            <div class="md:col-span-2 flex justify-end gap-3">
-              <Button label="إلغاء" severity="secondary" text @click="toggleForm" />
-              <Button type="submit" label="حفظ المعلم" :loading="saving" severity="info" />
-            </div>
-          </Form>
+          <div class="flex flex-col gap-2 text-right">
+            <label class="text-sm font-medium text-slate-700">الحالة</label>
+            <Select
+              v-model="filters.status"
+              :options="statusOptions"
+              optionLabel="label"
+              optionValue="value"
+              placeholder="كل الحالات"
+              showClear
+              class="w-full"
+              @update:modelValue="loadTeachers"
+            />
+          </div>
         </div>
 
-        <div v-if="pending" class="grid gap-4">
-          <Skeleton v-for="i in 5" :key="i" width="100%" height="3rem" border-radius="12px" />
-        </div>
-
-        <DataTable v-else :value="teachers" paginator :rows="8" tableStyle="min-width: 100%" :emptyMessage="emptyMessage">
-          <Column field="name" header="الاسم" />
-          <Column field="subject" header="المادة" />
-          <Column field="branch" header="الفرع" />
-          <Column field="status" header="الحالة">
-            <template #body="slotProps">
-              <Tag :value="slotProps.data.status" :severity="slotProps.data.statusSeverity" />
-            </template>
-          </Column>
-        </DataTable>
+        <TeachersTable
+          :teachers="teachers"
+          :loading="loading"
+          @edit="openEdit"
+        />
       </template>
     </Card>
+
+    <Drawer
+      v-model:visible="drawerVisible"
+      :header="drawerTitle"
+      position="right"
+      class="!w-[400px] max-w-[400px]"
+      :style="{ width: '400px' }"
+      :blockScroll="true"
+    >
+      <TeacherForm
+        v-if="drawerVisible"
+        :teacher="editingTeacher"
+        @saved="handleSaved"
+        @cancel="closeDrawer"
+      />
+    </Drawer>
   </div>
 </template>
 
 <script setup>
 import Card from "primevue/card";
 import Button from "primevue/button";
-import DataTable from "primevue/datatable";
-import Column from "primevue/column";
-import Tag from "primevue/tag";
+import Drawer from "primevue/drawer";
 import InputText from "primevue/inputtext";
 import Select from "primevue/select";
-import Skeleton from "primevue/skeleton";
-import { Form, Field, ErrorMessage } from "vee-validate";
+import IconField from "primevue/iconfield";
+import InputIcon from "primevue/inputicon";
+import TeachersTable from "~/components/dashboard/pages/teachers/TeachersTable.vue";
+import TeacherForm from "~/components/dashboard/pages/teachers/TeacherForm.vue";
 import { teacherService } from "~/services/teacherService";
+import { useThrottledCallback } from "~/composables/useThrottledCallback";
 
-const pending = ref(true);
-const saving = ref(false);
-const showForm = ref(false);
-const branchOptions = [
-  { label: "الرياض", value: "riyadh" },
-  { label: "جدة", value: "jeddah" },
-  { label: "المدينة", value: "madina" },
-];
-const statusOptions = [
-  { label: "نشط", value: "active" },
-  { label: "مؤجل", value: "pending" },
-  { label: "مغادر", value: "left" },
-];
-
-const form = reactive({ name: "", subject: "", branch: "riyadh", status: "active" });
-const formInitialValues = { name: "", subject: "", branch: "riyadh", status: "active" };
+const loading = ref(true);
+const drawerVisible = ref(false);
+const editingTeacher = ref(null);
 const teachers = ref([]);
+const feedback = reactive({ type: "success", message: "" });
 
-const normalizeTeacher = (teacher) => ({
-  name: teacher.name || "-",
-  subject: teacher.subject || "-",
-  branch: branchOptions.find((item) => item.value === teacher.branch)?.label || "الرياض",
-  status: statusOptions.find((item) => item.value === teacher.status)?.label || "نشط",
-  statusSeverity: teacher.status === "active" ? "success" : teacher.status === "pending" ? "warning" : "danger",
+const filters = reactive({
+  searchInput: "",
+  search: "",
+  status: null,
 });
 
+const statusOptions = [
+  { label: "نشط", value: "ACTIVE" },
+  { label: "غير نشط", value: "INACTIVE" },
+];
+
+const drawerTitle = computed(() =>
+  editingTeacher.value?.id ? "تعديل المدرس" : "إضافة مدرس جديد",
+);
+
+const setFeedback = (type, message) => {
+  feedback.type = type;
+  feedback.message = message;
+};
+
+const normalizeTeacher = (teacher) => ({
+  ...teacher,
+  name: teacher.name || "-",
+  statusLabel: teacher.status === "INACTIVE" ? "غير نشط" : "نشط",
+  statusSeverity: teacher.status === "INACTIVE" ? "danger" : "success",
+});
+
+const buildQuery = () => {
+  const params = {};
+  if (filters.search?.trim()) params.search = filters.search.trim();
+  if (filters.status) params.status = filters.status;
+  return params;
+};
+
 const loadTeachers = async () => {
+  loading.value = true;
   try {
-    const items = await teacherService.getTeachers();
+    const items = await teacherService.getTeachers(buildQuery());
     const list = Array.isArray(items) ? items : items?.data || [];
     teachers.value = list.map(normalizeTeacher);
   } catch (error) {
-    console.error("Failed to load teachers", error);
+    setFeedback("error", error?.message || "تعذر تحميل المدرسين.");
     teachers.value = [];
   } finally {
-    pending.value = false;
+    loading.value = false;
   }
 };
 
-const stats = computed(() => [
-  { label: "إجمالي المعلمين", value: String(teachers.value.length || 0), tag: "نشط", badgeClass: "bg-sky-100 text-sky-700" },
-  { label: "نشط", value: String(teachers.value.filter((item) => item.status === "نشط").length || 0), tag: "حاليًا", badgeClass: "bg-green-100 text-green-700" },
-  { label: "مؤجل", value: String(teachers.value.filter((item) => item.status === "مؤجل").length || 0), tag: "متابعة", badgeClass: "bg-amber-100 text-amber-700" },
-]);
+const { run: runThrottledSearch } = useThrottledCallback(() => {
+  filters.search = filters.searchInput;
+  loadTeachers();
+}, 400);
 
-const emptyMessage = "لا يوجد معلمين مسجلين.";
+watch(
+  () => filters.searchInput,
+  () => {
+    runThrottledSearch();
+  },
+);
 
-const toggleForm = () => {
-  showForm.value = !showForm.value;
+const openCreate = () => {
+  editingTeacher.value = null;
+  drawerVisible.value = true;
 };
 
-const submitTeacher = async () => {
-  saving.value = true;
+const openEdit = (teacher) => {
+  editingTeacher.value = teacher;
+  drawerVisible.value = true;
+};
 
-  try {
-    const result = await teacherService.createTeacher({
-      name: form.name,
-      subject: form.subject,
-      branch: form.branch,
-      status: form.status,
-    });
+const closeDrawer = () => {
+  drawerVisible.value = false;
+  editingTeacher.value = null;
+};
 
-    teachers.value.unshift(normalizeTeacher(result || { ...form }));
-    Object.assign(form, formInitialValues);
-    showForm.value = false;
-  } finally {
-    saving.value = false;
-  }
+const handleSaved = async () => {
+  closeDrawer();
+  setFeedback("success", "تم حفظ المدرس بنجاح.");
+  await loadTeachers();
 };
 
 onMounted(() => {
