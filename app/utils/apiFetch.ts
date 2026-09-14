@@ -114,3 +114,21 @@ export const apiFetch = async <T = any>(path: string, options: FetchOptions = {}
 export const authFetch = async <T = any>(path: string, options: FetchOptions = {}) => {
   return request<T>(`${getApiOrigin()}/auth/v1`, path, options);
 };
+
+export const originFetch = async <T = any>(path: string, options: FetchOptions = {}) => {
+  const baseURL = getApiOrigin();
+
+  if (!baseURL) {
+    throw new ApiError("MISSING_API_BASE", "API base URL is not configured.");
+  }
+
+  try {
+    return await $fetch<T>(path, {
+      ...options,
+      baseURL,
+      headers: getAuthHeaders((options.headers || {}) as Record<string, string>),
+    });
+  } catch (error) {
+    throw toApiError(error);
+  }
+};

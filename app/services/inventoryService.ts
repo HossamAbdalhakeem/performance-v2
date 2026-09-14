@@ -1,4 +1,4 @@
-import { apiFetch, firstRow } from "~/utils/apiFetch";
+import { apiFetch, asData } from "~/utils/apiFetch";
 
 export const inventoryService = {
   async getInventory(params: Record<string, any> = {}) {
@@ -6,38 +6,36 @@ export const inventoryService = {
   },
 
   async addStock(payload: Record<string, any>) {
-    return firstRow(
-      await apiFetch("/inventory", {
+    return asData(
+      await apiFetch("/inventory/add", {
         method: "POST",
         body: {
           branch_id: payload.branch_id,
           product_id: payload.product_id,
           quantity: payload.quantity,
           notes: payload.notes || "",
-          type: "stock_in",
         },
       })
     );
   },
 
   async removeStock(payload: Record<string, any>) {
-    return firstRow(
-      await apiFetch("/inventory", {
+    return asData(
+      await apiFetch("/inventory/remove", {
         method: "POST",
         body: {
           branch_id: payload.branch_id,
           product_id: payload.product_id,
           quantity: payload.quantity,
-          reason: payload.reason,
+          reason: payload.reason || "",
           notes: payload.notes || "",
-          type: "stock_out",
         },
       })
     );
   },
 
   async getInventoryMovements(params: Record<string, any> = {}) {
-    return await apiFetch("/inventory_movements", { method: "GET", params });
+    return await apiFetch("/inventory/movements", { method: "GET", params });
   },
 
   async getMovements(params: Record<string, any> = {}) {
@@ -45,11 +43,10 @@ export const inventoryService = {
   },
 
   async getAvailability(params: Record<string, any> = {}) {
-    return await apiFetch("/inventory", {
+    return await apiFetch("/inventory/availability", {
       method: "GET",
       params: {
         product_id: params.product_id,
-        ...(params.branch_id ? { branch_id: params.branch_id } : {}),
       },
     });
   },
