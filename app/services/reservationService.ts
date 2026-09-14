@@ -4,7 +4,6 @@ const PAYMENT_METHODS = new Set(["CASH", "WALLET", "INSTAPAY"]);
 
 const reservationBody = (payload: Record<string, any>) => {
   const method = String(payload.method || payload.payment_method || "CASH").toUpperCase();
-console.log(payload);
 
   const body: Record<string, any> = {
     studentId: payload.studentId ?? payload.student_id,

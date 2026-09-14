@@ -1,11 +1,11 @@
 <template>
-  <div class="space-y-4">
+  <div class="space-y-4" dir="rtl">
     <div v-if="showHeader" class="flex flex-wrap items-center justify-between gap-3">
-      <h2 class="text-xl font-bold text-white">{{ title }}</h2>
+      <h2 class="text-xl font-bold text-slate-900">{{ title }}</h2>
       <NuxtLink
         v-if="backTo"
         :to="backTo"
-        class="rounded-xl border border-white/20 px-4 py-2 text-sm text-slate-200 hover:bg-white/5"
+        class="rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50"
       >
         ← رجوع للكتب
       </NuxtLink>
@@ -13,152 +13,245 @@
 
     <div
       v-if="showHint"
-      class="rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-4 py-2 text-center text-sm text-emerald-200"
+      class="rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-4 py-2 text-center text-sm text-emerald-700"
     >
       يتم تسجيل الحجز ويظهر رقم حجز للطالب
     </div>
 
+    <p
+      v-if="feedback.message"
+      class="rounded-xl px-3 py-2 text-sm"
+      :class="feedback.type === 'error' ? 'bg-red-50 text-red-600' : 'bg-emerald-50 text-emerald-700'"
+    >
+      {{ feedback.message }}
+    </p>
+
     <div class="grid gap-4" :class="showReceipt && receiptCode ? 'xl:grid-cols-[1fr_240px]' : ''">
       <Form
-        v-slot="{ errors: fieldErrors }"
-        :initial-values="initialValues"
-        class="rounded-2xl border border-white/10 bg-slate-900 p-4"
+        v-slot="{ errors: fieldErrors, setFieldValue }"
+        :key="formKey"
+        :initial-values="formInitialValues"
+        class="grid gap-4 md:grid-cols-2"
         @submit="handleSubmit"
       >
-        <div class="grid gap-4 md:grid-cols-3">
-          <Field v-slot="{ field, errorMessage }" name="stage" rules="required">
-            <div class="flex flex-col gap-2 text-right">
-              <label class="text-sm font-medium text-slate-200">السنة الدراسية</label>
-              <Select
-                v-bind="field"
-                v-model="form.stage"
-                :options="stageOptions"
-                optionLabel="label"
-                optionValue="value"
-                placeholder="اختر السنة"
-                :class="{ 'p-invalid': errorMessage || fieldErrors.stage }"
-              />
-              <ErrorMessage name="stage" class="text-xs text-red-400" />
-            </div>
-          </Field>
-
-          <Field v-slot="{ field, errorMessage }" name="teacher" rules="required">
-            <div class="flex flex-col gap-2 text-right">
-              <label class="text-sm font-medium text-slate-200">اسم المدرس</label>
-              <Select
-                v-bind="field"
-                v-model="form.teacher"
-                :options="teacherOptions"
-                optionLabel="label"
-                optionValue="value"
-                placeholder="اختر المدرس"
-                :class="{ 'p-invalid': errorMessage || fieldErrors.teacher }"
-              />
-              <ErrorMessage name="teacher" class="text-xs text-red-400" />
-            </div>
-          </Field>
-
-          <Field v-slot="{ field, errorMessage }" name="product" rules="required">
-            <div class="flex flex-col gap-2 text-right">
-              <label class="text-sm font-medium text-slate-200">المنتج</label>
-              <Select
-                v-bind="field"
-                v-model="form.product"
-                :options="productOptions"
-                optionLabel="label"
-                optionValue="value"
-                placeholder="اختر المنتج"
-                :class="{ 'p-invalid': errorMessage || fieldErrors.product }"
-              />
-              <ErrorMessage name="product" class="text-xs text-red-400" />
-            </div>
-          </Field>
-        </div>
-
-        <div class="mt-4 grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
-          <div class="grid gap-4 sm:grid-cols-2">
-            <Field v-slot="{ field, errorMessage }" name="student" rules="required">
-              <div class="flex flex-col gap-2 text-right">
-                <label class="text-sm font-medium text-slate-200">اسم الطالب</label>
-                <InputText
-                  v-bind="field"
-                  v-model="form.student"
-                  :class="{ 'p-invalid': errorMessage || fieldErrors.student }"
-                />
-                <ErrorMessage name="student" class="text-xs text-red-400" />
-              </div>
-            </Field>
-
-            <Field v-slot="{ field, errorMessage }" name="phone" rules="required|min:10">
-              <div class="flex flex-col gap-2 text-right">
-                <label class="text-sm font-medium text-slate-200">رقم الموبايل</label>
-                <InputText
-                  v-bind="field"
-                  v-model="form.phone"
-                  :class="{ 'p-invalid': errorMessage || fieldErrors.phone }"
-                />
-                <ErrorMessage name="phone" class="text-xs text-red-400" />
-              </div>
-            </Field>
-
-            <Field v-slot="{ errorMessage }" v-model="form.amount" name="amount" rules="required|min_value:1">
-              <div class="flex flex-col gap-2 text-right">
-                <label class="text-sm font-medium text-slate-200">المبلغ المدفوع (مقدم)</label>
-                <AppInputNumber
-                  v-model="form.amount"
-                  mode="currency"
-                  currency="EGP"
-                  :min="1"
-                  :min-fraction-digits="2"
-                  :use-grouping="true"
-                  :invalid="!!(errorMessage || fieldErrors.amount)"
-                />
-                <ErrorMessage name="amount" class="text-xs text-red-400" />
-              </div>
-            </Field>
-
-            <Field v-slot="{ errorMessage }" v-model="form.paymentMethod" name="paymentMethod" rules="required">
-              <div class="flex flex-col gap-2 text-right">
-                <label class="text-sm font-medium text-slate-200">طريقة الدفع</label>
-                <div class="space-y-2 rounded-xl border border-white/10 bg-slate-950/60 p-3">
-                  <label
-                    v-for="option in paymentOptions"
-                    :key="option.value"
-                    class="flex cursor-pointer items-center justify-end gap-2 text-sm text-slate-200"
-                  >
-                    <span>{{ option.label }}</span>
-                    <input
-                      v-model="form.paymentMethod"
-                      type="radio"
-                      :value="option.value"
-                      class="accent-sky-400"
-                    />
-                  </label>
-                </div>
-                <ErrorMessage name="paymentMethod" class="text-xs text-red-400" />
-              </div>
-            </Field>
+        <Field
+          v-slot="{ errorMessage }"
+          v-model="form.stage"
+          name="stage"
+          label="السنة الدراسية"
+          rules="required"
+        >
+          <div class="md:col-span-2 flex flex-col gap-2 text-right">
+            <label class="text-sm font-medium text-slate-700">السنة الدراسية</label>
+            <Select
+              v-model="form.stage"
+              :options="stageOptions"
+              optionLabel="label"
+              optionValue="value"
+              placeholder="اختر السنة"
+              class="w-full"
+              :class="{ 'p-invalid': errorMessage || fieldErrors.stage }"
+            />
+            <ErrorMessage name="stage" class="text-xs text-red-500" />
           </div>
+        </Field>
 
+        <Field
+          v-slot="{ errorMessage }"
+          v-model="form.studentName"
+          name="studentName"
+          label="اسم الطالب"
+          rules="required"
+        >
           <div class="flex flex-col gap-2 text-right">
-            <label class="text-sm font-medium text-slate-200">إرفاق صورة التحويل (اختياري)</label>
-            <label
-              class="flex min-h-[140px] cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-sky-400/50 bg-slate-950/70 px-3 py-4 text-center text-xs text-slate-300"
+            <label class="text-sm font-medium text-slate-700">اسم الطالب</label>
+            <AutoComplete
+              v-model="form.studentName"
+              :suggestions="nameSuggestions"
+              optionLabel="name"
+              dropdown
+              :forceSelection="false"
+              :loading="searchingStudents"
+              placeholder="اكتب أو ابحث باسم الطالب"
+              class="w-full"
+              input-class="w-full"
+              :invalid="!!(errorMessage || fieldErrors.studentName)"
+              @complete="onNameComplete"
+              @item-select="(event) => onStudentPicked(event.value, setFieldValue)"
+              @update:modelValue="(value) => onNameTyped(value, setFieldValue)"
             >
-              <input type="file" accept="image/*" class="hidden" @change="onFileChange" />
-              <img v-if="imagePreview" :src="imagePreview" alt="صورة التحويل" class="mb-2 max-h-24 rounded-lg object-cover" />
-              <span class="text-2xl">📷</span>
-              <span class="mt-2">اضغط لرفع الصورة</span>
-            </label>
+              <template #option="{ option }">
+                <div class="flex w-full items-center justify-between gap-3 text-right">
+                  <span>{{ option.name }}</span>
+                  <span class="text-xs text-slate-400">{{ option.phone || "بدون رقم" }}</span>
+                </div>
+              </template>
+            </AutoComplete>
+            <ErrorMessage name="studentName" class="text-xs text-red-500" />
           </div>
+        </Field>
+
+        <Field
+          v-slot="{ errorMessage }"
+          v-model="form.studentPhone"
+          name="studentPhone"
+          label="رقم الهاتف"
+          rules="required"
+        >
+          <div class="flex flex-col gap-2 text-right">
+            <label class="text-sm font-medium text-slate-700">رقم الهاتف</label>
+            <AutoComplete
+              v-model="form.studentPhone"
+              :suggestions="phoneSuggestions"
+              optionLabel="phone"
+              dropdown
+              :forceSelection="false"
+              :loading="searchingStudents"
+              placeholder="اكتب أو ابحث برقم الهاتف"
+              class="w-full"
+              input-class="w-full"
+              :invalid="!!(errorMessage || fieldErrors.studentPhone)"
+              @complete="onPhoneComplete"
+              @item-select="(event) => onStudentPicked(event.value, setFieldValue)"
+              @update:modelValue="(value) => onPhoneTyped(value, setFieldValue)"
+            >
+              <template #option="{ option }">
+                <div class="flex w-full items-center justify-between gap-3 text-right">
+                  <span>{{ option.phone || "بدون رقم" }}</span>
+                  <span class="text-xs text-slate-400">{{ option.name }}</span>
+                </div>
+              </template>
+            </AutoComplete>
+            <ErrorMessage name="studentPhone" class="text-xs text-red-500" />
+          </div>
+        </Field>
+
+        <Field
+          v-slot="{ errorMessage }"
+          v-model="form.productId"
+          name="productId"
+          label="المنتج"
+          rules="required"
+        >
+          <div class="md:col-span-2 flex flex-col gap-2 text-right">
+            <label class="text-sm font-medium text-slate-700">المنتج</label>
+            <Select
+              v-model="form.productId"
+              :options="productOptions"
+              optionLabel="label"
+              optionValue="value"
+              placeholder="اختر المنتج"
+              filter
+              :filter-fields="['name', 'teacherName', 'label']"
+              class="w-full product-select"
+              :class="{ 'p-invalid': errorMessage || fieldErrors.productId }"
+            >
+              <template #value="{ placeholder }">
+                <div v-if="selectedProductOption" class="w-full py-0.5 text-right">
+                  <div class="flex items-start justify-between gap-3">
+                    <span class="font-medium text-slate-100">{{ selectedProductOption.name }}</span>
+                    <span class="shrink-0 text-sm text-sky-300">
+                      سعره {{ selectedProductOption.priceLabel }}
+                    </span>
+                  </div>
+                  <p class="mt-0.5 text-xs text-slate-400">
+                    مقدم من أ/ {{ selectedProductOption.teacherName || "-" }}
+                  </p>
+                </div>
+                <span v-else>{{ placeholder }}</span>
+              </template>
+              <template #option="{ option }">
+                <div class="w-full py-1 text-right">
+                  <div class="flex items-start justify-between gap-3">
+                    <span class="font-medium">{{ option.name }}</span>
+                    <span class="shrink-0 text-sm text-sky-300">سعره {{ option.priceLabel }}</span>
+                  </div>
+                  <p class="mt-0.5 text-xs text-slate-400">
+                    مقدم من أ/ {{ option.teacherName || "-" }}
+                  </p>
+                </div>
+              </template>
+            </Select>
+            <ErrorMessage name="productId" class="text-xs text-red-500" />
+          </div>
+        </Field>
+
+        <div
+          class="md:col-span-2 rounded-2xl border border-amber-400/40 bg-gradient-to-l from-amber-500/20 via-orange-500/10 to-slate-900 px-6 py-8 text-center"
+        >
+          <p class="mb-2 text-sm font-medium text-amber-100/80">مبلغ المنتج</p>
+          <p class="text-4xl font-extrabold tracking-tight text-amber-300 md:text-5xl">
+            {{ formatMoney(productPrice) }}
+          </p>
         </div>
 
-        <div class="mt-5 flex justify-center">
+        <Field
+          v-slot="{ errorMessage }"
+          v-model="form.amount"
+          name="amount"
+          label="المبلغ المدفوع مقدما"
+          rules="required|min_value:1"
+        >
+          <div class="flex flex-col gap-2 text-right">
+            <label class="text-sm font-medium text-slate-700">المبلغ المدفوع (مقدم)</label>
+            <AppInputNumber
+              v-model="form.amount"
+              mode="currency"
+              currency="EGP"
+              :min="1"
+              :min-fraction-digits="2"
+              :use-grouping="true"
+              :invalid="!!(errorMessage || fieldErrors.amount)"
+            />
+            <ErrorMessage name="amount" class="text-xs text-red-500" />
+          </div>
+        </Field>
+
+        <Field v-slot="{}" v-model="form.paymentMethod" name="paymentMethod" rules="required">
+          <div class="flex flex-col gap-2 text-right">
+            <label class="text-sm font-medium text-slate-700">طريقة الدفع</label>
+            <div class="space-y-2 rounded-xl border border-white/10 bg-slate-950/60 p-3">
+              <label
+                v-for="option in paymentOptions"
+                :key="option.value"
+                class="flex cursor-pointer items-center justify-end gap-2 text-sm text-slate-200"
+              >
+                <span>{{ option.label }}</span>
+                <input
+                  v-model="form.paymentMethod"
+                  type="radio"
+                  :value="option.value"
+                  class="accent-sky-400"
+                />
+              </label>
+            </div>
+            <ErrorMessage name="paymentMethod" class="text-xs text-red-500" />
+          </div>
+        </Field>
+
+        <div class="md:col-span-2 flex flex-col gap-2 text-right">
+          <label class="text-sm font-medium text-slate-700">إرفاق صورة التحويل (اختياري)</label>
+          <label
+            class="flex min-h-[140px] cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-sky-400/50 bg-slate-950/70 px-3 py-4 text-center text-xs text-slate-300"
+          >
+            <input type="file" accept="image/*" class="hidden" @change="onFileChange" />
+            <img
+              v-if="imagePreview"
+              :src="imagePreview"
+              alt="صورة التحويل"
+              class="mb-2 max-h-24 rounded-lg object-cover"
+            />
+            <span class="text-2xl">📷</span>
+            <span class="mt-2">اضغط لرفع الصورة</span>
+          </label>
+        </div>
+
+        <div class="md:col-span-2 flex justify-center">
           <Button
             type="submit"
             :label="submitLabel"
             :loading="saving"
-            severity="success"
+            severity="info"
             class="min-w-[220px]"
           />
         </div>
@@ -184,14 +277,15 @@
 
 <script setup>
 import Button from "primevue/button";
-import InputText from "primevue/inputtext";
 import Select from "primevue/select";
+import AutoComplete from "primevue/autocomplete";
 import AppInputNumber from "~/components/dashboard/AppInputNumber.vue";
 import { Form, Field, ErrorMessage } from "vee-validate";
-import { teacherService } from "~/services/teacherService";
 import { productService } from "~/services/productService";
 import { studyYearService } from "~/services/studyYearService";
+import { studentService } from "~/services/studentService";
 import { asList } from "~/utils/apiFetch";
+import { useThrottledCallback } from "~/composables/useThrottledCallback";
 
 const props = defineProps({
   title: { type: String, default: "احجز كتاب" },
@@ -205,11 +299,17 @@ const props = defineProps({
 });
 
 const saving = ref(false);
+const formKey = ref(0);
 const receiptCode = ref("");
 const imagePreview = ref("");
-const teacherOptions = ref([]);
-const productOptions = ref([]);
+const searchingStudents = ref(false);
+const nameSuggestions = ref([]);
+const phoneSuggestions = ref([]);
+const selectedStudent = ref(null);
+const products = ref([]);
 const stageOptions = ref([]);
+const feedback = reactive({ type: "success", message: "" });
+
 const paymentOptions = [
   { label: "كاش", value: "cash" },
   { label: "انستا باي", value: "instapay" },
@@ -218,45 +318,190 @@ const paymentOptions = [
 
 const form = reactive({
   stage: "",
-  teacher: "",
-  product: props.initialProduct || "",
-  student: "",
-  phone: "",
+  studentName: "",
+  studentPhone: "",
+  productId: props.initialProduct || null,
   amount: null,
   paymentMethod: "cash",
   receiptImage: "",
 });
 
-const initialValues = {
+const formInitialValues = {
   stage: "",
-  teacher: "",
-  product: props.initialProduct || "",
-  student: "",
-  phone: "",
+  studentName: "",
+  studentPhone: "",
+  productId: props.initialProduct || null,
   amount: null,
   paymentMethod: "cash",
 };
 
-const mapList = (items, labelKeys, valueKey = "id") =>
-  asList(items).map((item) => ({
-    label: labelKeys.map((key) => item[key]).find(Boolean) || String(item[valueKey]),
-    value: item[valueKey],
-  }));
+const productOptions = computed(() =>
+  products.value.map((product) => {
+    const teacherName =
+      product.teacher?.name || product.teacherName || product.teacher_name || "";
+    const priceLabel = `${Number(product.sellingPrice || product.selling_price || 0).toFixed(2)}ج.م`;
+    const name = product.name || product.title || "-";
+
+    return {
+      name,
+      teacherName,
+      priceLabel,
+      teacherId: product.teacherId || product.teacher_id || product.teacher?.id || "",
+      label: `${name} سعره ${priceLabel} مقدم من أ/ ${teacherName || "-"}`,
+      value: product.id,
+      sellingPrice: Number(product.sellingPrice || product.selling_price || 0),
+    };
+  }),
+);
+
+const selectedProductOption = computed(() =>
+  productOptions.value.find((option) => option.value === form.productId) || null,
+);
+
+const productPrice = computed(() => Number(selectedProductOption.value?.sellingPrice || 0));
+
+const formatMoney = (value) => `\u2066${Number(value || 0).toFixed(2)} ج.م\u2069`;
+
+const normalizeStudent = (student) => ({
+  id: student.id,
+  name: student.name || "",
+  phone: student.phone || "",
+});
+
+const asText = (value, key = "") => {
+  if (value == null) return "";
+  if (typeof value === "object") {
+    if (key && value[key] != null) return String(value[key]).trim();
+    return "";
+  }
+  return String(value).trim();
+};
 
 const loadOptions = async () => {
-  try {
-    const [teachers, products, years] = await Promise.all([
-      teacherService.getTeachers(),
-      productService.getProducts(),
-      studyYearService.getStudyYears(),
-    ]);
+  const [productItems, years] = await Promise.all([
+    productService.getProducts(),
+    studyYearService.getStudyYears(),
+  ]);
 
-    teacherOptions.value = mapList(teachers, ["name", "full_name", "teacher_name"]);
-    productOptions.value = mapList(products, ["name", "title"]);
-    stageOptions.value = mapList(years, ["label", "name"]);
+  const productList = Array.isArray(productItems) ? productItems : productItems?.data || [];
+  products.value = productList.filter((product) => product.status !== "INACTIVE");
+
+  stageOptions.value = asList(years).map((item) => ({
+    label: item.label || item.name || String(item.id),
+    value: item.id,
+  }));
+};
+
+const searchStudents = async (term = "") => {
+  searchingStudents.value = true;
+  try {
+    const items = await studentService.searchStudents(term);
+    return (items || []).map(normalizeStudent);
   } catch (error) {
-    console.error("Failed to load booking options", error);
+    console.error("Failed to search students", error);
+    return [];
+  } finally {
+    searchingStudents.value = false;
   }
+};
+
+const { run: runNameSearch } = useThrottledCallback(async (term) => {
+  nameSuggestions.value = await searchStudents(term);
+}, 350);
+
+const { run: runPhoneSearch } = useThrottledCallback(async (term) => {
+  phoneSuggestions.value = await searchStudents(term);
+}, 350);
+
+const onNameComplete = (event) => {
+  runNameSearch(event.query || "");
+};
+
+const onPhoneComplete = (event) => {
+  runPhoneSearch(event.query || "");
+};
+
+const onStudentPicked = (student, setFieldValue) => {
+  if (!student || typeof student === "string") return;
+
+  const name = String(student.name || "").trim();
+  const phone = String(student.phone || "").trim();
+
+  selectedStudent.value = { id: student.id || null, name, phone };
+  form.studentName = name;
+  form.studentPhone = phone;
+  setFieldValue?.("studentName", name);
+  setFieldValue?.("studentPhone", phone);
+
+  nextTick(() => {
+    form.studentName = name;
+    form.studentPhone = phone;
+  });
+};
+
+const onNameTyped = (value, setFieldValue) => {
+  if (value && typeof value === "object") {
+    onStudentPicked(value, setFieldValue);
+    return;
+  }
+
+  const text = String(value || "");
+  form.studentName = text;
+  if (!selectedStudent.value || text.trim() !== selectedStudent.value.name) {
+    selectedStudent.value = null;
+  }
+  setFieldValue?.("studentName", text);
+};
+
+const onPhoneTyped = (value, setFieldValue) => {
+  if (value && typeof value === "object") {
+    onStudentPicked(value, setFieldValue);
+    return;
+  }
+
+  const text = String(value || "");
+  form.studentPhone = text;
+  if (!selectedStudent.value || text.trim() !== selectedStudent.value.phone) {
+    selectedStudent.value = null;
+  }
+  setFieldValue?.("studentPhone", text);
+};
+
+const ensureStudent = async () => {
+  const name = asText(form.studentName, "name");
+  const phone = asText(form.studentPhone, "phone");
+
+  form.studentName = name;
+  form.studentPhone = phone;
+
+  if (!name || !phone) {
+    throw new Error("اسم الطالب ورقم الهاتف مطلوبان.");
+  }
+
+  const picked = selectedStudent.value;
+  if (picked?.id && picked.name === name && picked.phone === phone) {
+    return picked.id;
+  }
+
+  selectedStudent.value = null;
+
+  const matches = await studentService.searchStudents(phone);
+  const existing = (matches || []).find(
+    (student) => String(student.phone || "").trim() === phone,
+  );
+
+  if (existing?.id) {
+    selectedStudent.value = normalizeStudent(existing);
+    return existing.id;
+  }
+
+  const created = await studentService.createStudent({ name, phone });
+  if (!created?.id) {
+    throw new Error("تعذر إضافة الطالب الجديد.");
+  }
+
+  selectedStudent.value = normalizeStudent(created);
+  return created.id;
 };
 
 const onFileChange = (event) => {
@@ -277,33 +522,64 @@ const onFileChange = (event) => {
 
 const resetForm = () => {
   Object.assign(form, {
-    ...initialValues,
-    product: props.initialProduct || "",
+    stage: "",
+    studentName: "",
+    studentPhone: "",
+    productId: props.initialProduct || null,
+    amount: null,
+    paymentMethod: "cash",
     receiptImage: "",
   });
+  selectedStudent.value = null;
+  nameSuggestions.value = [];
+  phoneSuggestions.value = [];
   imagePreview.value = "";
+  formKey.value += 1;
 };
 
 const handleSubmit = async () => {
+  feedback.message = "";
   saving.value = true;
 
   try {
+    const studentId = await ensureStudent();
+    const product = selectedProductOption.value;
+
     const result = await props.submitFn({
       stage: form.stage,
-      teacher_id: form.teacher,
-      product_id: form.product,
-      student_name: form.student,
-      phone: form.phone,
+      study_year_id: form.stage,
+      teacher_id: product?.teacherId || "",
+      product_id: form.productId,
+      productId: form.productId,
+      studentId,
+      student_id: studentId,
+      student_name: form.studentName,
+      phone: form.studentPhone,
       amount: form.amount,
+      paid_amount: form.amount,
+      deposit: form.amount,
       payment_method: form.paymentMethod,
-      receipt_image: form.receiptImage,
+      method: form.paymentMethod,
+      receipt_image: form.receiptImage || null,
+      proofReference: form.receiptImage || undefined,
+      quantity: 1,
     });
 
     if (props.showReceipt) {
-      receiptCode.value = result?.reservation_number || result?.code || result?.id || "";
+      receiptCode.value =
+        result?.reservation_number ||
+        result?.reservationNumber ||
+        result?.code ||
+        result?.id ||
+        "";
     }
 
+    feedback.type = "success";
+    feedback.message = "تم تسجيل الحجز بنجاح.";
     resetForm();
+  } catch (error) {
+    feedback.type = "error";
+    feedback.message = error?.message || "تعذر تسجيل الحجز.";
   } finally {
     saving.value = false;
   }
@@ -312,12 +588,17 @@ const handleSubmit = async () => {
 watch(
   () => props.initialProduct,
   (value) => {
-    if (value) form.product = value;
-  }
+    if (value) form.productId = value;
+  },
 );
 
-onMounted(() => {
-  loadOptions();
-  if (props.initialProduct) form.product = props.initialProduct;
+onMounted(async () => {
+  try {
+    await loadOptions();
+    if (props.initialProduct) form.productId = props.initialProduct;
+  } catch (error) {
+    feedback.type = "error";
+    feedback.message = error?.message || "تعذر تحميل بيانات الحجز.";
+  }
 });
 </script>
