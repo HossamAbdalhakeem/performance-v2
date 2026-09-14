@@ -93,21 +93,10 @@
       <div class="grid gap-6 xl:grid-cols-2">
         <div>
           <p class="mb-3 text-center text-sm font-semibold text-white">عدد العملاء لكل سنة دراسية</p>
-          <svg viewBox="0 0 320 180" class="h-44 w-full">
-            <line x1="30" y1="150" x2="300" y2="150" stroke="#64748b" />
-            <line x1="30" y1="20" x2="30" y2="150" stroke="#64748b" />
-            <polyline fill="none" stroke="#4472C4" stroke-width="3" points="50,132 110,88 170,104 230,48 290,68" />
-            <circle cx="50" cy="132" r="4" fill="#4472C4" />
-            <circle cx="110" cy="88" r="4" fill="#4472C4" />
-            <circle cx="170" cy="104" r="4" fill="#4472C4" />
-            <circle cx="230" cy="48" r="4" fill="#4472C4" />
-            <circle cx="290" cy="68" r="4" fill="#4472C4" />
-            <text x="40" y="168" fill="#cbd5e1" font-size="11">أولى</text>
-            <text x="100" y="168" fill="#cbd5e1" font-size="11">تانية</text>
-            <text x="160" y="168" fill="#cbd5e1" font-size="11">تالتة</text>
-            <text x="220" y="168" fill="#cbd5e1" font-size="11">رابعة</text>
-            <text x="275" y="168" fill="#cbd5e1" font-size="11">خامسة</text>
-          </svg>
+          <CustomersByYearChart
+            :labels="customersByYearLabels"
+            :values="customersByYearValues"
+          />
         </div>
 
         <div>
@@ -134,6 +123,7 @@
 import Select from "primevue/select";
 import Button from "primevue/button";
 import AppDataTable from "~/components/shared/app-data-table/index.vue";
+import CustomersByYearChart from "~/components/shared/customers-by-year-chart/index.vue";
 import { productService } from "~/services/productService";
 import { branchService } from "~/services/branchService";
 
@@ -149,6 +139,9 @@ const dateOptions = [
 
 const branchOptions = ref([{ label: "كل الفروع", value: "all" }]);
 const bookOptions = ref([{ label: "كل الكتب", value: "all" }]);
+
+const customersByYearLabels = ["أولى", "تانية", "تالتة", "رابعة", "خامسة"];
+const customersByYearValues = [1800, 6200, 4800, 9500, 7200];
 
 const studentColumns = [
   { field: "student", header: "اسم الطالب" },
