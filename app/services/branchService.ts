@@ -1,5 +1,11 @@
 import { apiFetch, firstRow } from "~/utils/apiFetch";
 
+const branchBody = (payload: Record<string, any>) => ({
+  name: payload.name,
+  address: payload.address,
+  phone: payload.phone,
+});
+
 export const branchService = {
   async getBranches(params: Record<string, any> = {}) {
     return await apiFetch("/branches", { method: "GET", params });
@@ -9,34 +15,24 @@ export const branchService = {
     return firstRow(
       await apiFetch("/branches", {
         method: "POST",
-        body: {
-          name: payload.name,
-          address: payload.address,
-          phone: payload.phone,
-        },
+        body: branchBody(payload),
       })
     );
   },
 
   async updateBranch(id: string, payload: Record<string, any>) {
     return firstRow(
-      await apiFetch("/branches", {
+      await apiFetch(`/branches/${id}`, {
         method: "PATCH",
-        params: { id },
-        body: {
-          name: payload.name,
-          address: payload.address,
-          phone: payload.phone,
-        },
+        body: branchBody(payload),
       })
     );
   },
 
   async updateBranchStatus(id: string, is_active: boolean) {
     return firstRow(
-      await apiFetch("/branches", {
+      await apiFetch(`/branches/${id}/status`, {
         method: "PATCH",
-        params: { id },
         body: { is_active },
       })
     );

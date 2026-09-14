@@ -12,7 +12,7 @@ export const teacherService = {
   },
 
   async getTeacher(id: string) {
-    return firstRow(await apiFetch("/teachers", { method: "GET", params: { id } }));
+    return firstRow(await apiFetch(`/teachers/${id}`, { method: "GET" }));
   },
 
   async createTeacher(payload: Record<string, any>) {
@@ -26,9 +26,8 @@ export const teacherService = {
 
   async updateTeacher(id: string, payload: Record<string, any>) {
     return firstRow(
-      await apiFetch("/teachers", {
+      await apiFetch(`/teachers/${id}`, {
         method: "PATCH",
-        params: { id },
         body: teacherBody(payload),
       })
     );
@@ -36,9 +35,8 @@ export const teacherService = {
 
   async updateTeacherStatus(id: string, is_active: boolean) {
     return firstRow(
-      await apiFetch("/teachers", {
+      await apiFetch(`/teachers/${id}/status`, {
         method: "PATCH",
-        params: { id },
         body: { is_active },
       })
     );

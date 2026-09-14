@@ -5,6 +5,7 @@ const userBody = (payload: Record<string, any>) => ({
   full_name: payload.full_name || payload.name,
   phone: payload.phone,
   role: payload.role,
+  branch_ids: payload.branch_ids || [],
 });
 
 export const userService = {
@@ -13,7 +14,7 @@ export const userService = {
   },
 
   async getUser(id: string) {
-    return firstRow(await apiFetch("/users", { method: "GET", params: { id } }));
+    return firstRow(await apiFetch(`/users/${id}`, { method: "GET" }));
   },
 
   async createUser(payload: Record<string, any>) {
@@ -27,9 +28,8 @@ export const userService = {
 
   async updateUser(id: string, payload: Record<string, any>) {
     return firstRow(
-      await apiFetch("/users", {
+      await apiFetch(`/users/${id}`, {
         method: "PATCH",
-        params: { id },
         body: userBody(payload),
       })
     );
@@ -37,9 +37,8 @@ export const userService = {
 
   async updateUserStatus(id: string, is_active: boolean) {
     return firstRow(
-      await apiFetch("/users", {
+      await apiFetch(`/users/${id}/status`, {
         method: "PATCH",
-        params: { id },
         body: { is_active },
       })
     );

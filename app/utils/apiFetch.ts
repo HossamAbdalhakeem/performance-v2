@@ -58,25 +58,17 @@ export const asList = <T = any>(response: any): T[] => {
 
 export const firstRow = <T = any>(response: any): T | null => {
   const list = asList<T>(response);
-  if (list.length) return list[0];
+  if (list.length) return list[0] ?? null;
   const data = asData(response);
   return data && !Array.isArray(data) ? (data as T) : null;
 };
 
-const REST_OPERATOR = /^(eq|neq|gt|gte|lt|lte|like|ilike|is|in|cs|cd|ov|not)\./;
-const REST_PASSTHROUGH = new Set(["select", "order", "limit", "offset", "on_conflict", "or"]);
-const REST_SKIP = new Set(["page", "search", "format"]);
-
-export const toRestParams = (params: Record<string, any> = {}) => {
+const cleanParams = (params: Record<string, any> = {}) => {
   const out: Record<string, any> = {};
 
   Object.entries(params).forEach(([key, value]) => {
-    if (value === undefined || value === null || value === "" || REST_SKIP.has(key)) return;
-    if (REST_PASSTHROUGH.has(key) || (typeof value === "string" && REST_OPERATOR.test(value))) {
-      out[key] = value;
-      return;
-    }
-    out[key] = `eq.${value}`;
+    if (value === undefined || value === null || value === "") return;
+    out[key] = value;
   });
 
   return out;
@@ -87,15 +79,10 @@ const request = async <T = any>(baseURL: string, path: string, options: FetchOpt
     throw new ApiError("MISSING_API_BASE", "API base URL is not configured.");
   }
 
-  const method = String(options.method || "GET").toUpperCase();
-  const params = method === "GET" || method === "PATCH" || method === "DELETE"
-    ? toRestParams((options.params || {}) as Record<string, any>)
-    : options.params;
-
   try {
     return await $fetch<T>(path, {
       ...options,
-      params,
+      params: cleanParams((options.params || {}) as Record<string, any>),
       baseURL,
       headers: getAuthHeaders({
         Prefer: "return=representation",
@@ -113,22 +100,4 @@ export const apiFetch = async <T = any>(path: string, options: FetchOptions = {}
 
 export const authFetch = async <T = any>(path: string, options: FetchOptions = {}) => {
   return request<T>(`${getApiOrigin()}/auth/v1`, path, options);
-};
-
-export const originFetch = async <T = any>(path: string, options: FetchOptions = {}) => {
-  const baseURL = getApiOrigin();
-
-  if (!baseURL) {
-    throw new ApiError("MISSING_API_BASE", "API base URL is not configured.");
-  }
-
-  try {
-    return await $fetch<T>(path, {
-      ...options,
-      baseURL,
-      headers: getAuthHeaders((options.headers || {}) as Record<string, string>),
-    });
-  } catch (error) {
-    throw toApiError(error);
-  }
 };

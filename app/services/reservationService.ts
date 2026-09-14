@@ -1,16 +1,30 @@
 import { apiFetch, firstRow } from "~/utils/apiFetch";
 
 const reservationBody = (payload: Record<string, any>) => ({
-  student_name: payload.student_name || payload.student?.name,
-  phone: payload.phone || payload.student?.phone,
-  study_year_id: payload.stage || payload.study_year_id,
-  teacher_id: payload.teacher_id,
-  product_id: payload.product_id || payload.items?.[0]?.product_id,
-  quantity: payload.quantity || payload.items?.[0]?.quantity || 1,
-  paid_amount: payload.amount ?? payload.paid_amount,
+  student: {
+    name: payload.student?.name || payload.student_name,
+    phone: payload.student?.phone || payload.phone,
+  },
+  study_year_id: payload.study_year_id || payload.stage,
+  branch_id: payload.branch_id,
+  items: payload.items || [
+    {
+      product_id: payload.product_id,
+      quantity: payload.quantity || 1,
+    },
+  ],
+  paid_amount: payload.paid_amount ?? payload.amount,
   payment_method: payload.payment_method,
-  receipt_image: payload.receipt_image ?? payload.payment_proof_path ?? null,
-  status: "pending",
+  payment_proof_path: payload.payment_proof_path ?? payload.receipt_image ?? null,
+});
+
+const exchangeBody = (payload: Record<string, any>) => ({
+  items: payload.items || [
+    {
+      product_id: payload.product_id,
+      quantity: payload.quantity || 1,
+    },
+  ],
 });
 
 export const reservationService = {
@@ -19,7 +33,7 @@ export const reservationService = {
   },
 
   async getReservation(id: string) {
-    return firstRow(await apiFetch("/reservations", { method: "GET", params: { id } }));
+    return firstRow(await apiFetch(`/reservations/${id}`, { method: "GET" }));
   },
 
   async createReservation(payload: Record<string, any>) {
@@ -33,21 +47,18 @@ export const reservationService = {
 
   async deliverReservation(id: string) {
     return firstRow(
-      await apiFetch("/reservations", {
-        method: "PATCH",
-        params: { id },
-        body: { status: "delivered" },
+      await apiFetch(`/reservations/${id}/deliver`, {
+        method: "POST",
+        body: {},
       })
     );
   },
 
   async cancelReservation(id: string, payload: Record<string, any> = {}) {
     return firstRow(
-      await apiFetch("/reservations", {
-        method: "PATCH",
-        params: { id },
+      await apiFetch(`/reservations/${id}/cancel`, {
+        method: "POST",
         body: {
-          status: "cancelled",
           refund_amount: payload.refund_amount,
           reason: payload.reason,
         },
@@ -57,13 +68,9 @@ export const reservationService = {
 
   async exchangeReservation(id: string, payload: Record<string, any>) {
     return firstRow(
-      await apiFetch("/reservations", {
-        method: "PATCH",
-        params: { id },
-        body: {
-          product_id: payload.items?.[0]?.product_id || payload.product_id,
-          quantity: payload.items?.[0]?.quantity || payload.quantity,
-        },
+      await apiFetch(`/reservations/${id}/exchange`, {
+        method: "POST",
+        body: exchangeBody(payload),
       })
     );
   },

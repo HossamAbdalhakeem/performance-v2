@@ -12,7 +12,7 @@ export const studentService = {
   },
 
   async getStudent(id: string) {
-    return firstRow(await apiFetch("/students", { method: "GET", params: { id } }));
+    return firstRow(await apiFetch(`/students/${id}`, { method: "GET" }));
   },
 
   async createStudent(payload: Record<string, any>) {
@@ -26,20 +26,14 @@ export const studentService = {
 
   async updateStudent(id: string, payload: Record<string, any>) {
     return firstRow(
-      await apiFetch("/students", {
+      await apiFetch(`/students/${id}`, {
         method: "PATCH",
-        params: { id },
         body: studentBody(payload),
       })
     );
   },
 
   async getStudentHistory(id: string) {
-    const [sales, reservations] = await Promise.all([
-      apiFetch("/sales", { method: "GET", params: { student_id: id } }),
-      apiFetch("/reservations", { method: "GET", params: { student_id: id } }),
-    ]);
-
-    return { sales, reservations };
+    return await apiFetch(`/students/${id}/history`, { method: "GET" });
   },
 };

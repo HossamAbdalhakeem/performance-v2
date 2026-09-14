@@ -2,43 +2,38 @@ import { apiFetch } from "~/utils/apiFetch";
 
 export const reportService = {
   async getSalesReport(params: Record<string, any> = {}) {
-    return await apiFetch("/sales", { method: "GET", params });
+    return await apiFetch("/reports/sales", { method: "GET", params });
   },
 
   async getProfitReport(params: Record<string, any> = {}) {
-    return await apiFetch("/sales", { method: "GET", params });
+    return await apiFetch("/reports/profit", { method: "GET", params });
   },
 
   async getReservationReport(params: Record<string, any> = {}) {
-    return await apiFetch("/reservations", { method: "GET", params });
+    return await apiFetch("/reports/reservations", { method: "GET", params });
   },
 
   async getInventoryReport(params: Record<string, any> = {}) {
-    return await apiFetch("/inventory", { method: "GET", params });
+    return await apiFetch("/reports/inventory", { method: "GET", params });
   },
 
   async getStudentsReport(params: Record<string, any> = {}) {
-    return await apiFetch("/students", { method: "GET", params });
+    return await apiFetch("/reports/students", { method: "GET", params });
   },
 
   async getTeacherStudents(params: Record<string, any> = {}) {
-    return await apiFetch("/students", { method: "GET", params });
+    return await apiFetch("/reports/teacher-students", { method: "GET", params });
   },
 
   async exportReport(params: Record<string, any> = {}) {
-    const type = params.type || "sales";
-    const table =
-      type === "reservations" ? "/reservations" :
-      type === "inventory" ? "/inventory" :
-      type === "students" ? "/students" :
-      "/sales";
-
-    return await apiFetch(table, {
+    return await apiFetch("/reports/export", {
       method: "GET",
       params: {
+        type: params.type || "sales",
         branch_id: params.branch_id,
         date_from: params.date_from,
         date_to: params.date_to,
+        format: params.format || "xlsx",
       },
     });
   },
