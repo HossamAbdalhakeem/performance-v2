@@ -1,31 +1,9 @@
 <template>
-  <div class="space-y-6">
-    <Card>
-      <template #content>
-        <BookingForm
-          title="حجز الكتب"
-          submit-label="تأكيد الحجز"
-          show-header
-          show-hint
-          show-receipt
-          :submit-fn="submitReservation"
-        />
-      </template>
-    </Card>
-  </div>
+  <ReservationsPage />
 </template>
 
 <script setup>
-import Card from "primevue/card";
-import BookingForm from "~/components/dashboard/BookingForm.vue";
-import { reservationService } from "~/services/reservationService";
-
-const submitReservation = async (payload) => {
-  return await reservationService.createReservation({
-    ...payload,
-    status: "pending",
-  });
-};
+import ReservationsPage from "~/components/dashboard/pages/reservations/ReservationsPage.vue";
 
 definePageMeta({ middleware: ["local-pages"] });
 </script>
