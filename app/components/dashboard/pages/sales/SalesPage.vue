@@ -15,17 +15,22 @@
         </p>
 
         <Form
-          v-slot="{ errors: fieldErrors }"
+          v-slot="{ errors: fieldErrors, setFieldValue }"
           :key="formKey"
           :initial-values="formInitialValues"
           class="grid gap-4 md:grid-cols-2"
           @submit="submitSale"
         >
-          <Field v-slot="{ field, errorMessage }" name="studentId" rules="required">
+          <Field
+            v-slot="{ errorMessage }"
+            v-model="form.studentId"
+            name="studentId"
+            label="اسم الطالب"
+            rules="required"
+          >
             <div class="flex flex-col gap-2 text-right">
               <label class="text-sm font-medium text-slate-700">اسم الطالب</label>
               <Select
-                v-bind="field"
                 v-model="form.studentId"
                 :options="studentNameOptions"
                 optionLabel="label"
@@ -38,17 +43,22 @@
                 class="w-full"
                 :class="{ 'p-invalid': errorMessage || fieldErrors.studentId }"
                 @filter="onStudentNameFilter"
-                @update:modelValue="onStudentSelected"
+                @update:modelValue="(id) => syncStudentSelection(id, setFieldValue)"
               />
               <ErrorMessage name="studentId" class="text-xs text-red-500" />
             </div>
           </Field>
 
-          <Field v-slot="{ field, errorMessage }" name="studentPhoneId" rules="required">
+          <Field
+            v-slot="{ errorMessage }"
+            v-model="form.studentPhoneId"
+            name="studentPhoneId"
+            label="رقم الهاتف"
+            rules="required"
+          >
             <div class="flex flex-col gap-2 text-right">
               <label class="text-sm font-medium text-slate-700">رقم الهاتف</label>
               <Select
-                v-bind="field"
                 v-model="form.studentPhoneId"
                 :options="studentPhoneOptions"
                 optionLabel="label"
@@ -61,17 +71,22 @@
                 class="w-full"
                 :class="{ 'p-invalid': errorMessage || fieldErrors.studentPhoneId }"
                 @filter="onStudentPhoneFilter"
-                @update:modelValue="onStudentPhoneSelected"
+                @update:modelValue="(id) => syncStudentSelection(id, setFieldValue)"
               />
               <ErrorMessage name="studentPhoneId" class="text-xs text-red-500" />
             </div>
           </Field>
 
-          <Field v-slot="{ field, errorMessage }" name="productId" rules="required">
+          <Field
+            v-slot="{ errorMessage }"
+            v-model="form.productId"
+            name="productId"
+            label="المنتج"
+            rules="required"
+          >
             <div class="flex flex-col gap-2 text-right">
               <label class="text-sm font-medium text-slate-700">المنتج</label>
               <Select
-                v-bind="field"
                 v-model="form.productId"
                 :options="productOptions"
                 optionLabel="label"
@@ -205,7 +220,7 @@ const students = ref([]);
 
 const productOptions = computed(() =>
   products.value.map((product) => ({
-    label: `${product.name} — ${formatMoney(product.sellingPrice)}`,
+    label: `${product.name} — \u2066${Number(product.sellingPrice || 0).toFixed(2)} ج.م\u2069`,
     value: product.id,
     sellingPrice: Number(product.sellingPrice || 0),
   })),
@@ -240,7 +255,7 @@ const needsProof = computed(
   () => form.method === "WALLET" || form.method === "INSTAPAY",
 );
 
-const formatMoney = (value) => `${Number(value || 0).toFixed(2)} ج.م`;
+const formatMoney = (value) => `\u2066${Number(value || 0).toFixed(2)} ج.م\u2069`;
 
 const loadProducts = async () => {
   const items = await productService.getProducts();
@@ -272,14 +287,12 @@ const onStudentPhoneFilter = (event) => {
   runStudentSearch(event.value || "");
 };
 
-const onStudentSelected = (studentId) => {
-  form.studentId = studentId || null;
-  form.studentPhoneId = studentId || null;
-};
-
-const onStudentPhoneSelected = (studentId) => {
-  form.studentId = studentId || null;
-  form.studentPhoneId = studentId || null;
+const syncStudentSelection = (studentId, setFieldValue) => {
+  const id = studentId || null;
+  form.studentId = id;
+  form.studentPhoneId = id;
+  setFieldValue?.("studentId", id);
+  setFieldValue?.("studentPhoneId", id);
 };
 
 const fileToDataUrl = (file) =>
