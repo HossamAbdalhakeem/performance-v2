@@ -282,7 +282,7 @@ import Button from "primevue/button";
 import Select from "primevue/select";
 import AutoComplete from "primevue/autocomplete";
 import AppInputNumber from "~/components/dashboard/AppInputNumber.vue";
-import ImageUpload from "~/components/dashboard/ImageUpload.vue";
+import ImageUpload from "~/components/shared/image-upload/index.vue";
 import { Form, Field, ErrorMessage } from "vee-validate";
 import { productService } from "~/services/productService";
 import { studentService } from "~/services/studentService";
