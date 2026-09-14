@@ -377,19 +377,28 @@ const asText = (value, key = "") => {
   return String(value).trim();
 };
 
+const loadProducts = async () => {
+  const items = await productService.getProducts();
+  const list = Array.isArray(items) ? items : items?.data || [];
+  products.value = list.filter((product) => product.status !== "INACTIVE");
+};
+
+const loadStudyYears = async () => {
+  try {
+    const years = await studyYearService.getStudyYears();
+    stageOptions.value = asList(years).map((item) => ({
+      label: item.label || item.name || String(item.id),
+      value: item.id,
+    }));
+  } catch (error) {
+    console.error("Failed to load study years", error);
+    stageOptions.value = [];
+  }
+};
+
 const loadOptions = async () => {
-  const [productItems, years] = await Promise.all([
-    productService.getProducts(),
-    studyYearService.getStudyYears(),
-  ]);
-
-  const productList = Array.isArray(productItems) ? productItems : productItems?.data || [];
-  products.value = productList.filter((product) => product.status !== "INACTIVE");
-
-  stageOptions.value = asList(years).map((item) => ({
-    label: item.label || item.name || String(item.id),
-    value: item.id,
-  }));
+  // Load separately so a study-years failure does not empty products.
+  await Promise.all([loadProducts(), loadStudyYears()]);
 };
 
 const searchStudents = async (term = "") => {
