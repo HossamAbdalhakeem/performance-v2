@@ -113,7 +113,7 @@ const loadOptions = async () => {
 
     reservationOptions.value = reservationList.map((item) => ({
       label: `حجز #${item.id}`,
-      details: `حجز #${item.id} | طالب: ${item.student || item.student_name || "طالب"} | المدرس الحالي: ${item.teacher || "X"} | فرع: ${item.branch || item.branch_name || "Z"}`,
+      details: `طالب: ${item.student || item.student_name || ""} | المدرس الحالي: ${item.teacher || ""} | فرع: ${item.branch || item.branch_name || ""}`,
       phone: item.phone || "",
       value: item.id,
     }));

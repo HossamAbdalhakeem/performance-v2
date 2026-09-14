@@ -31,7 +31,7 @@
             >
               <p class="font-bold text-white">حجز #{{ item.id }}</p>
               <p class="mt-1 text-sm text-slate-300">
-                طالب: {{ item.student || item.student_name }} | كتاب: {{ item.book || item.product }} | فرع: {{ item.branch || item.branch_name }} | مبلغ: {{ item.amount }}
+                طالب: {{ item.student || item.student_name }} | كتاب: {{ item.book || item.product }} | فرع: {{ item.branch || item.branch_name }} | مبلغ: {{ item.amount_paid }}
               </p>
             </button>
 
