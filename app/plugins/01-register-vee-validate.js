@@ -12,16 +12,21 @@ import {
 } from "@vee-validate/rules";
 export default defineNuxtPlugin((NuxtApp) => {
   defineRule("required", (value, [target], ctx) => {
+    const fieldName = ctx.field || "Field";
+    const capitalizedField = fieldName.charAt(0).toUpperCase() + fieldName.slice(1);
+
     // Handle arrays (e.g., tags)
     if (Array.isArray(value)) {
       if (value.length === 0) {
-        const fieldName = ctx.field || "Field";
-        const capitalizedField =
-          fieldName.charAt(0).toUpperCase() + fieldName.slice(1);
         return `${capitalizedField} is Required`;
       }
       return true;
     }
+
+    if (value instanceof Date) {
+      return Number.isNaN(value.getTime()) ? `${capitalizedField} is Required` : true;
+    }
+
     // Handle objects (e.g., main_photo with file_url)
     if (value && typeof value === "object" && !Array.isArray(value)) {
       // Check if it's an image object with file_url
@@ -30,28 +35,18 @@ export default defineNuxtPlugin((NuxtApp) => {
           !value.file_url ||
           (typeof value.file_url === "string" && !value.file_url.trim())
         ) {
-          const fieldName = ctx.field || "Field";
-          const capitalizedField =
-            fieldName.charAt(0).toUpperCase() + fieldName.slice(1);
           return `${capitalizedField} is Required`;
         }
         return true;
       }
       // For other objects, check if it's empty
       if (Object.keys(value).length === 0) {
-        const fieldName = ctx.field || "Field";
-        const capitalizedField =
-          fieldName.charAt(0).toUpperCase() + fieldName.slice(1);
         return `${capitalizedField} is Required`;
       }
       return true;
     }
     // Handle strings
     if (!value || (typeof value === "string" && !value.trim())) {
-      const fieldName = ctx.field || "Field";
-      // Capitalize first letter
-      const capitalizedField =
-        fieldName.charAt(0).toUpperCase() + fieldName.slice(1);
       return `${capitalizedField} is Required`;
     }
     return true;

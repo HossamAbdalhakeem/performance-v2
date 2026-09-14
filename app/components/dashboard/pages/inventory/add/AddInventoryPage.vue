@@ -15,10 +15,10 @@
             </div>
           </Field>
 
-          <Field v-slot="{ field, errorMessage }" name="date" rules="required">
+          <Field v-slot="{ errorMessage }" v-model="form.date" name="date" rules="required">
             <div class="flex flex-col gap-2 text-right">
               <label class="text-sm font-medium">التاريخ</label>
-              <DatePicker v-bind="field" v-model="form.date" dateFormat="dd/mm/yy" showIcon class="w-full" :class="{ 'p-invalid': errorMessage || fieldErrors.date }" />
+              <DatePicker v-model="form.date" dateFormat="dd/mm/yy" showIcon class="w-full" :class="{ 'p-invalid': errorMessage || fieldErrors.date }" />
               <ErrorMessage name="date" class="text-xs text-red-400" />
             </div>
           </Field>
