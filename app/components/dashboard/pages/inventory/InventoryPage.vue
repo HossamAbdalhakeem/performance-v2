@@ -33,10 +33,10 @@
               </div>
             </Field>
 
-            <Field v-slot="{ field, errorMessage }" name="quantity" rules="required|min_value:1">
+            <Field v-slot="{ errorMessage }" v-model="form.quantity" name="quantity" rules="required|min_value:1">
               <div class="flex flex-col gap-2 text-right">
                 <label class="text-sm font-medium text-slate-700">الكمية</label>
-                <InputNumber v-bind="field" v-model="form.quantity" :class="{ 'p-invalid': errorMessage || fieldErrors.quantity }" />
+                <AppInputNumber v-model="form.quantity" :min="1" :max-fraction-digits="0" :invalid="!!(errorMessage || fieldErrors.quantity)" />
                 <ErrorMessage name="quantity" class="text-xs text-red-500" />
               </div>
             </Field>
@@ -91,8 +91,8 @@ import DataTable from "primevue/datatable";
 import Column from "primevue/column";
 import Tag from "primevue/tag";
 import InputText from "primevue/inputtext";
-import InputNumber from "primevue/inputnumber";
 import Select from "primevue/select";
+import AppInputNumber from "~/components/dashboard/AppInputNumber.vue";
 import Skeleton from "primevue/skeleton";
 import { Form, Field, ErrorMessage } from "vee-validate";
 

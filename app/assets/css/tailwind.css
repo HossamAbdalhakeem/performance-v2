@@ -60,12 +60,18 @@ textarea {
 .p-inputtext,
 .p-select,
 .p-dropdown,
+.p-inputnumber,
 .p-inputnumber-input,
 .p-calendar .p-inputtext,
 .p-textarea {
+  width: 100%;
   background: #0b1220 !important;
   border: 1px solid #475569 !important;
   color: #f8fafc !important;
+}
+
+.p-inputnumber {
+  display: flex;
 }
 
 .p-inputtext::placeholder,

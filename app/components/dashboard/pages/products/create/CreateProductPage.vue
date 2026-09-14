@@ -52,33 +52,33 @@
             </div>
           </Field>
 
-          <Field v-slot="{ field, errorMessage }" name="wholesalePrice" rules="required|min_value:0">
+          <Field v-slot="{ errorMessage }" v-model="form.wholesalePrice" name="wholesalePrice" rules="required|min_value:0">
             <div class="flex flex-col gap-2 text-right">
               <label class="text-sm font-medium">سعر الجملة</label>
-              <InputNumber
-                v-bind="field"
+              <AppInputNumber
                 v-model="form.wholesalePrice"
                 mode="currency"
                 currency="EGP"
-                locale="ar-EG"
-                class="w-full"
-                :class="{ 'p-invalid': errorMessage || fieldErrors.wholesalePrice }"
+                :min="0"
+                :min-fraction-digits="2"
+                :use-grouping="true"
+                :invalid="!!(errorMessage || fieldErrors.wholesalePrice)"
               />
               <ErrorMessage name="wholesalePrice" class="text-xs text-red-400" />
             </div>
           </Field>
 
-          <Field v-slot="{ field, errorMessage }" name="salePrice" rules="required|min_value:0">
+          <Field v-slot="{ errorMessage }" v-model="form.salePrice" name="salePrice" rules="required|min_value:0">
             <div class="flex flex-col gap-2 text-right">
               <label class="text-sm font-medium">سعر البيع</label>
-              <InputNumber
-                v-bind="field"
+              <AppInputNumber
                 v-model="form.salePrice"
                 mode="currency"
                 currency="EGP"
-                locale="ar-EG"
-                class="w-full"
-                :class="{ 'p-invalid': errorMessage || fieldErrors.salePrice }"
+                :min="0"
+                :min-fraction-digits="2"
+                :use-grouping="true"
+                :invalid="!!(errorMessage || fieldErrors.salePrice)"
               />
               <ErrorMessage name="salePrice" class="text-xs text-red-400" />
             </div>
@@ -113,8 +113,8 @@
 import Card from "primevue/card";
 import Button from "primevue/button";
 import InputText from "primevue/inputtext";
-import InputNumber from "primevue/inputnumber";
 import Select from "primevue/select";
+import AppInputNumber from "~/components/dashboard/AppInputNumber.vue";
 import Dialog from "primevue/dialog";
 import { Form, Field, ErrorMessage } from "vee-validate";
 import { productService } from "~/services/productService";

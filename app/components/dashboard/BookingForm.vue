@@ -101,17 +101,17 @@
               </div>
             </Field>
 
-            <Field v-slot="{ field, errorMessage }" name="amount" rules="required|min_value:1">
+            <Field v-slot="{ errorMessage }" v-model="form.amount" name="amount" rules="required|min_value:1">
               <div class="flex flex-col gap-2 text-right">
                 <label class="text-sm font-medium text-slate-200">المبلغ المدفوع (مقدم)</label>
-                <InputNumber
-                  v-bind="field"
+                <AppInputNumber
                   v-model="form.amount"
                   mode="currency"
                   currency="EGP"
-                  locale="ar-EG"
-                  class="w-full"
-                  :class="{ 'p-invalid': errorMessage || fieldErrors.amount }"
+                  :min="1"
+                  :min-fraction-digits="2"
+                  :use-grouping="true"
+                  :invalid="!!(errorMessage || fieldErrors.amount)"
                 />
                 <ErrorMessage name="amount" class="text-xs text-red-400" />
               </div>
@@ -185,8 +185,8 @@
 <script setup>
 import Button from "primevue/button";
 import InputText from "primevue/inputtext";
-import InputNumber from "primevue/inputnumber";
 import Select from "primevue/select";
+import AppInputNumber from "~/components/dashboard/AppInputNumber.vue";
 import { Form, Field, ErrorMessage } from "vee-validate";
 import { teacherService } from "~/services/teacherService";
 import { productService } from "~/services/productService";

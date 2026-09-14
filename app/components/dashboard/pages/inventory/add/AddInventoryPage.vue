@@ -31,10 +31,10 @@
             </div>
           </Field>
 
-          <Field v-slot="{ field, errorMessage }" name="quantity" rules="required|min_value:1">
+          <Field v-slot="{ errorMessage }" v-model="form.quantity" name="quantity" rules="required|min_value:1">
             <div class="flex flex-col gap-2 text-right">
               <label class="text-sm font-medium">الكمية</label>
-              <InputNumber v-bind="field" v-model="form.quantity" class="w-full" :class="{ 'p-invalid': errorMessage || fieldErrors.quantity }" />
+              <AppInputNumber v-model="form.quantity" :min="1" :max-fraction-digits="0" :invalid="!!(errorMessage || fieldErrors.quantity)" />
               <ErrorMessage name="quantity" class="text-xs text-red-400" />
             </div>
           </Field>
@@ -71,8 +71,8 @@
 <script setup>
 import Card from "primevue/card";
 import Button from "primevue/button";
-import InputNumber from "primevue/inputnumber";
 import Select from "primevue/select";
+import AppInputNumber from "~/components/dashboard/AppInputNumber.vue";
 import DatePicker from "primevue/datepicker";
 import { Form, Field, ErrorMessage } from "vee-validate";
 import { inventoryService } from "~/services/inventoryService";
