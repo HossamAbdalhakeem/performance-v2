@@ -9,7 +9,11 @@
         <p
           v-if="feedback.message"
           class="mb-4 rounded-xl px-3 py-2 text-sm"
-          :class="feedback.type === 'error' ? 'bg-red-50 text-red-600' : 'bg-emerald-50 text-emerald-700'"
+          :class="
+            feedback.type === 'error'
+              ? 'bg-red-50 text-red-600'
+              : 'bg-emerald-50 text-emerald-700'
+          "
         >
           {{ feedback.message }}
         </p>
@@ -29,7 +33,9 @@
             rules="required"
           >
             <div class="flex flex-col gap-2 text-right">
-              <label class="text-sm font-medium text-slate-700">اسم الطالب</label>
+              <label class="text-sm font-medium text-slate-700"
+                >اسم الطالب</label
+              >
               <AutoComplete
                 v-model="form.studentName"
                 :suggestions="nameSuggestions"
@@ -42,13 +48,21 @@
                 input-class="w-full"
                 :invalid="!!(errorMessage || fieldErrors.studentName)"
                 @complete="onNameComplete"
-                @item-select="(event) => onStudentPicked(event.value, setFieldValue)"
-                @update:modelValue="(value) => onNameTyped(value, setFieldValue)"
+                @item-select="
+                  (event) => onStudentPicked(event.value, setFieldValue)
+                "
+                @update:modelValue="
+                  (value) => onNameTyped(value, setFieldValue)
+                "
               >
                 <template #option="{ option }">
-                  <div class="flex w-full items-center justify-between gap-3 text-right">
+                  <div
+                    class="flex w-full items-center justify-between gap-3 text-right"
+                  >
                     <span>{{ option.name }}</span>
-                    <span class="text-xs text-slate-400">{{ option.phone || "بدون رقم" }}</span>
+                    <span class="text-xs text-slate-400">{{
+                      option.phone || "بدون رقم"
+                    }}</span>
                   </div>
                 </template>
               </AutoComplete>
@@ -64,7 +78,9 @@
             rules="required"
           >
             <div class="flex flex-col gap-2 text-right">
-              <label class="text-sm font-medium text-slate-700">رقم الهاتف</label>
+              <label class="text-sm font-medium text-slate-700"
+                >رقم الهاتف</label
+              >
               <AutoComplete
                 v-model="form.studentPhone"
                 :suggestions="phoneSuggestions"
@@ -77,13 +93,21 @@
                 input-class="w-full"
                 :invalid="!!(errorMessage || fieldErrors.studentPhone)"
                 @complete="onPhoneComplete"
-                @item-select="(event) => onStudentPicked(event.value, setFieldValue)"
-                @update:modelValue="(value) => onPhoneTyped(value, setFieldValue)"
+                @item-select="
+                  (event) => onStudentPicked(event.value, setFieldValue)
+                "
+                @update:modelValue="
+                  (value) => onPhoneTyped(value, setFieldValue)
+                "
               >
                 <template #option="{ option }">
-                  <div class="flex w-full items-center justify-between gap-3 text-right">
+                  <div
+                    class="flex w-full items-center justify-between gap-3 text-right"
+                  >
                     <span>{{ option.phone || "بدون رقم" }}</span>
-                    <span class="text-xs text-slate-400">{{ option.name }}</span>
+                    <span class="text-xs text-slate-400">{{
+                      option.name
+                    }}</span>
                   </div>
                 </template>
               </AutoComplete>
@@ -112,9 +136,14 @@
                 :class="{ 'p-invalid': errorMessage || fieldErrors.productId }"
               >
                 <template #value="{ placeholder }">
-                  <div v-if="selectedProductOption" class="w-full py-0.5 text-right">
+                  <div
+                    v-if="selectedProductOption"
+                    class="w-full py-0.5 text-right"
+                  >
                     <div class="flex items-start justify-between gap-3">
-                      <span class="font-medium text-slate-100">{{ selectedProductOption.name }}</span>
+                      <span class="font-medium text-slate-100">{{
+                        selectedProductOption.name
+                      }}</span>
                       <span class="shrink-0 text-sm text-sky-300">
                         سعره {{ selectedProductOption.priceLabel }}
                       </span>
@@ -129,7 +158,9 @@
                   <div class="w-full py-1 text-right">
                     <div class="flex items-start justify-between gap-3">
                       <span class="font-medium">{{ option.name }}</span>
-                      <span class="shrink-0 text-sm text-sky-300">سعره {{ option.priceLabel }}</span>
+                      <span class="shrink-0 text-sm text-sky-300"
+                        >سعره {{ option.priceLabel }}</span
+                      >
                     </div>
                     <p class="mt-0.5 text-xs text-slate-400">
                       مقدم من أ/ {{ option.teacherName || "-" }}
@@ -162,51 +193,71 @@
           <div
             class="md:col-span-2 rounded-2xl border border-amber-400/40 bg-gradient-to-l from-amber-500/20 via-orange-500/10 to-slate-900 px-6 py-8 text-center"
           >
-            <p class="mb-2 text-sm font-medium text-amber-100/80">مبلغ المنتج</p>
-            <p class="text-4xl font-extrabold tracking-tight text-amber-300 md:text-5xl">
+            <p class="mb-2 text-sm font-medium text-amber-100/80">
+              مبلغ المنتج
+            </p>
+            <p
+              class="text-4xl font-extrabold tracking-tight text-amber-300 md:text-5xl"
+            >
               {{ formatMoney(requiredAmount) }}
             </p>
           </div>
-
-          <Field v-slot="{}" v-model="form.method" name="method" rules="required">
-            <div class="md:col-span-2 flex flex-col gap-2 text-right">
-              <label class="text-sm font-medium text-slate-700">طريقة الدفع</label>
-              <div class="space-y-2 rounded-xl border border-white/10 bg-slate-950/60 p-3">
-                <label
-                  v-for="option in paymentOptions"
-                  :key="option.value"
-                  class="flex cursor-pointer items-center justify-end gap-2 text-sm text-slate-200"
+          <div class="md:col-span-2 grid gap-4 md:grid-cols-2">
+            <Field
+              v-slot="{}"
+              v-model="form.method"
+              name="method"
+              rules="required"
+            >
+              <div class="flex h-full flex-col gap-2 text-right">
+                <label class="text-sm font-medium text-slate-700"
+                  >طريقة الدفع</label
                 >
-                  <span>{{ option.label }}</span>
-                  <input
-                    v-model="form.method"
-                    type="radio"
-                    :value="option.value"
-                    class="accent-sky-400"
-                  />
-                </label>
+                <div
+                  class="space-y-2 rounded-xl border border-white/10 bg-slate-950/60 p-3"
+                >
+                  <label
+                    v-for="option in paymentOptions"
+                    :key="option.value"
+                    class="flex cursor-pointer items-center justify-end gap-2 text-sm text-slate-200"
+                  >
+                    <span>{{ option.label }}</span>
+                    <input
+                      v-model="form.method"
+                      type="radio"
+                      :value="option.value"
+                      class="accent-sky-400"
+                    />
+                  </label>
+                </div>
+                <ErrorMessage name="method" class="text-xs text-red-500" />
               </div>
-              <ErrorMessage name="method" class="text-xs text-red-500" />
-            </div>
-          </Field>
+            </Field>
 
-          <div v-if="needsProof" class="md:col-span-2">
-            <ImageUpload
-              v-model="proofFile"
-              label="صورة إثبات الدفع"
-              placeholder="ارفع صورة المحفظة / إنستاباي"
-              :max-size-mb="0.5"
-              :invalid="proofRequiredError"
-              @select="onProofSelected"
-              @clear="proofDataUrl = ''"
-            />
-            <p v-if="proofRequiredError" class="mt-1 text-xs text-red-500">
-              صورة إثبات الدفع مطلوبة لطريقة الدفع المحددة.
-            </p>
+            <div class="flex h-full flex-col gap-2 text-right" v-if="needsProof">
+              <ImageUpload
+                v-model="proofFile"
+                label="صورة إثبات الدفع (اختياري)"
+                placeholder="ارفع صورة المحفظة / إنستاباي"
+                :max-size-mb="0.5"
+                :invalid="proofRequiredError"
+                @select="onProofSelected"
+                @clear="proofDataUrl = ''"
+              />
+              <p v-if="proofRequiredError" class="text-xs text-red-500">
+                صورة إثبات الدفع مطلوبة لطريقة الدفع المحددة.
+              </p>
+            </div>
           </div>
 
           <div class="md:col-span-2 flex justify-center">
-            <Button type="submit" label="تأكيد البيع" :loading="saving" severity="info" class="min-w-[200px]" />
+            <Button
+              type="submit"
+              label="تأكيد البيع"
+              :loading="saving"
+              severity="info"
+              class="min-w-[200px]"
+            />
           </div>
         </Form>
       </template>
@@ -265,7 +316,10 @@ const products = ref([]);
 const productOptions = computed(() =>
   products.value.map((product) => {
     const teacherName =
-      product.teacher?.name || product.teacherName || product.teacher_name || "";
+      product.teacher?.name ||
+      product.teacherName ||
+      product.teacher_name ||
+      "";
     const priceLabel = `${Number(product.sellingPrice || 0).toFixed(2)}ج.م`;
     const name = product.name || "-";
 
@@ -277,27 +331,32 @@ const productOptions = computed(() =>
       value: product.id,
       sellingPrice: Number(product.sellingPrice || 0),
     };
-  }),
+  })
 );
 
-const selectedProductOption = computed(() =>
-  productOptions.value.find((option) => option.value === form.productId) || null,
+const selectedProductOption = computed(
+  () =>
+    productOptions.value.find((option) => option.value === form.productId) ||
+    null
 );
 
-const selectedProduct = computed(() =>
-  products.value.find((product) => product.id === form.productId) || null,
+const selectedProduct = computed(
+  () => products.value.find((product) => product.id === form.productId) || null
 );
 
-const unitPrice = computed(() => Number(selectedProduct.value?.sellingPrice || 0));
+const unitPrice = computed(() =>
+  Number(selectedProduct.value?.sellingPrice || 0)
+);
 const requiredAmount = computed(() =>
-  Number((unitPrice.value * Number(form.quantity || 0)).toFixed(2)),
+  Number((unitPrice.value * Number(form.quantity || 0)).toFixed(2))
 );
 
 const needsProof = computed(
-  () => form.method === "WALLET" || form.method === "INSTAPAY",
+  () => form.method === "WALLET" || form.method === "INSTAPAY"
 );
 
-const formatMoney = (value) => `\u2066${Number(value || 0).toFixed(2)} ج.م\u2069`;
+const formatMoney = (value) =>
+  `\u2066${Number(value || 0).toFixed(2)} ج.م\u2069`;
 
 const normalizeStudent = (student) => ({
   id: student.id,
@@ -345,7 +404,8 @@ const asText = (value, key = "") => {
   if (typeof value === "object") {
     if (key && value[key] != null) return String(value[key]).trim();
     if (value.name != null && key === "name") return String(value.name).trim();
-    if (value.phone != null && key === "phone") return String(value.phone).trim();
+    if (value.phone != null && key === "phone")
+      return String(value.phone).trim();
     return "";
   }
   return String(value).trim();
@@ -419,11 +479,7 @@ const ensureStudent = async () => {
   }
 
   const picked = selectedStudent.value;
-  if (
-    picked?.id &&
-    picked.name === name &&
-    picked.phone === phone
-  ) {
+  if (picked?.id && picked.name === name && picked.phone === phone) {
     return picked.id;
   }
 
@@ -432,7 +488,7 @@ const ensureStudent = async () => {
 
   const matches = await studentService.searchStudents(phone);
   const existing = (matches || []).find(
-    (student) => String(student.phone || "").trim() === phone,
+    (student) => String(student.phone || "").trim() === phone
   );
 
   if (existing?.id) {
@@ -503,7 +559,9 @@ const submitSale = async () => {
       productId: form.productId,
       quantity: form.quantity,
       method: form.method,
-      proofReference: needsProof.value ? proofDataUrl.value || proofFile.value?.name : undefined,
+      proofReference: needsProof.value
+        ? proofDataUrl.value || proofFile.value?.name
+        : undefined,
     });
 
     feedback.type = "success";
@@ -525,7 +583,7 @@ watch(
       proofDataUrl.value = "";
       proofRequiredError.value = false;
     }
-  },
+  }
 );
 
 onMounted(async () => {
