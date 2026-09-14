@@ -13,15 +13,13 @@ export default defineNuxtConfig({
     '@nuxtjs/sitemap',
     'nuxt-schema-org',
   ],
-  css: [
-    '~/assets/css/tailwind.css',
-    '~/assets/css/cropper.css',
-  ],
+  css: ['~/assets/css/tailwind.css'],
   vite: {
     optimizeDeps: {
       include: ['cropperjs'],
     },
-  },  app: {
+  },
+  app: {
     head: {
       htmlAttrs: { class: 'app-dark', lang: 'ar', dir: 'rtl' },
       link: [

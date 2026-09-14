@@ -90,6 +90,7 @@
     <p v-if="errorMessage" class="text-xs text-red-500">{{ errorMessage }}</p>
 
     <ImageCropper
+      v-if="showCropper || cropperMounted"
       v-model="showCropper"
       :image-src="selectedImage"
       :title="cropperTitle"
@@ -106,9 +107,12 @@
 
 <script setup>
 import Button from "primevue/button";
-import ImageCropper from "~/components/shared/image-cropper/index.vue";
 
 defineOptions({ name: "ImageUpload" });
+
+const ImageCropper = defineAsyncComponent(() =>
+  import("~/components/shared/image-cropper/index.vue"),
+);
 
 const props = defineProps({
   label: { type: String, default: "صورة إثبات الدفع" },
@@ -127,6 +131,7 @@ const previewUrl = ref("");
 const errorMessage = ref("");
 const fileMeta = ref("");
 const showCropper = ref(false);
+const cropperMounted = ref(false);
 const selectedImage = ref("");
 const isProcessing = ref(false);
 const originalFileName = ref("cropped-image.jpg");
@@ -162,6 +167,7 @@ const clear = () => {
 const openCropper = () => {
   if (!previewUrl.value && !selectedImage.value) return;
   selectedImage.value = selectedImage.value || previewUrl.value;
+  cropperMounted.value = true;
   showCropper.value = true;
 };
 
@@ -190,6 +196,7 @@ const onFileChange = (event) => {
   const reader = new FileReader();
   reader.onload = (e) => {
     selectedImage.value = String(e.target?.result || "");
+    cropperMounted.value = true;
     showCropper.value = true;
   };
   reader.onerror = () => {

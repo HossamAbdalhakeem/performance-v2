@@ -77,8 +77,6 @@
 <script setup>
 import Dialog from "primevue/dialog";
 import Button from "primevue/button";
-import Cropper from "cropperjs";
-import "~/assets/css/cropper.css";
 
 defineOptions({ name: "ImageCropper" });
 
@@ -117,8 +115,28 @@ const emit = defineEmits(["update:modelValue", "cropped", "error", "upload-new"]
 const visible = ref(props.modelValue);
 const imageRef = ref(null);
 const cropper = ref(null);
+const CropperCtor = shallowRef(null);
 const isProcessing = ref(false);
 const previewImage = ref("");
+const assetsReady = ref(false);
+let assetsPromise = null;
+
+const ensureCropperAssets = async () => {
+  if (assetsReady.value && CropperCtor.value) return CropperCtor.value;
+
+  if (!assetsPromise) {
+    assetsPromise = Promise.all([
+      import("~/assets/css/cropper.css"),
+      import("cropperjs"),
+    ]).then(([, cropperModule]) => {
+      CropperCtor.value = cropperModule.default || cropperModule;
+      assetsReady.value = true;
+      return CropperCtor.value;
+    });
+  }
+
+  return assetsPromise;
+};
 
 const destroyCropper = () => {
   if (cropper.value) {
@@ -145,6 +163,9 @@ const updatePreview = () => {
 const initCropper = async () => {
   await nextTick();
   if (!imageRef.value || !props.imageSrc || !visible.value) return;
+
+  const Cropper = await ensureCropperAssets();
+  if (!Cropper || !imageRef.value || !visible.value) return;
 
   destroyCropper();
 
@@ -193,6 +214,7 @@ watch(
       destroyCropper();
       return;
     }
+    await ensureCropperAssets();
     await nextTick();
     if (imageRef.value?.complete) {
       initCropper();
@@ -212,6 +234,7 @@ watch(
   () => props.imageSrc,
   async (newSrc) => {
     if (!newSrc || !visible.value) return;
+    await ensureCropperAssets();
     await nextTick();
     if (cropper.value) {
       cropper.value.replace(newSrc);
