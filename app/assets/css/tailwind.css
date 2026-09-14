@@ -60,7 +60,6 @@ textarea {
 .p-inputtext,
 .p-select,
 .p-dropdown,
-.p-inputnumber,
 .p-inputnumber-input,
 .p-calendar .p-inputtext,
 .p-textarea {
@@ -72,6 +71,10 @@ textarea {
 
 .p-inputnumber {
   display: flex;
+  width: 100%;
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
 }
 
 .p-inputtext::placeholder,
