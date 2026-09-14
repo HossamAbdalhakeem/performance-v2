@@ -1,47 +1,46 @@
-const fallbackTeachers = [
-  { id: "khaled", name: "أ. خالد", subject: "الكيمياء", branch: "riyadh", status: "active" },
-  { id: "omar", name: "أ. عمر", subject: "الفيزياء", branch: "jeddah", status: "active" },
-  { id: "sara", name: "أ. سارة", subject: "الرياضيات", branch: "madina", status: "active" },
-  { id: "salah", name: "مستر محمد صلاح", subject: "اللغة العربية", branch: "riyadh", status: "active" },
-];
+import { apiFetch, firstRow } from "~/utils/apiFetch";
 
-import { apiFetch } from "~/utils/apiFetch";
+const teacherBody = (payload: Record<string, any>) => ({
+  name: payload.name,
+  phone: payload.phone,
+  description: payload.description || "",
+});
 
 export const teacherService = {
-  async getTeachers(params = {}) {
-    try {
-      return await apiFetch("/teachers", {
-        method: "GET",
-        params,
-      });
-    } catch {
-      return fallbackTeachers;
-    }
+  async getTeachers(params: Record<string, any> = {}) {
+    return await apiFetch("/teachers", { method: "GET", params });
   },
 
   async getTeacher(id: string) {
-    try {
-      const rows = await apiFetch<any>("/teachers", {
-        method: "GET",
-        params: { id: `eq.${id}` },
-      });
-      return Array.isArray(rows) ? rows[0] : rows;
-    } catch {
-      return fallbackTeachers.find((teacher) => teacher.id === id) || null;
-    }
+    return firstRow(await apiFetch("/teachers", { method: "GET", params: { id } }));
   },
 
   async createTeacher(payload: Record<string, any>) {
-    try {
-      return await apiFetch("/teachers", {
+    return firstRow(
+      await apiFetch("/teachers", {
         method: "POST",
-        body: payload,
-      });
-    } catch {
-      return {
-        ...payload,
-        id: `teacher-${Date.now()}`,
-      };
-    }
+        body: teacherBody(payload),
+      })
+    );
+  },
+
+  async updateTeacher(id: string, payload: Record<string, any>) {
+    return firstRow(
+      await apiFetch("/teachers", {
+        method: "PATCH",
+        params: { id },
+        body: teacherBody(payload),
+      })
+    );
+  },
+
+  async updateTeacherStatus(id: string, is_active: boolean) {
+    return firstRow(
+      await apiFetch("/teachers", {
+        method: "PATCH",
+        params: { id },
+        body: { is_active },
+      })
+    );
   },
 };

@@ -17,9 +17,6 @@ import BookingForm from "~/components/dashboard/BookingForm.vue";
 import { saleService } from "~/services/saleService";
 
 const submitSale = async (payload) => {
-  return await saleService.createSale({
-    ...payload,
-    type: "direct",
-  });
+  return await saleService.createSale(payload);
 };
 </script>

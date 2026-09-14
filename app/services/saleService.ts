@@ -1,41 +1,31 @@
-import { apiFetch } from "~/utils/apiFetch";
+import { apiFetch, firstRow } from "~/utils/apiFetch";
+
+const saleBody = (payload: Record<string, any>) => ({
+  student_name: payload.student?.name || payload.student_name,
+  phone: payload.student?.phone || payload.phone,
+  study_year_id: payload.study_year_id,
+  product_id: payload.items?.[0]?.product_id || payload.product_id,
+  quantity: payload.items?.[0]?.quantity || payload.quantity || 1,
+  paid_amount: payload.paid_amount,
+  payment_method: payload.payment_method,
+  payment_proof_path: payload.payment_proof_path ?? null,
+});
 
 export const saleService = {
-  async getSales(params = {}) {
-    try {
-      return await apiFetch("/sales", {
-        method: "GET",
-        params,
-      });
-    } catch {
-      return [];
-    }
+  async getSales(params: Record<string, any> = {}) {
+    return await apiFetch("/sales", { method: "GET", params });
   },
 
   async getSale(id: string) {
-    try {
-      const rows = await apiFetch<any>("/sales", {
-        method: "GET",
-        params: { id: `eq.${id}` },
-      });
-      return Array.isArray(rows) ? rows[0] : rows;
-    } catch {
-      return null;
-    }
+    return firstRow(await apiFetch("/sales", { method: "GET", params: { id } }));
   },
 
   async createSale(payload: Record<string, any>) {
-    try {
-      return await apiFetch("/sales", {
+    return firstRow(
+      await apiFetch("/sales", {
         method: "POST",
-        body: payload,
-      });
-    } catch {
-      return {
-        ...payload,
-        id: `sale-${Date.now()}`,
-        created_at: new Date().toISOString(),
-      };
-    }
+        body: saleBody(payload),
+      })
+    );
   },
 };

@@ -1,22 +1,6 @@
 import { defineStore } from "pinia";
 import { authService } from "~/services/authService";
 
-const pickUser = (response) => {
-  if (!response) return {};
-  if (response.data?.user) return response.data.user;
-  if (response.user) return response.user;
-  if (response.data?.email || response.data?.role || response.data?.id) return response.data;
-  if (response.email || response.role || response.id) return response;
-  return {};
-};
-
-const pickToken = (response) =>
-  response?.data?.token ||
-  response?.data?.access_token ||
-  response?.token ||
-  response?.access_token ||
-  null;
-
 export const useAuthStore = defineStore("authStore", {
   state: () => ({
     user: {},
@@ -29,6 +13,8 @@ export const useAuthStore = defineStore("authStore", {
     getUser: (state) => state.user,
     isLoggedIn: (state) => state.loggedIn,
     getRole: (state) => state.user?.role || "admin",
+    getRoles: (state) => state.user?.roles || [],
+    getBranches: (state) => state.user?.branches || [],
   },
   actions: {
     async login(data) {
@@ -38,10 +24,9 @@ export const useAuthStore = defineStore("authStore", {
         const response = await authService.login({
           email: data?.email,
           password: data?.password,
-          remember: data?.remember,
         });
 
-        this.setUser(pickUser(response), pickToken(response));
+        this.setUser(response.user, response.token);
         await navigateTo("/");
         return response;
       } finally {
@@ -49,19 +34,18 @@ export const useAuthStore = defineStore("authStore", {
       }
     },
     async fetchUser() {
-      const response = await authService.me();
-      const user = pickUser(response);
+      const response = await authService.getCurrentUser();
 
-      if (user?.id || user?.email) {
-        this.setUser(user, this.token);
+      if (response?.user?.id) {
+        this.setUser(response.user, response.token || this.token);
       }
 
-      return user;
+      return response?.user;
     },
     async setUser(data, token) {
       this.user = data || {};
       this.token = token || this.token || null;
-      this.loggedIn = Boolean(this.user?.id || this.user?.email || this.user?.role);
+      this.loggedIn = Boolean(this.user?.id || this.user?.phone || this.user?.role);
 
       useCookie("token").value = this.token;
       useCookie("dashboard_role").value = this.user?.role || "admin";

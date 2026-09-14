@@ -1,84 +1,104 @@
 import { authFetch } from "~/utils/apiFetch";
+import { useSupabase } from "~/composables/useSupabase";
 
-const roleMap = {
-  admin: { label: "مدير", role: "admin" },
-  branch: { label: "فرع", role: "branch" },
-  social: { label: "اجتماعي", role: "social" },
+const DASHBOARD_ROLES = {
+  admin: "admin",
+  library_employee: "branch",
+  customer_service: "social",
+} as const;
+
+export const mapDashboardRole = (roles: string[] = []) => {
+  if (roles.includes("admin")) return DASHBOARD_ROLES.admin;
+  if (roles.includes("library_employee")) return DASHBOARD_ROLES.library_employee;
+  if (roles.includes("customer_service")) return DASHBOARD_ROLES.customer_service;
+  return DASHBOARD_ROLES.admin;
 };
 
-const inferRole = (email?: string, password?: string) => {
-  const normalized = `${email || ""} ${password || ""}`.toLowerCase();
-  if (normalized.includes("admin")) return "admin";
-  if (normalized.includes("branch")) return "branch";
-  if (normalized.includes("social")) return "social";
-  return "admin";
-};
-
-const demoSession = (payload: { email?: string; password?: string }) => {
-  const role = inferRole(payload.email, payload.password);
-  return {
-    user: {
-      id: `demo-${role}`,
-      name: roleMap[role]?.label || "مدير",
-      email: payload.email || "admin@library.local",
-      role,
-      branch_id: role === "branch" ? "branch-01" : null,
-    },
-    token: `demo-token-${role}`,
+const toRoleList = (user: Record<string, any> = {}) => {
+  const meta = {
+    ...(user.app_metadata || {}),
+    ...(user.user_metadata || {}),
   };
+  const roles = meta.roles || meta.role || user.roles || [];
+  return (Array.isArray(roles) ? roles : [roles]).filter(Boolean);
 };
 
-const mapAuthSession = (session: Record<string, any>, payload?: { email?: string; password?: string }) => {
-  const user = session?.user || {};
-  const role =
-    user.user_metadata?.role ||
-    user.app_metadata?.role ||
-    inferRole(user.email || payload?.email, payload?.password);
+const normalizeAuth = (payload: Record<string, any> = {}, token: string | null = null) => {
+  const user = payload.user || payload;
+  const meta = {
+    ...(user.app_metadata || {}),
+    ...(user.user_metadata || {}),
+  };
+  const roles = toRoleList(user);
+  const branches = payload.branches || user.branches || meta.branches || [];
 
   return {
-    ...session,
-    token: session?.access_token,
     user: {
       id: user.id,
       email: user.email,
-      name: user.user_metadata?.name || user.email,
-      role,
-      branch_id: user.user_metadata?.branch_id || (role === "branch" ? "branch-01" : null),
+      full_name: meta.full_name || meta.name || user.full_name || user.email,
+      name: meta.full_name || meta.name || user.full_name || user.email,
+      phone: meta.phone || user.phone || "",
+      roles,
+      branches,
+      role: mapDashboardRole(roles),
+      branch_id: branches[0]?.id || meta.branch_id || null,
     },
+    roles,
+    branches,
+    token,
   };
 };
 
 export const authService = {
-  async login(payload: { email: string; password: string; remember?: boolean }) {
-    try {
-      const session = await authFetch<Record<string, any>>("/token?grant_type=password", {
-        method: "POST",
-        body: {
-          email: payload.email,
-          password: payload.password,
-        },
-      });
+  async login(payload: { email: string; password: string }) {
+    const session = await authFetch<Record<string, any>>("/token?grant_type=password", {
+      method: "POST",
+      body: {
+        email: payload.email,
+        password: payload.password,
+      },
+    });
 
-      return mapAuthSession(session, payload);
+    const token = session?.access_token || null;
+    if (token) useCookie("token").value = token;
+
+    try {
+      const supabase = useSupabase();
+      await supabase.auth.setSession({
+        access_token: session.access_token,
+        refresh_token: session.refresh_token,
+      });
     } catch {
-      return demoSession(payload);
+      // Session cookie is enough for API calls if the client is unavailable.
     }
+
+    return normalizeAuth(session, token);
   },
 
   async logout() {
     try {
-      return await authFetch("/logout", { method: "POST" });
+      await authFetch("/logout", { method: "POST" });
     } catch {
-      return { success: true };
+      // Local logout still proceeds.
     }
+
+    try {
+      const supabase = useSupabase();
+      await supabase.auth.signOut();
+    } catch {
+      // Ignore client sign-out failures.
+    }
+
+    return { success: true };
+  },
+
+  async getCurrentUser() {
+    const user = await authFetch("/user", { method: "GET" });
+    return normalizeAuth({ user }, useCookie("token").value);
   },
 
   async me() {
-    try {
-      const user = await authFetch<Record<string, any>>("/user");
-      return mapAuthSession({ user, access_token: useCookie("token").value });
-    } catch {
-      return null;
-    }
+    return this.getCurrentUser();
   },
 };

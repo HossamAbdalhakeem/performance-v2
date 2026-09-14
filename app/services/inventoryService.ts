@@ -1,69 +1,56 @@
-const fallbackAvailability = {
-  chem: 44,
-  phys: 5,
-  math: 18,
-  "book-code": 20,
-};
-
-import { apiFetch } from "~/utils/apiFetch";
+import { apiFetch, firstRow } from "~/utils/apiFetch";
 
 export const inventoryService = {
-  async getInventory(params = {}) {
-    try {
-      return await apiFetch("/inventory", {
-        method: "GET",
-        params,
-      });
-    } catch {
-      return [];
-    }
+  async getInventory(params: Record<string, any> = {}) {
+    return await apiFetch("/inventory", { method: "GET", params });
   },
 
   async addStock(payload: Record<string, any>) {
-    try {
-      return await apiFetch("/inventory", {
+    return firstRow(
+      await apiFetch("/inventory", {
         method: "POST",
-        body: payload,
-      });
-    } catch {
-      return { ...payload, id: `stock-add-${Date.now()}` };
-    }
+        body: {
+          branch_id: payload.branch_id,
+          product_id: payload.product_id,
+          quantity: payload.quantity,
+          notes: payload.notes || "",
+          type: "stock_in",
+        },
+      })
+    );
   },
 
   async removeStock(payload: Record<string, any>) {
-    try {
-      return await apiFetch("/inventory", {
+    return firstRow(
+      await apiFetch("/inventory", {
         method: "POST",
-        body: { ...payload, type: "remove" },
-      });
-    } catch {
-      return { ...payload, id: `stock-remove-${Date.now()}` };
-    }
+        body: {
+          branch_id: payload.branch_id,
+          product_id: payload.product_id,
+          quantity: payload.quantity,
+          reason: payload.reason,
+          notes: payload.notes || "",
+          type: "stock_out",
+        },
+      })
+    );
   },
 
-  async getMovements(params = {}) {
-    try {
-      return await apiFetch("/inventory_movements", {
-        method: "GET",
-        params,
-      });
-    } catch {
-      return [];
-    }
+  async getInventoryMovements(params: Record<string, any> = {}) {
+    return await apiFetch("/inventory_movements", { method: "GET", params });
   },
 
-  async getAvailability(params = {}) {
-    try {
-      return await apiFetch("/inventory", {
-        method: "GET",
-        params,
-      });
-    } catch {
-      const productId = params?.product_id || params?.product;
-      return {
-        available: fallbackAvailability[productId] ?? 20,
-        quantity: fallbackAvailability[productId] ?? 20,
-      };
-    }
+  async getMovements(params: Record<string, any> = {}) {
+    return this.getInventoryMovements(params);
+  },
+
+  async getAvailability(params: Record<string, any> = {}) {
+    return await apiFetch("/inventory", {
+      method: "GET",
+      params: {
+        product_id: params.product_id,
+        ...(params.branch_id ? { branch_id: params.branch_id } : {}),
+      },
+    });
   },
 };

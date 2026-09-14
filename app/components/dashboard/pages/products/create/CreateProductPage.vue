@@ -40,7 +40,7 @@
           </div>
 
           <Field v-slot="{ field, errorMessage }" name="name" rules="required">
-            <div class="flex flex-col gap-2 text-right md:col-span-2">
+            <div class="flex flex-col gap-2 text-right">
               <label class="text-sm font-medium">اسم المنتج (كتاب جديد / محاضرة نزلة)</label>
               <InputText
                 v-bind="field"
@@ -49,6 +49,38 @@
                 class="w-full"
               />
               <ErrorMessage name="name" class="text-xs text-red-400" />
+            </div>
+          </Field>
+
+          <Field v-slot="{ field, errorMessage }" name="type" rules="required">
+            <div class="flex flex-col gap-2 text-right">
+              <label class="text-sm font-medium">نوع المنتج</label>
+              <Select
+                v-bind="field"
+                v-model="form.type"
+                :options="typeOptions"
+                optionLabel="label"
+                optionValue="value"
+                placeholder="اختر النوع ▾"
+                :class="{ 'p-invalid': errorMessage || fieldErrors.type }"
+              />
+              <ErrorMessage name="type" class="text-xs text-red-400" />
+            </div>
+          </Field>
+
+          <Field v-slot="{ field, errorMessage }" name="studyYear" rules="required">
+            <div class="flex flex-col gap-2 text-right">
+              <label class="text-sm font-medium">السنة الدراسية</label>
+              <Select
+                v-bind="field"
+                v-model="form.studyYear"
+                :options="studyYearOptions"
+                optionLabel="label"
+                optionValue="value"
+                placeholder="اختر السنة ▾"
+                :class="{ 'p-invalid': errorMessage || fieldErrors.studyYear }"
+              />
+              <ErrorMessage name="studyYear" class="text-xs text-red-400" />
             </div>
           </Field>
 

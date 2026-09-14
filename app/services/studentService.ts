@@ -1,42 +1,45 @@
-const fallbackStudents = [
-  { id: 's1', name: 'سارة أحمد', grade: 'الثالثة', branch: 'riyadh', status: 'active' },
-  { id: 's2', name: 'خالد حسن', grade: 'الرابعة', branch: 'jeddah', status: 'pending' },
-  { id: 's3', name: 'لينا سالم', grade: 'الأولى', branch: 'madina', status: 'blocked' },
-];
+import { apiFetch, firstRow } from "~/utils/apiFetch";
 
-import { apiFetch } from "~/utils/apiFetch";
+const studentBody = (payload: Record<string, any>) => ({
+  name: payload.name,
+  phone: payload.phone,
+  study_year_id: payload.study_year_id,
+});
 
 export const studentService = {
-  async getStudents(params = {}) {
-    try {
-      return await apiFetch("/students", {
-        method: "GET",
-        params,
-      });
-    } catch {
-      return fallbackStudents;
-    }
+  async getStudents(params: Record<string, any> = {}) {
+    return await apiFetch("/students", { method: "GET", params });
   },
 
   async getStudent(id: string) {
-    const rows = await apiFetch<any>("/students", {
-      method: "GET",
-      params: { id: `eq.${id}` },
-    });
-    return Array.isArray(rows) ? rows[0] : rows;
+    return firstRow(await apiFetch("/students", { method: "GET", params: { id } }));
   },
 
   async createStudent(payload: Record<string, any>) {
-    try {
-      return await apiFetch("/students", {
+    return firstRow(
+      await apiFetch("/students", {
         method: "POST",
-        body: payload,
-      });
-    } catch {
-      return {
-        ...payload,
-        id: `student-${Date.now()}`,
-      };
-    }
+        body: studentBody(payload),
+      })
+    );
+  },
+
+  async updateStudent(id: string, payload: Record<string, any>) {
+    return firstRow(
+      await apiFetch("/students", {
+        method: "PATCH",
+        params: { id },
+        body: studentBody(payload),
+      })
+    );
+  },
+
+  async getStudentHistory(id: string) {
+    const [sales, reservations] = await Promise.all([
+      apiFetch("/sales", { method: "GET", params: { student_id: id } }),
+      apiFetch("/reservations", { method: "GET", params: { student_id: id } }),
+    ]);
+
+    return { sales, reservations };
   },
 };

@@ -1,86 +1,49 @@
-const fallbackProducts = [
-  {
-    id: "chem",
-    name: "كتاب الكيمياء",
-    title: "كتاب الكيمياء",
-    teacher: "أ. خالد",
-    teacher_id: "khaled",
-    stock: 44,
-    available: true,
-    wholesale_price: 200,
-    sale_price: 350,
-  },
-  {
-    id: "phys",
-    name: "كتاب الفيزياء",
-    title: "كتاب الفيزياء",
-    teacher: "أ. عمر",
-    teacher_id: "omar",
-    stock: 5,
-    available: false,
-    wholesale_price: 180,
-    sale_price: 320,
-  },
-  {
-    id: "math",
-    name: "كتاب الرياضيات",
-    title: "كتاب الرياضيات",
-    teacher: "أ. سارة",
-    teacher_id: "sara",
-    stock: 18,
-    available: true,
-    wholesale_price: 150,
-    sale_price: 280,
-  },
-  {
-    id: "book-code",
-    name: "الكتاب + كود الترم الأول",
-    title: "الكتاب + كود الترم الأول",
-    teacher: "مستر محمد صلاح",
-    teacher_id: "salah",
-    stock: 30,
-    available: true,
-    wholesale_price: 250,
-    sale_price: 400,
-  },
-];
+import { apiFetch, firstRow } from "~/utils/apiFetch";
 
-import { apiFetch } from "~/utils/apiFetch";
+const productBody = (payload: Record<string, any>) => ({
+  name: payload.name,
+  type: payload.type,
+  teacher_id: payload.teacher_id,
+  study_year_id: payload.study_year_id,
+  wholesale_price: payload.wholesale_price,
+  selling_price: payload.selling_price ?? payload.sale_price,
+});
 
 export const productService = {
-  async getProducts(params = {}) {
-    try {
-      return await apiFetch("/products", {
-        method: "GET",
-        params,
-      });
-    } catch {
-      return fallbackProducts;
-    }
+  async getProducts(params: Record<string, any> = {}) {
+    return await apiFetch("/products", { method: "GET", params });
   },
 
   async getProduct(id: string) {
-    try {
-      return await apiFetch(`/products`, {
-        method: "GET",
-        params: { id: `eq.${id}` },
-      }).then((rows: any) => (Array.isArray(rows) ? rows[0] : rows) || null);
-    } catch {
-      return fallbackProducts.find((product) => product.id === id) || null;
-    }
+    return firstRow(await apiFetch("/products", { method: "GET", params: { id } }));
   },
 
   async createProduct(payload: Record<string, any>) {
-    try {
-      return await apiFetch("/products", {
+    return firstRow(
+      await apiFetch("/products", {
         method: "POST",
-        body: payload,
-      });
-    } catch {
-      return {
-        ...payload,
-        id: `product-${Date.now()}`,
-      };
-    }
+        body: productBody(payload),
+      })
+    );
+  },
+
+  async updateProduct(id: string, payload: Record<string, any>) {
+    return firstRow(
+      await apiFetch("/products", {
+        method: "PATCH",
+        params: { id },
+        body: productBody(payload),
+      })
+    );
+  },
+
+  async updateProductStatus(id: string, is_active: boolean) {
+    return firstRow(
+      await apiFetch("/products", {
+        method: "PATCH",
+        params: { id },
+        body: { is_active },
+      })
+    );
   },
 };

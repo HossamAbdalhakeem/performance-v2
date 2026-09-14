@@ -8,6 +8,7 @@
           show-header
           show-hint
           show-receipt
+          require-branch
           :submit-fn="submitReservation"
         />
       </template>
@@ -21,9 +22,6 @@ import BookingForm from "~/components/dashboard/BookingForm.vue";
 import { reservationService } from "~/services/reservationService";
 
 const submitReservation = async (payload) => {
-  return await reservationService.createReservation({
-    ...payload,
-    status: "pending",
-  });
+  return await reservationService.createReservation(payload);
 };
 </script>

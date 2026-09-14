@@ -75,6 +75,8 @@
                 <button type="button" class="text-sky-700 hover:underline">نسيت كلمة المرور؟</button>
               </div>
 
+              <p v-if="loginError" class="rounded-xl bg-red-50 px-3 py-2 text-sm text-red-600">{{ loginError }}</p>
+
               <Button type="submit" class="w-full justify-center" :loading="authStore.loading" severity="info" size="large">
                 {{ authStore.loading ? "جاري تسجيل الدخول..." : "تسجيل الدخول" }}
               </Button>
@@ -105,6 +107,7 @@ import { useAuthStore } from "~/store/auth.js";
 
 const authStore = useAuthStore();
 const rememberMe = ref(false);
+const loginError = ref("");
 const form = reactive({ email: "admin@library.com", password: "admin123" });
 
 const initialValues = { email: "admin@library.com", password: "admin123" };
@@ -115,10 +118,16 @@ definePageMeta({
 });
 
 const submitLogin = async () => {
-  await authStore.login({
-    email: form.email,
-    password: form.password,
-    remember: rememberMe.value,
-  });
+  loginError.value = "";
+
+  try {
+    await authStore.login({
+      email: form.email,
+      password: form.password,
+      remember: rememberMe.value,
+    });
+  } catch (error) {
+    loginError.value = error?.message || "تعذر تسجيل الدخول.";
+  }
 };
 </script>

@@ -8,6 +8,7 @@
           show-header
           show-hint
           show-receipt
+          require-branch
           back-to="/books"
           :initial-product="selectedBook"
           :submit-fn="submitReservation"
@@ -26,9 +27,6 @@ const route = useRoute();
 const selectedBook = computed(() => route.query.book || "");
 
 const submitReservation = async (payload) => {
-  return await reservationService.createReservation({
-    ...payload,
-    status: "pending",
-  });
+  return await reservationService.createReservation(payload);
 };
 </script>

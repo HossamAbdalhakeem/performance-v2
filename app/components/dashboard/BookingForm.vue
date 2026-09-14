@@ -25,7 +25,7 @@
         class="rounded-2xl border border-white/10 bg-slate-900 p-4"
         @submit="handleSubmit"
       >
-        <div class="grid gap-4 md:grid-cols-3">
+        <div class="grid gap-4" :class="requireBranch ? 'md:grid-cols-4' : 'md:grid-cols-3'">
           <Field v-slot="{ field, errorMessage }" name="stage" rules="required">
             <div class="flex flex-col gap-2 text-right">
               <label class="text-sm font-medium text-slate-200">السنة الدراسية</label>
@@ -39,6 +39,22 @@
                 :class="{ 'p-invalid': errorMessage || fieldErrors.stage }"
               />
               <ErrorMessage name="stage" class="text-xs text-red-400" />
+            </div>
+          </Field>
+
+          <Field v-if="requireBranch" v-slot="{ field, errorMessage }" name="branch" rules="required">
+            <div class="flex flex-col gap-2 text-right">
+              <label class="text-sm font-medium text-slate-200">الفرع</label>
+              <Select
+                v-bind="field"
+                v-model="form.branch"
+                :options="branchOptions"
+                optionLabel="label"
+                optionValue="value"
+                placeholder="اختر الفرع"
+                :class="{ 'p-invalid': errorMessage || fieldErrors.branch }"
+              />
+              <ErrorMessage name="branch" class="text-xs text-red-400" />
             </div>
           </Field>
 
@@ -64,7 +80,7 @@
               <Select
                 v-bind="field"
                 v-model="form.product"
-                :options="productOptions"
+                :options="filteredProductOptions"
                 optionLabel="label"
                 optionValue="value"
                 placeholder="اختر المنتج"
@@ -101,6 +117,19 @@
               </div>
             </Field>
 
+            <Field v-slot="{ errorMessage }" v-model="form.quantity" name="quantity" rules="required|min_value:1">
+              <div class="flex flex-col gap-2 text-right">
+                <label class="text-sm font-medium text-slate-200">الكمية</label>
+                <AppInputNumber
+                  v-model="form.quantity"
+                  :min="1"
+                  :max-fraction-digits="0"
+                  :invalid="!!(errorMessage || fieldErrors.quantity)"
+                />
+                <ErrorMessage name="quantity" class="text-xs text-red-400" />
+              </div>
+            </Field>
+
             <Field v-slot="{ errorMessage }" v-model="form.amount" name="amount" rules="required|min_value:1">
               <div class="flex flex-col gap-2 text-right">
                 <label class="text-sm font-medium text-slate-200">المبلغ المدفوع (مقدم)</label>
@@ -118,7 +147,7 @@
             </Field>
 
             <Field v-slot="{ errorMessage }" v-model="form.paymentMethod" name="paymentMethod" rules="required">
-              <div class="flex flex-col gap-2 text-right">
+              <div class="flex flex-col gap-2 text-right sm:col-span-2">
                 <label class="text-sm font-medium text-slate-200">طريقة الدفع</label>
                 <div class="space-y-2 rounded-xl border border-white/10 bg-slate-950/60 p-3">
                   <label
@@ -141,7 +170,9 @@
           </div>
 
           <div class="flex flex-col gap-2 text-right">
-            <label class="text-sm font-medium text-slate-200">إرفاق صورة التحويل (اختياري)</label>
+            <label class="text-sm font-medium text-slate-200">
+              إرفاق صورة التحويل {{ needsPaymentProof ? "(مطلوبة)" : "(اختياري للكاش)" }}
+            </label>
             <label
               class="flex min-h-[140px] cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-sky-400/50 bg-slate-950/70 px-3 py-4 text-center text-xs text-slate-300"
             >
@@ -150,8 +181,11 @@
               <span class="text-2xl">📷</span>
               <span class="mt-2">اضغط لرفع الصورة</span>
             </label>
+            <p v-if="proofError" class="text-xs text-red-400">{{ proofError }}</p>
           </div>
         </div>
+
+        <p v-if="submitError" class="mt-3 text-center text-sm text-red-400">{{ submitError }}</p>
 
         <div class="mt-5 flex justify-center">
           <Button
@@ -191,6 +225,10 @@ import { Form, Field, ErrorMessage } from "vee-validate";
 import { teacherService } from "~/services/teacherService";
 import { productService } from "~/services/productService";
 import { studyYearService } from "~/services/studyYearService";
+import { branchService } from "~/services/branchService";
+import { paymentService } from "~/services/paymentService";
+import { asList } from "~/utils/apiFetch";
+import { useAuthStore } from "~/store/auth.js";
 
 const props = defineProps({
   title: { type: String, default: "احجز كتاب" },
@@ -198,17 +236,23 @@ const props = defineProps({
   showHeader: { type: Boolean, default: false },
   showHint: { type: Boolean, default: false },
   showReceipt: { type: Boolean, default: false },
+  requireBranch: { type: Boolean, default: false },
   backTo: { type: String, default: "" },
   initialProduct: { type: [String, Number], default: "" },
   submitFn: { type: Function, required: true },
 });
 
+const authStore = useAuthStore();
 const saving = ref(false);
 const receiptCode = ref("");
 const imagePreview = ref("");
+const proofFile = ref(null);
+const proofError = ref("");
+const submitError = ref("");
 const teacherOptions = ref([]);
 const productOptions = ref([]);
 const stageOptions = ref([]);
+const branchOptions = ref([]);
 const paymentOptions = [
   { label: "كاش", value: "cash" },
   { label: "انستا باي", value: "instapay" },
@@ -217,44 +261,59 @@ const paymentOptions = [
 
 const form = reactive({
   stage: "",
+  branch: "",
   teacher: "",
   product: props.initialProduct || "",
   student: "",
   phone: "",
+  quantity: 1,
   amount: null,
   paymentMethod: "cash",
-  receiptImage: "",
 });
 
 const initialValues = {
   stage: "",
+  branch: "",
   teacher: "",
   product: props.initialProduct || "",
   student: "",
   phone: "",
+  quantity: 1,
   amount: null,
   paymentMethod: "cash",
 };
 
-const mapList = (items, labelKeys, valueKey = "id") => {
-  const list = Array.isArray(items) ? items : items?.data || [];
-  return list.map((item) => ({
-    label: labelKeys.map((key) => item[key]).find(Boolean) || String(item[valueKey]),
-    value: item[valueKey],
+const needsPaymentProof = computed(() => form.paymentMethod === "instapay" || form.paymentMethod === "wallet");
+
+const filteredProductOptions = computed(() => {
+  if (!form.teacher) return productOptions.value;
+  return productOptions.value.filter((item) => !item.teacherId || item.teacherId === form.teacher);
+});
+
+const mapList = (items, getLabel) =>
+  asList(items).map((item) => ({
+    label: getLabel(item),
+    value: item.id,
+    teacherId: item.teacher?.id || item.teacher_id,
   }));
-};
 
 const loadOptions = async () => {
   try {
-    const [teachers, products, years] = await Promise.all([
+    const [teachers, products, years, branches] = await Promise.all([
       teacherService.getTeachers(),
-      productService.getProducts(),
+      productService.getProducts({ is_active: true }),
       studyYearService.getStudyYears(),
+      props.requireBranch ? branchService.getBranches({ is_active: true }) : Promise.resolve({ data: authStore.user?.branches || [] }),
     ]);
 
-    teacherOptions.value = mapList(teachers, ["name", "full_name", "teacher_name"]);
-    productOptions.value = mapList(products, ["name", "title"]);
-    stageOptions.value = mapList(years, ["label", "name"]);
+    teacherOptions.value = mapList(teachers, (item) => item.name);
+    productOptions.value = mapList(products, (item) => item.name);
+    stageOptions.value = mapList(years, (item) => item.name);
+    branchOptions.value = mapList(branches, (item) => item.name);
+
+    if (!form.branch) {
+      form.branch = authStore.user?.branch_id || branchOptions.value[0]?.value || "";
+    }
   } catch (error) {
     console.error("Failed to load booking options", error);
   }
@@ -262,16 +321,15 @@ const loadOptions = async () => {
 
 const onFileChange = (event) => {
   const file = event.target.files?.[0];
-  if (!file) {
-    form.receiptImage = "";
-    imagePreview.value = "";
-    return;
-  }
+  proofError.value = "";
+  proofFile.value = file || null;
+  imagePreview.value = "";
+
+  if (!file) return;
 
   const reader = new FileReader();
   reader.onload = () => {
-    form.receiptImage = String(reader.result || "");
-    imagePreview.value = form.receiptImage;
+    imagePreview.value = String(reader.result || "");
   };
   reader.readAsDataURL(file);
 };
@@ -280,31 +338,55 @@ const resetForm = () => {
   Object.assign(form, {
     ...initialValues,
     product: props.initialProduct || "",
-    receiptImage: "",
+    branch: authStore.user?.branch_id || form.branch,
   });
+  proofFile.value = null;
   imagePreview.value = "";
+  proofError.value = "";
 };
 
 const handleSubmit = async () => {
+  submitError.value = "";
+  proofError.value = "";
+
+  if (needsPaymentProof.value && !proofFile.value) {
+    proofError.value = "صورة التحويل مطلوبة لطريقة الدفع المختارة.";
+    return;
+  }
+
   saving.value = true;
 
   try {
+    let payment_proof_path = null;
+    if (proofFile.value) {
+      payment_proof_path = await paymentService.uploadPaymentProof(proofFile.value);
+    }
+
     const result = await props.submitFn({
-      stage: form.stage,
-      teacher_id: form.teacher,
-      product_id: form.product,
-      student_name: form.student,
-      phone: form.phone,
-      amount: form.amount,
+      student: {
+        name: form.student,
+        phone: form.phone,
+      },
+      study_year_id: form.stage,
+      branch_id: form.branch || undefined,
+      items: [
+        {
+          product_id: form.product,
+          quantity: form.quantity || 1,
+        },
+      ],
+      paid_amount: form.amount,
       payment_method: form.paymentMethod,
-      receipt_image: form.receiptImage,
+      payment_proof_path,
     });
 
     if (props.showReceipt) {
-      receiptCode.value = result?.code || result?.reservation_code || `B-${new Date().getFullYear()}-${String(result?.id || Date.now()).slice(-5)}`;
+      receiptCode.value = result?.reservation_number || "";
     }
 
     resetForm();
+  } catch (error) {
+    submitError.value = error?.message || "تعذر إتمام العملية.";
   } finally {
     saving.value = false;
   }
