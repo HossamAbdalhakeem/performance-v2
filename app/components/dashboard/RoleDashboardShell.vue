@@ -107,7 +107,7 @@ const menuItems = computed(() => {
     return [
       { label: "البيع المباشر", icon: "◫", to: "/sales/direct", active: isActive("/sales/direct") },
       { label: "حجز الكتب", icon: "✓", to: "/reservations", active: isActive("/reservations") },
-      { label: "تسليم الحجز", icon: "✔", to: "/reservations/deliver", active: isActive("/reservations/deliver") },
+      { label: "تسليم الحجز", icon: "📝", to: "/reservations/deliver", active: isActive("/reservations/deliver") },
     ];
   }
 
