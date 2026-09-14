@@ -36,28 +36,6 @@
       >
         <Field
           v-slot="{ errorMessage }"
-          v-model="form.stage"
-          name="stage"
-          label="السنة الدراسية"
-          rules="required"
-        >
-          <div class="md:col-span-2 flex flex-col gap-2 text-right">
-            <label class="text-sm font-medium text-slate-700">السنة الدراسية</label>
-            <Select
-              v-model="form.stage"
-              :options="stageOptions"
-              optionLabel="label"
-              optionValue="value"
-              placeholder="اختر السنة"
-              class="w-full"
-              :class="{ 'p-invalid': errorMessage || fieldErrors.stage }"
-            />
-            <ErrorMessage name="stage" class="text-xs text-red-500" />
-          </div>
-        </Field>
-
-        <Field
-          v-slot="{ errorMessage }"
           v-model="form.studentName"
           name="studentName"
           label="اسم الطالب"
@@ -192,7 +170,7 @@
           label="المبلغ المدفوع مقدما"
           rules="required|min_value:1"
         >
-          <div class="flex flex-col gap-2 text-right">
+          <div class="md:col-span-2 flex flex-col gap-2 text-right">
             <label class="text-sm font-medium text-slate-700">المبلغ المدفوع (مقدم)</label>
             <AppInputNumber
               v-model="form.amount"
@@ -229,7 +207,7 @@
           </div>
         </Field>
 
-        <div class="md:col-span-2 flex flex-col gap-2 text-right">
+        <div class="flex flex-col gap-2 text-right">
           <label class="text-sm font-medium text-slate-700">إرفاق صورة التحويل (اختياري)</label>
           <label
             class="flex min-h-[140px] cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-sky-400/50 bg-slate-950/70 px-3 py-4 text-center text-xs text-slate-300"
@@ -282,9 +260,7 @@ import AutoComplete from "primevue/autocomplete";
 import AppInputNumber from "~/components/dashboard/AppInputNumber.vue";
 import { Form, Field, ErrorMessage } from "vee-validate";
 import { productService } from "~/services/productService";
-import { studyYearService } from "~/services/studyYearService";
 import { studentService } from "~/services/studentService";
-import { asList } from "~/utils/apiFetch";
 import { useThrottledCallback } from "~/composables/useThrottledCallback";
 
 const props = defineProps({
@@ -307,7 +283,6 @@ const nameSuggestions = ref([]);
 const phoneSuggestions = ref([]);
 const selectedStudent = ref(null);
 const products = ref([]);
-const stageOptions = ref([]);
 const feedback = reactive({ type: "success", message: "" });
 
 const paymentOptions = [
@@ -317,7 +292,6 @@ const paymentOptions = [
 ];
 
 const form = reactive({
-  stage: "",
   studentName: "",
   studentPhone: "",
   productId: props.initialProduct || null,
@@ -327,7 +301,6 @@ const form = reactive({
 });
 
 const formInitialValues = {
-  stage: "",
   studentName: "",
   studentPhone: "",
   productId: props.initialProduct || null,
@@ -381,24 +354,6 @@ const loadProducts = async () => {
   const items = await productService.getProducts();
   const list = Array.isArray(items) ? items : items?.data || [];
   products.value = list.filter((product) => product.status !== "INACTIVE");
-};
-
-const loadStudyYears = async () => {
-  try {
-    const years = await studyYearService.getStudyYears();
-    stageOptions.value = asList(years).map((item) => ({
-      label: item.label || item.name || String(item.id),
-      value: item.id,
-    }));
-  } catch (error) {
-    console.error("Failed to load study years", error);
-    stageOptions.value = [];
-  }
-};
-
-const loadOptions = async () => {
-  // Load separately so a study-years failure does not empty products.
-  await Promise.all([loadProducts(), loadStudyYears()]);
 };
 
 const searchStudents = async (term = "") => {
@@ -531,7 +486,6 @@ const onFileChange = (event) => {
 
 const resetForm = () => {
   Object.assign(form, {
-    stage: "",
     studentName: "",
     studentPhone: "",
     productId: props.initialProduct || null,
@@ -555,8 +509,6 @@ const handleSubmit = async () => {
     const product = selectedProductOption.value;
 
     const result = await props.submitFn({
-      stage: form.stage,
-      study_year_id: form.stage,
       teacher_id: product?.teacherId || "",
       product_id: form.productId,
       productId: form.productId,
@@ -603,7 +555,7 @@ watch(
 
 onMounted(async () => {
   try {
-    await loadOptions();
+    await loadProducts();
     if (props.initialProduct) form.productId = props.initialProduct;
   } catch (error) {
     feedback.type = "error";
