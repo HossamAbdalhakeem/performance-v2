@@ -207,21 +207,15 @@
           </div>
         </Field>
 
-        <div class="flex flex-col gap-2 text-right">
-          <label class="text-sm font-medium text-slate-700">إرفاق صورة التحويل (اختياري)</label>
-          <label
-            class="flex min-h-[140px] cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-sky-400/50 bg-slate-950/70 px-3 py-4 text-center text-xs text-slate-300"
-          >
-            <input type="file" accept="image/*" class="hidden" @change="onFileChange" />
-            <img
-              v-if="imagePreview"
-              :src="imagePreview"
-              alt="صورة التحويل"
-              class="mb-2 max-h-24 rounded-lg object-cover"
-            />
-            <span class="text-2xl">📷</span>
-            <span class="mt-2">اضغط لرفع الصورة</span>
-          </label>
+        <div class="flex h-full flex-col gap-2 text-right">
+          <ImageUpload
+            v-model="proofFile"
+            label="إرفاق صورة التحويل (اختياري)"
+            placeholder="اضغط لرفع الصورة"
+            :max-size-mb="0.5"
+            @select="onProofSelected"
+            @clear="clearProof"
+          />
         </div>
 
         <div class="md:col-span-2 flex justify-center">
@@ -258,6 +252,7 @@ import Button from "primevue/button";
 import Select from "primevue/select";
 import AutoComplete from "primevue/autocomplete";
 import AppInputNumber from "~/components/dashboard/AppInputNumber.vue";
+import ImageUpload from "~/components/dashboard/ImageUpload.vue";
 import { Form, Field, ErrorMessage } from "vee-validate";
 import { productService } from "~/services/productService";
 import { studentService } from "~/services/studentService";
@@ -277,7 +272,8 @@ const props = defineProps({
 const saving = ref(false);
 const formKey = ref(0);
 const receiptCode = ref("");
-const imagePreview = ref("");
+const proofFile = ref(null);
+const proofDataUrl = ref("");
 const searchingStudents = ref(false);
 const nameSuggestions = ref([]);
 const phoneSuggestions = ref([]);
@@ -297,7 +293,6 @@ const form = reactive({
   productId: props.initialProduct || null,
   amount: null,
   paymentMethod: "cash",
-  receiptImage: "",
 });
 
 const formInitialValues = {
@@ -468,20 +463,28 @@ const ensureStudent = async () => {
   return created.id;
 };
 
-const onFileChange = (event) => {
-  const file = event.target.files?.[0];
-  if (!file) {
-    form.receiptImage = "";
-    imagePreview.value = "";
-    return;
-  }
+const fileToDataUrl = (file) =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ""));
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
 
-  const reader = new FileReader();
-  reader.onload = () => {
-    form.receiptImage = String(reader.result || "");
-    imagePreview.value = form.receiptImage;
-  };
-  reader.readAsDataURL(file);
+const clearProof = () => {
+  proofFile.value = null;
+  proofDataUrl.value = "";
+};
+
+const onProofSelected = async (file) => {
+  try {
+    proofFile.value = file;
+    proofDataUrl.value = await fileToDataUrl(file);
+  } catch {
+    clearProof();
+    feedback.type = "error";
+    feedback.message = "تعذر قراءة صورة الإثبات.";
+  }
 };
 
 const resetForm = () => {
@@ -491,12 +494,11 @@ const resetForm = () => {
     productId: props.initialProduct || null,
     amount: null,
     paymentMethod: "cash",
-    receiptImage: "",
   });
   selectedStudent.value = null;
   nameSuggestions.value = [];
   phoneSuggestions.value = [];
-  imagePreview.value = "";
+  clearProof();
   formKey.value += 1;
 };
 
@@ -521,8 +523,8 @@ const handleSubmit = async () => {
       deposit: form.amount,
       payment_method: form.paymentMethod,
       method: form.paymentMethod,
-      receipt_image: form.receiptImage || null,
-      proofReference: form.receiptImage || undefined,
+      receipt_image: proofDataUrl.value || null,
+      proofReference: proofDataUrl.value || undefined,
       quantity: 1,
     });
 
