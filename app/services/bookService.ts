@@ -1,7 +1,7 @@
 const fallbackBooks = [
-  { id: 'book-x', title: 'كتاب X' },
-  { id: 'book-y', title: 'كتاب Y' },
-  { id: 'lecture-z', title: 'محاضرة Z' },
+  { id: "chem", title: "كتاب الكيمياء", teacher: "أ. خالد", stock: 44, available: true },
+  { id: "phys", title: "كتاب الفيزياء", teacher: "أ. عمر", stock: 5, available: false },
+  { id: "math", title: "كتاب الرياضيات", teacher: "أ. سارة", stock: 18, available: true },
 ];
 
 export const bookService = {

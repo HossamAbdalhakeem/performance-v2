@@ -98,7 +98,10 @@ const roleLabels = {
 
 const roleMeta = roleLabels[props.role] || roleLabels.admin;
 const menuItems = computed(() => {
-  const isActive = (to) => route.path === to || route.path.startsWith(`${to}/`);
+  const isActive = (to) => {
+    if (to === "/reservations") return route.path === "/reservations";
+    return route.path === to || route.path.startsWith(`${to}/`);
+  };
 
   if (props.role === "branch") {
     return [
@@ -110,7 +113,7 @@ const menuItems = computed(() => {
 
   if (props.role === "social") {
     return [
-      { label: "احجز كتاب", icon: "📝", to: "/books/reserve", active: isActive("/books/reserve") },
+      { label: "احجز كتاب", icon: "📝", to: "/books", active: isActive("/books") },
     ];
   }
 

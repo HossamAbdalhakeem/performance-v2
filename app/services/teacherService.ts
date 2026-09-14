@@ -1,7 +1,8 @@
 const fallbackTeachers = [
-  { id: 'ahmed', name: 'أحمد محمد', subject: 'اللغة العربية', branch: 'riyadh', status: 'active' },
-  { id: 'sara', name: 'سارة علي', subject: 'الرياضيات', branch: 'jeddah', status: 'pending' },
-  { id: 'mahmoud', name: 'محمود فهد', subject: 'العلوم', branch: 'madina', status: 'left' },
+  { id: "khaled", name: "أ. خالد", subject: "الكيمياء", branch: "riyadh", status: "active" },
+  { id: "omar", name: "أ. عمر", subject: "الفيزياء", branch: "jeddah", status: "active" },
+  { id: "sara", name: "أ. سارة", subject: "الرياضيات", branch: "madina", status: "active" },
+  { id: "salah", name: "مستر محمد صلاح", subject: "اللغة العربية", branch: "riyadh", status: "active" },
 ];
 
 export const teacherService = {

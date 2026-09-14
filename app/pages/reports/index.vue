@@ -1,207 +1,159 @@
 <template>
-  <div class="space-y-6 bg-[#101827] p-4 text-right" dir="rtl">
-    <div class="grid gap-3 md:grid-cols-4">
-      <div class="bg-[#111c2d] px-3 py-2 text-right shadow-sm">
-        <label class="mb-1 block text-sm font-medium text-slate-300"
-          >التاريخ</label
-        >
+  <div class="space-y-6 text-right" dir="rtl">
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      <h2 class="text-xl font-bold text-white">التقارير</h2>
+      <div class="flex flex-wrap gap-2">
         <Select
-          v-model="selectedDate"
-          :options="dateOptions"
+          v-model="selectedBook"
+          :options="bookOptions"
           optionLabel="label"
           optionValue="value"
-          placeholder="اختر التاريخ"
-          class="w-full"
+          placeholder="اختيار الكتاب ▾"
+          class="w-40"
         />
-      </div>
-
-      <div class="bg-[#111c2d] px-3 py-2 text-right shadow-sm">
-        <label class="mb-1 block text-sm font-medium text-slate-300"
-          >الفرع</label
-        >
         <Select
           v-model="selectedBranch"
           :options="branchOptions"
           optionLabel="label"
           optionValue="value"
-          placeholder="كل الفروع"
-          class="w-full"
+          placeholder="الفرع: كل الفروع ▾"
+          class="w-44"
         />
-      </div>
-
-      <div class="bg-[#111c2d] px-3 py-2 text-right shadow-sm">
-        <label class="mb-1 block text-sm font-medium text-slate-300"
-          >التاريخ</label
-        >
         <Select
           v-model="selectedDate"
           :options="dateOptions"
           optionLabel="label"
           optionValue="value"
-          placeholder="اختر التاريخ"
-          class="w-full"
+          placeholder="اختيار التاريخ ▾"
+          class="w-40"
         />
       </div>
     </div>
 
-    <div class="grid gap-3 md:grid-cols-4">
-      <div
-        v-for="stat in stats"
-        :key="stat.label"
-        class="rounded-sm border border-slate-700 bg-[#0f172a] px-3 py-2 text-right shadow-sm"
-      >
-        <p class="text-sm text-slate-300">{{ stat.label }}</p>
-        <template v-if="Array.isArray(stat.value)">
-          <div v-for="item in stat.value" :key="item.all" class="mt-2">
-            <div class="grid grid-cols-3 gap-2 text-center">
-              <div>
-                <p class="text-xs text-slate-400">كل</p>
-                <p class="text-lg font-bold text-slate-100">{{ item.all }}</p>
-              </div>
-              <div>
-                <p class="text-xs text-slate-400">محجوز</p>
-                <p class="text-lg font-bold text-slate-100">{{ item.reserved }}</p>
-              </div>
-              <div>
-                <p class="text-xs text-slate-400">بيع مباشر</p>
-                <p class="text-lg font-bold text-slate-100">{{ item.directSale }}</p>
-              </div>
-            </div>
-          </div>
-        </template>
-        <p v-else class="mt-2 text-3xl font-bold text-slate-100">
-          {{ stat.value }}
-        </p>
+    <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div class="rounded-xl border border-white/10 bg-slate-900 p-4">
+        <p class="text-sm text-slate-300">إجمالي المبيعات</p>
+        <p class="mt-2 text-2xl font-bold text-white">8,750 ج.م</p>
       </div>
-    </div>
-
-    <div
-      class="rounded-sm border border-slate-700 bg-[#0f172a] p-4 text-right shadow-sm"
-    >
-      <div class="mb-4 flex items-center justify-between">
-        <span class="text-sm text-slate-300">مبيعات</span>
-        <span class="text-sm text-slate-300"
-          >إجمالي المبيعات : {{ totalSales }} ج.م</span
-        >
+      <div class="rounded-xl border border-white/10 bg-slate-900 p-4">
+        <p class="text-sm text-slate-300">إجمالي الحجوزات</p>
+        <p class="mt-2 text-2xl font-bold text-white">24</p>
       </div>
-
-      <div class="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
-        <div class="rounded-sm border border-slate-700 bg-[#111c2d] p-4">
-          <div class="mb-4 text-right">
-            <span class="text-lg font-bold text-slate-100">طرق الدفع</span>
+      <div class="rounded-xl border border-white/10 bg-slate-900 p-4">
+        <p class="text-sm text-slate-300">إجمالي المخزون</p>
+        <p class="mt-2 text-2xl font-bold text-white">124</p>
+      </div>
+      <div class="rounded-xl border border-white/10 bg-slate-900 p-4">
+        <p class="text-sm text-slate-300">الكتب</p>
+        <div class="mt-2 grid grid-cols-3 gap-2 text-center">
+          <div>
+            <p class="text-xs text-slate-400">كل</p>
+            <p class="text-lg font-bold text-white">44</p>
           </div>
-
-          <div class="flex items-end justify-around gap-3 pt-6">
-            <div class="flex w-20 flex-col items-center gap-2">
-              <div
-                class="w-full rounded-t-sm bg-[#5b9bd5]"
-                style="height: 140px"
-              ></div>
-              <span class="text-xs text-slate-300">كاش</span>
-            </div>
-            <div class="flex w-20 flex-col items-center gap-2">
-              <div
-                class="w-full rounded-t-sm bg-[#7a9f63]"
-                style="height: 110px"
-              ></div>
-              <span class="text-xs text-slate-300">فودافون كاش</span>
-            </div>
-            <div class="flex w-20 flex-col items-center gap-2">
-              <div
-                class="w-full rounded-t-sm bg-[#d0a0e8]"
-                style="height: 90px"
-              ></div>
-              <span class="text-xs text-slate-300">انستا باي</span>
-            </div>
-            <div class="flex w-20 flex-col items-center gap-2">
-              <div
-                class="w-full rounded-t-sm bg-[#f7c969]"
-                style="height: 65px"
-              ></div>
-              <span class="text-xs text-slate-300">محفظة</span>
-            </div>
+          <div>
+            <p class="text-xs text-slate-400">محجوز</p>
+            <p class="text-lg font-bold text-white">14</p>
           </div>
-
-          <div
-            class="mt-5 flex items-center justify-between gap-2 rounded-sm border border-dashed border-slate-600 bg-[#0b1220] px-2 py-2 text-[11px] text-slate-300"
-          >
-            <span>45%: 3,940 ج.م</span>
-            <span>30%: 2,625 ج.م</span>
-            <span>20%: 1,750 ج.م</span>
-            <span>5%: 437 ج.م</span>
-          </div>
-        </div>
-
-        <div class="rounded-sm border border-slate-700 bg-[#0f172a] p-4">
-          <div class="mb-3 text-right">
-            <span class="text-lg font-bold text-slate-100">الملخص</span>
-          </div>
-          <div class="space-y-3 text-right text-sm text-slate-300">
-            <p>
-             مبيعات الفرع : <strong class="text-slate-100">2500 ج.م</strong>
-            </p>
-            <p> محجوزات: <strong class="text-slate-100">5400 ج.م</strong></p>
-            <p> صافي ربح: <strong class="text-slate-100">1400 ج.م</strong></p>
+          <div>
+            <p class="text-[11px] text-slate-400">متاح بيع مباشر</p>
+            <p class="text-lg font-bold text-white">30</p>
           </div>
         </div>
       </div>
     </div>
 
-    <div
-      class="rounded-sm border border-slate-700 bg-[#0f172a] p-4 text-right shadow-sm"
-    >
-      <div class="mb-3 flex items-center justify-between">
-        <span class="text-sm text-slate-300">تفاصيل السحب</span>
-        <span class="text-lg font-bold text-slate-100">الطلاب</span>
-      </div>
-
-      <div class="overflow-hidden rounded-sm border border-slate-700">
-        <table class="w-full border-collapse text-sm">
-          <thead class="bg-[#111c2d] text-slate-200">
-            <tr>
-              <th class="border border-slate-700 px-2 py-2">الربح</th>
-              <th class="border border-slate-700 px-2 py-2">الفرع</th>
-              <th class="border border-slate-700 px-2 py-2">المنتج</th>
-              <th class="border border-slate-700 px-2 py-2">المدرس</th>
-              <th class="border border-slate-700 px-2 py-2">الطالب</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr
-              v-for="row in reportRows"
-              :key="row.student"
-              class="bg-[#0b1220] text-slate-300"
-            >
-              <td class="border border-slate-700 px-2 py-2">
-                {{ row.profit }}
-              </td>
-              <td class="border border-slate-700 px-2 py-2">
-                {{ row.branch }}
-              </td>
-              <td class="border border-slate-700 px-2 py-2">
-                {{ row.product }}
-              </td>
-              <td class="border border-slate-700 px-2 py-2">
-                {{ row.teacher }}
-              </td>
-              <td class="border border-slate-700 px-2 py-2">
-                {{ row.student }}
-              </td>
-            </tr>
-          </tbody>
-        </table>
+    <div class="rounded-xl border border-white/10 bg-slate-900 p-4">
+      <p class="mb-3 font-bold text-white">مبيعات</p>
+      <div class="grid gap-2 text-sm text-slate-200">
+        <p>مبيعات فرع: <strong class="text-white">8,750</strong></p>
+        <p>محجوزات: <strong class="text-white">18,230</strong></p>
+        <p>صافي الربح: <strong class="text-white">18,400</strong></p>
       </div>
     </div>
+
+    <div class="rounded-xl border border-white/10 bg-slate-900 p-4">
+      <p class="mb-4 text-center font-bold text-white">طرق الدفع</p>
+      <div class="flex flex-wrap items-center justify-center gap-8">
+        <div
+          class="h-32 w-32 rounded-full"
+          style="background: conic-gradient(#4472C4 0 45%, #70AD47 45% 75%, #ED7D31 75% 95%, #7030A0 95% 100%)"
+        />
+        <div class="space-y-2 text-sm">
+          <p class="text-[#4472C4]">● كاش: 3,940 ج.م — 45%</p>
+          <p class="text-[#70AD47]">● فودافون كاش: 2,625 ج.م — 30%</p>
+          <p class="text-[#ED7D31]">● انستا باي: 1,750 ج.م — 20%</p>
+          <p class="text-[#7030A0]">● محفظة الكترونية: 437 ج.م — 5%</p>
+          <p class="pt-1 font-bold text-white">إجمالي المبيعات: 8,750 ج.م</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="rounded-xl border border-white/10 bg-slate-900 p-4">
+      <p class="mb-4 font-bold text-white">طلاب وعملاء</p>
+      <div class="grid gap-6 xl:grid-cols-2">
+        <div>
+          <p class="mb-3 text-center text-sm font-semibold text-white">عدد العملاء لكل سنة دراسية</p>
+          <svg viewBox="0 0 320 180" class="h-44 w-full">
+            <line x1="30" y1="150" x2="300" y2="150" stroke="#64748b" />
+            <line x1="30" y1="20" x2="30" y2="150" stroke="#64748b" />
+            <polyline fill="none" stroke="#4472C4" stroke-width="3" points="50,132 110,88 170,104 230,48 290,68" />
+            <circle cx="50" cy="132" r="4" fill="#4472C4" />
+            <circle cx="110" cy="88" r="4" fill="#4472C4" />
+            <circle cx="170" cy="104" r="4" fill="#4472C4" />
+            <circle cx="230" cy="48" r="4" fill="#4472C4" />
+            <circle cx="290" cy="68" r="4" fill="#4472C4" />
+            <text x="40" y="168" fill="#cbd5e1" font-size="11">أولى</text>
+            <text x="100" y="168" fill="#cbd5e1" font-size="11">تانية</text>
+            <text x="160" y="168" fill="#cbd5e1" font-size="11">تالتة</text>
+            <text x="220" y="168" fill="#cbd5e1" font-size="11">رابعة</text>
+            <text x="275" y="168" fill="#cbd5e1" font-size="11">خامسة</text>
+          </svg>
+        </div>
+
+        <div>
+          <p class="mb-3 text-center text-sm font-semibold text-white">طلاب كل مدرس</p>
+          <div class="overflow-hidden rounded-xl border border-white/10">
+            <table class="w-full text-center text-sm">
+              <thead class="bg-slate-800 text-white">
+                <tr>
+                  <th class="px-2 py-2">اسم الطالب</th>
+                  <th class="px-2 py-2">المدرس</th>
+                  <th class="px-2 py-2">الموبايل</th>
+                  <th class="px-2 py-2">اشترى ايه</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="row in studentRows" :key="row.phone" class="border-t border-white/10 text-slate-200">
+                  <td class="px-2 py-2">{{ row.student }}</td>
+                  <td class="px-2 py-2">{{ row.teacher }}</td>
+                  <td class="px-2 py-2">{{ row.phone }}</td>
+                  <td class="px-2 py-2">{{ row.product }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <Button
+      label="⬇ تصدير كل التقارير Excel"
+      class="w-full justify-center"
+      severity="secondary"
+      @click="exportReports"
+    />
   </div>
 </template>
 
 <script setup>
 import Select from "primevue/select";
 import Button from "primevue/button";
+import { productService } from "~/services/productService";
+import { branchService } from "~/services/branchService";
 
 const selectedDate = ref("today");
 const selectedBranch = ref("all");
-const selectedReportType = ref("sales");
+const selectedBook = ref("all");
 
 const dateOptions = [
   { label: "اليوم", value: "today" },
@@ -209,60 +161,64 @@ const dateOptions = [
   { label: "الشهر", value: "month" },
 ];
 
-const branchOptions = [
-  { label: "كل الفروع", value: "all" },
-  { label: "فرع الرياض", value: "riyadh" },
-  { label: "فرع جدة", value: "jeddah" },
+const branchOptions = ref([{ label: "كل الفروع", value: "all" }]);
+const bookOptions = ref([{ label: "كل الكتب", value: "all" }]);
+
+const studentRows = [
+  { student: "أحمد محمد", teacher: "أ. خالد", phone: "01012845678", product: "كتاب X" },
+  { student: "سارة علي", teacher: "أ. عمر", phone: "0112345678", product: "ملزمة" },
 ];
 
-const bookOptions = [
-  { label: "كل الكتب", value: "all" },
-  { label: "كتاب جديد", value: "new" },
-  { label: "محاضرة جديدة", value: "lecture" },
-];
+const loadFilters = async () => {
+  try {
+    const [branches, products] = await Promise.all([
+      branchService.getBranches(),
+      productService.getProducts(),
+    ]);
 
-const totalSales = "8,750";
+    const branchList = Array.isArray(branches) ? branches : branches?.data || [];
+    const productList = Array.isArray(products) ? products : products?.data || [];
 
-const stats = [
-  { label: "إجمالي المبيعات", value: "8,750" },
-  { label: "الحجوزات", value: "24" },
-  { label: "المخزون", value: "124" },
-  {
-    label: "الكتب",
-    value: [{ all: 44, reserved: 14, directSale: 30 }],
-  },
-];
+    branchOptions.value = [
+      { label: "كل الفروع", value: "all" },
+      ...branchList.map((branch) => ({ label: branch.name || branch.id, value: branch.id })),
+    ];
 
-const reportRows = [
-  {
-    student: "أحمد",
-    teacher: "أحمد",
-    product: "كتاب",
-    branch: "الرياض",
-    profit: "300",
-  },
-  {
-    student: "سارة",
-    teacher: "سارة",
-    product: "ملزمة",
-    branch: "جدة",
-    profit: "250",
-  },
-  {
-    student: "محمود",
-    teacher: "خالد",
-    product: "أوراق",
-    branch: "الرياض",
-    profit: "180",
-  },
-  {
-    student: "ليلى",
-    teacher: "مها",
-    product: "كتاب",
-    branch: "جدة",
-    profit: "120",
-  },
-];
+    bookOptions.value = [
+      { label: "كل الكتب", value: "all" },
+      ...productList.map((product) => ({ label: product.name || product.title || product.id, value: product.id })),
+    ];
+  } catch (error) {
+    console.error("Failed to load report filters", error);
+  }
+};
+
+const exportReports = () => {
+  const rows = [
+    ["اسم الطالب", "المدرس", "الموبايل", "اشترى ايه"],
+    ...studentRows.map((row) => [row.student, row.teacher, row.phone, row.product]),
+    [],
+    ["إجمالي المبيعات", "8750"],
+    ["إجمالي الحجوزات", "24"],
+    ["إجمالي المخزون", "124"],
+    ["مبيعات فرع", "8750"],
+    ["محجوزات", "18230"],
+    ["صافي الربح", "18400"],
+  ];
+
+  const csv = rows.map((row) => row.join(",")).join("\n");
+  const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "library-reports.csv";
+  link.click();
+  URL.revokeObjectURL(url);
+};
+
+onMounted(() => {
+  loadFilters();
+});
 
 definePageMeta({ middleware: ["local-pages"] });
 </script>
