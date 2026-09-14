@@ -77,8 +77,10 @@ export const authService = {
   },
 
   async logout() {
-    // JWT logout is client-side only for this API.
-    return { success: true };
+    return await authFetch<{ success: boolean; message?: string }>("/auth/logout", {
+      method: "POST",
+      body: {},
+    });
   },
 
   async getCurrentUser() {

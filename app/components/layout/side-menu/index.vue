@@ -56,7 +56,7 @@
         <button
           type="button"
           class="mt-2 flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold text-red-300/90 transition hover:bg-white/10 hover:text-red-200"
-          @click="handleLogout"
+          @click="confirmLogoutVisible = true"
         >
           <span
             class="grid size-8 place-items-center rounded-lg bg-white/10 text-xs font-bold"
@@ -66,10 +66,41 @@
         </button>
       </div>
     </aside>
+
+    <Dialog
+      v-model:visible="confirmLogoutVisible"
+      modal
+      header="Confirm logout"
+      :style="{ width: '28rem' }"
+      :dismissableMask="true"
+    >
+      <p class="text-sm text-slate-600">
+        Are you sure you want to log out? Your current session token will be revoked.
+      </p>
+      <template #footer>
+        <div class="flex justify-end gap-2">
+          <Button
+            label="Cancel"
+            severity="secondary"
+            text
+            :disabled="loggingOut"
+            @click="confirmLogoutVisible = false"
+          />
+          <Button
+            label="Logout"
+            severity="danger"
+            :loading="loggingOut"
+            @click="confirmLogout"
+          />
+        </div>
+      </template>
+    </Dialog>
   </div>
 </template>
 
 <script setup>
+import Dialog from "primevue/dialog";
+import Button from "primevue/button";
 import Logo from "~/components/layout/logo/index.vue";
 import { useAuthStore } from "~/store/auth.js";
 
@@ -77,10 +108,19 @@ defineProps({ open: { type: Boolean, default: false } });
 const emit = defineEmits(["close"]);
 
 const authStore = useAuthStore();
-const handleLogout = () => {
+const confirmLogoutVisible = ref(false);
+const loggingOut = ref(false);
+
+const confirmLogout = async () => {
   if (!authStore.isLoggedIn) return;
-  emit("close");
-  authStore.logout();
+  loggingOut.value = true;
+  try {
+    emit("close");
+    await authStore.logout();
+  } finally {
+    loggingOut.value = false;
+    confirmLogoutVisible.value = false;
+  }
 };
 
 const navigation = [

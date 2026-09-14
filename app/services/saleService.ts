@@ -1,25 +1,31 @@
-import { apiFetch, firstRow } from "~/utils/apiFetch";
+import { apiFetch, firstRow, asList } from "~/utils/apiFetch";
 
-const saleBody = (payload: Record<string, any>) => ({
-  student: {
-    name: payload.student?.name || payload.student_name,
-    phone: payload.student?.phone || payload.phone,
-  },
-  study_year_id: payload.study_year_id || payload.stage,
-  items: payload.items || [
-    {
-      product_id: payload.product_id,
-      quantity: payload.quantity || 1,
-    },
-  ],
-  paid_amount: payload.paid_amount ?? payload.amount,
-  payment_method: payload.payment_method,
-  payment_proof_path: payload.payment_proof_path ?? payload.receipt_image ?? null,
-});
+const PAYMENT_METHODS = new Set(["CASH", "WALLET", "INSTAPAY"]);
+
+const saleBody = (payload: Record<string, any>) => {
+  const method = String(payload.method || payload.payment_method || "CASH").toUpperCase();
+console.log(payload);
+  const body: Record<string, any> = {
+    studentId: payload.studentId ?? payload.student_id,
+    productId: payload.productId ?? payload.product_id,
+    quantity: Number(payload.quantity || 1),
+    method: PAYMENT_METHODS.has(method) ? method : "CASH",
+  };
+
+  const proof =
+    payload.proofReference ??
+    payload.proof_reference ??
+    payload.payment_proof_path ??
+    payload.receipt_image;
+
+  if (proof) body.proofReference = proof;
+
+  return body;
+};
 
 export const saleService = {
   async getSales(params: Record<string, any> = {}) {
-    return await apiFetch("/sales", { method: "GET", params });
+    return asList(await apiFetch("/sales", { method: "GET", params }));
   },
 
   async getSale(id: string) {
@@ -31,7 +37,7 @@ export const saleService = {
       await apiFetch("/sales", {
         method: "POST",
         body: saleBody(payload),
-      })
+      }),
     );
   },
 };

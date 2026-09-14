@@ -17,6 +17,11 @@ export const studentService = {
     return asList(await apiFetch("/students", { method: "GET", params }));
   },
 
+  async searchStudents(search = "") {
+    const term = String(search || "").trim();
+    return this.getStudents(term ? { search: term } : {});
+  },
+
   async getStudent(id: string) {
     return firstRow(await apiFetch(`/students/${id}`, { method: "GET" }));
   },

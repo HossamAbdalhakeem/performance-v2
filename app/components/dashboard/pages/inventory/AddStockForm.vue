@@ -1,68 +1,50 @@
 <template>
-  <Form
-    v-slot="{ errors: fieldErrors }"
-    :initial-values="initialValues"
-    :key="formKey"
-    class="grid gap-4"
-    @submit="submitStock"
-  >
-    <Field
-      v-if="!lockedBranchId"
-      v-slot="{ field, errorMessage }"
-      name="branch"
-      rules="required"
-    >
-      <div class="flex flex-col gap-2 text-right">
-        <label class="text-sm font-medium text-slate-700">الفرع</label>
-        <Select
-          v-bind="field"
-          v-model="form.branch"
-          :options="branchOptions"
-          optionLabel="label"
-          optionValue="value"
-          placeholder="اختار الفرع ▾"
-          filter
-          class="w-full"
-          :class="{ 'p-invalid': errorMessage || fieldErrors.branch }"
-        />
-        <ErrorMessage name="branch" class="text-xs text-red-500" />
-      </div>
-    </Field>
+  <form class="grid gap-4" @submit.prevent="submitStock">
+    <div v-if="!lockedBranchId" class="flex flex-col gap-2 text-right">
+      <label class="text-sm font-medium text-slate-700">الفرع</label>
+      <Select
+        v-model="form.branchId"
+        :options="branchOptions"
+        option-label="label"
+        option-value="value"
+        placeholder="اختار الفرع ▾"
+        filter
+        class="w-full"
+        :invalid="!!errors.branchId"
+      />
+      <small v-if="errors.branchId" class="text-xs text-red-500">{{ errors.branchId }}</small>
+    </div>
 
     <div v-else class="rounded-xl bg-slate-50 px-3 py-2 text-right text-sm text-slate-600">
       الفرع: <strong class="text-slate-900">{{ branchName || "—" }}</strong>
     </div>
 
-    <Field v-slot="{ field, errorMessage }" name="product" rules="required">
-      <div class="flex flex-col gap-2 text-right">
-        <label class="text-sm font-medium text-slate-700">المنتج</label>
-        <Select
-          v-bind="field"
-          v-model="form.product"
-          :options="productOptions"
-          optionLabel="label"
-          optionValue="value"
-          placeholder="اختار المنتج ▾"
-          filter
-          class="w-full"
-          :class="{ 'p-invalid': errorMessage || fieldErrors.product }"
-        />
-        <ErrorMessage name="product" class="text-xs text-red-500" />
-      </div>
-    </Field>
+    <div class="flex flex-col gap-2 text-right">
+      <label class="text-sm font-medium text-slate-700">المنتج</label>
+      <Select
+        :model-value="form.productId"
+        :options="productOptions"
+        optionLabel="label"
+        optionValue="value"
+        placeholder="اختار المنتج ▾"
+        filter
+        class="w-full"
+        :invalid="!!errors.productId"
+        @update:model-value="onProductChange"
+      />
+      <small v-if="errors.productId" class="text-xs text-red-500">{{ errors.productId }}</small>
+    </div>
 
-    <Field v-slot="{ errorMessage }" v-model="form.quantity" name="quantity" rules="required|min_value:1">
-      <div class="flex flex-col gap-2 text-right">
-        <label class="text-sm font-medium text-slate-700">الكمية</label>
-        <AppInputNumber
-          v-model="form.quantity"
-          :min="1"
-          :max-fraction-digits="0"
-          :invalid="!!(errorMessage || fieldErrors.quantity)"
-        />
-        <ErrorMessage name="quantity" class="text-xs text-red-500" />
-      </div>
-    </Field>
+    <div class="flex flex-col gap-2 text-right">
+      <label class="text-sm font-medium text-slate-700">الكمية</label>
+      <AppInputNumber
+        v-model="form.quantity"
+        :min="1"
+        :max-fraction-digits="0"
+        :invalid="!!errors.quantity"
+      />
+      <small v-if="errors.quantity" class="text-xs text-red-500">{{ errors.quantity }}</small>
+    </div>
 
     <div class="overflow-hidden rounded-2xl border border-slate-200">
       <table class="w-full text-right text-sm">
@@ -73,7 +55,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-if="!form.product || !form.quantity" class="text-slate-400">
+          <tr v-if="!form.productId || !form.quantity" class="text-slate-400">
             <td colspan="2" class="px-3 py-4 text-center">سيظهر الملخص هنا بعد اختيار المنتج والكمية</td>
           </tr>
           <tr v-else>
@@ -99,14 +81,13 @@
       />
       <Button type="submit" label="تسليم المنتجات للفرع" :loading="saving" severity="info" />
     </div>
-  </Form>
+  </form>
 </template>
 
 <script setup>
 import Button from "primevue/button";
 import Select from "primevue/select";
 import AppInputNumber from "~/components/dashboard/AppInputNumber.vue";
-import { Form, Field, ErrorMessage } from "vee-validate";
 import { inventoryService } from "~/services/inventoryService";
 import { branchService } from "~/services/branchService";
 import { productService } from "~/services/productService";
@@ -123,15 +104,47 @@ const saving = ref(false);
 const errorMessage = ref("");
 const branchOptions = ref([]);
 const productOptions = ref([]);
-const formKey = ref(0);
+const errors = reactive({
+  branchId: "",
+  productId: "",
+  quantity: "",
+});
 
-const form = reactive({ branch: props.lockedBranchId || "", product: "", quantity: null });
-const initialValues = { branch: props.lockedBranchId || "", product: "", quantity: null };
+const form = reactive({
+  branchId: props.lockedBranchId || null,
+  productId: null,
+  quantity: null,
+});
+
+const toId = (value) => {
+  if (value == null || value === "") return null;
+  if (typeof value === "string" || typeof value === "number") return String(value);
+  if (typeof value === "object") {
+    const id = value.value ?? value.id ?? value.productId;
+    return id != null && id !== "" ? String(id) : null;
+  }
+  return null;
+};
+
+const onProductChange = (value) => {
+  form.productId = toId(value);
+};
 
 const currentProductName = computed(() => {
-  const selected = productOptions.value.find((item) => item.value === form.product);
+  const selected = productOptions.value.find((item) => item.value === form.productId);
   return selected?.label || "-";
 });
+
+const validate = () => {
+  const branchId = props.lockedBranchId || form.branchId;
+  errors.branchId = branchId ? "" : "الفرع مطلوب.";
+  errors.productId = form.productId ? "" : "المنتج مطلوب.";
+  errors.quantity =
+    form.quantity != null && Number(form.quantity) >= 1
+      ? ""
+      : "الكمية يجب أن تكون 1 على الأقل.";
+  return !errors.branchId && !errors.productId && !errors.quantity;
+};
 
 const loadOptions = async () => {
   try {
@@ -148,33 +161,34 @@ const loadOptions = async () => {
       value: branch.id,
     }));
 
-    productOptions.value = productList.map((product) => ({
-      label: product.name || product.title || product.id,
-      value: product.id,
-    }));
+    productOptions.value = productList
+      .filter((product) => product?.id)
+      .map((product) => ({
+        label: product.name || product.title || product.id,
+        value: String(product.id),
+      }));
   } catch (error) {
     console.error("Failed to load add-stock options", error);
+    errorMessage.value = error?.message || "تعذر تحميل المنتجات.";
   }
 };
 
 const submitStock = async () => {
-  saving.value = true;
   errorMessage.value = "";
+  if (!validate()) return;
+console.log('form',form);
 
+  saving.value = true;
   try {
-    const branchId = props.lockedBranchId || form.branch;
     await inventoryService.addStock({
-      branchId,
-      productId: form.product,
-      quantity: form.quantity,
+      branchId: props.lockedBranchId || form.branchId,
+      productId: form.productId,
+      quantity: Number(form.quantity),
     });
 
-    Object.assign(form, {
-      branch: props.lockedBranchId || "",
-      product: "",
-      quantity: null,
-    });
-    formKey.value += 1;
+    form.productId = null;
+    form.quantity = null;
+    if (!props.lockedBranchId) form.branchId = null;
     emit("saved");
   } catch (error) {
     errorMessage.value = error?.message || "تعذر إضافة المنتج للفرع.";
@@ -186,11 +200,10 @@ const submitStock = async () => {
 watch(
   () => props.lockedBranchId,
   (value) => {
-    form.branch = value || "";
+    form.branchId = value || null;
   },
+  { immediate: true },
 );
 
-onMounted(() => {
-  loadOptions();
-});
+onMounted(loadOptions);
 </script>

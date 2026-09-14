@@ -28,7 +28,7 @@
         <button
           type="button"
           class="flex w-full items-center justify-between rounded-xl bg-red-500/10 px-3 py-3 text-sm font-medium text-red-200 hover:bg-red-500/20"
-          @click="handleLogout"
+          @click="confirmLogoutVisible = true"
         >
           <span>تسجيل الخروج</span>
           <span>⎋</span>
@@ -75,10 +75,42 @@
         <slot />
       </main>
     </div>
+
+    <Dialog
+      v-model:visible="confirmLogoutVisible"
+      modal
+      header="تأكيد تسجيل الخروج"
+      :style="{ width: '28rem' }"
+      :dismissableMask="true"
+      dir="rtl"
+    >
+      <p class="text-right text-sm text-slate-600">
+        هل أنت متأكد من تسجيل الخروج؟ سيتم إنهاء الجلسة وإبطال رمز الدخول الحالي.
+      </p>
+      <template #footer>
+        <div class="flex justify-end gap-2">
+          <Button
+            label="إلغاء"
+            severity="secondary"
+            text
+            :disabled="loggingOut"
+            @click="confirmLogoutVisible = false"
+          />
+          <Button
+            label="تسجيل الخروج"
+            severity="danger"
+            :loading="loggingOut"
+            @click="confirmLogout"
+          />
+        </div>
+      </template>
+    </Dialog>
   </div>
 </template>
 
 <script setup>
+import Dialog from "primevue/dialog";
+import Button from "primevue/button";
 import { useAuthStore } from "~/store/auth.js";
 
 const props = defineProps({
@@ -90,6 +122,9 @@ const props = defineProps({
 
 const authStore = useAuthStore();
 const route = useRoute();
+const confirmLogoutVisible = ref(false);
+const loggingOut = ref(false);
+
 const roleLabels = {
   admin: { short: "AD", label: "مدير" },
   branch: { short: "BR", label: "فرع" },
@@ -135,7 +170,13 @@ const userInitials = computed(() => userName.value?.slice(0, 2)?.toUpperCase() |
 const roleLabel = computed(() => roleMeta.label);
 const roleLabelShort = computed(() => roleMeta.short);
 
-const handleLogout = async () => {
-  await authStore.logout();
+const confirmLogout = async () => {
+  loggingOut.value = true;
+  try {
+    await authStore.logout();
+  } finally {
+    loggingOut.value = false;
+    confirmLogoutVisible.value = false;
+  }
 };
 </script>
