@@ -236,6 +236,7 @@ const proofRequiredError = ref(false);
 const feedback = reactive({ type: "success", message: "" });
 const nameSuggestions = ref([]);
 const phoneSuggestions = ref([]);
+const selectedStudent = ref(null);
 
 const paymentOptions = [
   { label: "كاش", value: "CASH" },
@@ -244,7 +245,6 @@ const paymentOptions = [
 ];
 
 const form = reactive({
-  studentId: null,
   studentName: "",
   studentPhone: "",
   productId: null,
@@ -340,18 +340,37 @@ const onPhoneComplete = (event) => {
   runPhoneSearch(event.query || "");
 };
 
+const asText = (value, key = "") => {
+  if (value == null) return "";
+  if (typeof value === "object") {
+    if (key && value[key] != null) return String(value[key]).trim();
+    if (value.name != null && key === "name") return String(value.name).trim();
+    if (value.phone != null && key === "phone") return String(value.phone).trim();
+    return "";
+  }
+  return String(value).trim();
+};
+
 const onStudentPicked = (student, setFieldValue) => {
   if (!student || typeof student === "string") return;
 
-  form.studentId = student.id || null;
-  form.studentName = student.name || "";
-  form.studentPhone = student.phone || "";
-  setFieldValue?.("studentName", form.studentName);
-  setFieldValue?.("studentPhone", form.studentPhone);
+  const name = String(student.name || "").trim();
+  const phone = String(student.phone || "").trim();
+
+  selectedStudent.value = {
+    id: student.id || null,
+    name,
+    phone,
+  };
+
+  form.studentName = name;
+  form.studentPhone = phone;
+  setFieldValue?.("studentName", name);
+  setFieldValue?.("studentPhone", phone);
 
   nextTick(() => {
-    form.studentName = student.name || "";
-    form.studentPhone = student.phone || "";
+    form.studentName = name;
+    form.studentPhone = phone;
   });
 };
 
@@ -362,8 +381,13 @@ const onNameTyped = (value, setFieldValue) => {
   }
 
   const text = String(value || "");
-  if (text !== form.studentName) form.studentId = null;
   form.studentName = text;
+
+  // Any manual edit invalidates the previously selected student.
+  if (!selectedStudent.value || text.trim() !== selectedStudent.value.name) {
+    selectedStudent.value = null;
+  }
+
   setFieldValue?.("studentName", text);
 };
 
@@ -374,39 +398,37 @@ const onPhoneTyped = (value, setFieldValue) => {
   }
 
   const text = String(value || "");
-  if (text !== form.studentPhone) form.studentId = null;
   form.studentPhone = text;
+
+  if (!selectedStudent.value || text.trim() !== selectedStudent.value.phone) {
+    selectedStudent.value = null;
+  }
+
   setFieldValue?.("studentPhone", text);
 };
 
-const resolveStudentText = (value) => {
-  if (value && typeof value === "object") {
-    return {
-      name: value.name || form.studentName || "",
-      phone: value.phone || form.studentPhone || "",
-      id: value.id || form.studentId || null,
-    };
-  }
-
-  return {
-    name: String(form.studentName || "").trim(),
-    phone: String(form.studentPhone || "").trim(),
-    id: form.studentId || null,
-  };
-};
-
 const ensureStudent = async () => {
-  const current = resolveStudentText();
-  const name = current.name;
-  const phone = current.phone;
+  const name = asText(form.studentName, "name");
+  const phone = asText(form.studentPhone, "phone");
+
+  form.studentName = name;
+  form.studentPhone = phone;
 
   if (!name || !phone) {
     throw new Error("اسم الطالب ورقم الهاتف مطلوبان.");
   }
 
-  if (current.id) {
-    return current.id;
+  const picked = selectedStudent.value;
+  if (
+    picked?.id &&
+    picked.name === name &&
+    picked.phone === phone
+  ) {
+    return picked.id;
   }
+
+  // Selection no longer matches typed values → treat as a new/different student.
+  selectedStudent.value = null;
 
   const matches = await studentService.searchStudents(phone);
   const existing = (matches || []).find(
@@ -414,6 +436,7 @@ const ensureStudent = async () => {
   );
 
   if (existing?.id) {
+    selectedStudent.value = normalizeStudent(existing);
     return existing.id;
   }
 
@@ -422,6 +445,7 @@ const ensureStudent = async () => {
     throw new Error("تعذر إضافة الطالب الجديد.");
   }
 
+  selectedStudent.value = normalizeStudent(created);
   return created.id;
 };
 
@@ -446,13 +470,13 @@ const onProofSelected = async (file) => {
 
 const resetForm = () => {
   Object.assign(form, {
-    studentId: null,
     studentName: "",
     studentPhone: "",
     productId: null,
     quantity: 1,
     method: "CASH",
   });
+  selectedStudent.value = null;
   nameSuggestions.value = [];
   phoneSuggestions.value = [];
   proofFile.value = null;
