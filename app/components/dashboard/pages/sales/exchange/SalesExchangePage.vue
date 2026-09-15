@@ -411,8 +411,6 @@
           v-model:image="exchangeImage"
           v-model:image-data-url="exchangeProofKey"
           method-label="طريقة رد فرق السعر"
-          :show-image-when="'never'"
-          :require-image-when="'never'"
           :method-invalid="!!exchangePaymentError"
           :method-error="exchangePaymentError"
         />
@@ -920,9 +918,18 @@ const requestExchangeConfirm = () => {
     }
   }
 
-  if (comparison?.kind === "less" && !exchangeRefundMethod.value) {
-    exchangePaymentError.value = "اختر طريقة رد فرق السعر.";
-    return;
+  if (comparison?.kind === "less") {
+    if (!exchangeRefundMethod.value) {
+      exchangePaymentError.value = "اختر طريقة رد فرق السعر.";
+      return;
+    }
+    if (
+      needsProof(exchangeRefundMethod.value) &&
+      !String(exchangeProofKey.value || "").trim()
+    ) {
+      exchangePaymentError.value = "صورة إثبات الرد مطلوبة لطريقة الرد المحددة.";
+      return;
+    }
   }
 
   exchangeConfirmVisible.value = true;
@@ -954,6 +961,9 @@ const confirmExchange = async () => {
       }
     } else if (comparison?.kind === "less") {
       payload.refundMethod = exchangeRefundMethod.value;
+      if (exchangeProofKey.value) {
+        payload.proofReference = exchangeProofKey.value;
+      }
     }
 
     await exchangeService.createExchange(payload);
