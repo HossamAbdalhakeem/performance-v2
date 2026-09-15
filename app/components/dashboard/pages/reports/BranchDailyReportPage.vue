@@ -127,9 +127,15 @@
           />
           <div class="flex items-start justify-between gap-3">
             <div>
-              <p class="text-sm text-emerald-200/80">إجمالي المدفوعات</p>
+              <p class="text-sm text-emerald-200/80">صافي المدفوعات</p>
               <p class="mt-2 text-3xl font-extrabold tracking-tight text-white">
                 {{ formatMoney(summary.paymentsTotal) }}
+              </p>
+              <p
+                v-if="Number(summary.refundsTotal) > 0"
+                class="mt-2 text-xs text-rose-300"
+              >
+                بعد خصم الاسترداد {{ formatMoney(summary.refundsTotal) }}
               </p>
             </div>
             <span
@@ -140,13 +146,15 @@
           </div>
           <div class="mt-5 grid grid-cols-2 gap-3 text-sm">
             <div class="rounded-xl border border-white/5 bg-black/20 px-3 py-2">
-              <p class="text-xs text-slate-400">مبيعات</p>
-              <p class="mt-1 font-bold text-sky-300">{{ summary.sales ?? 0 }}</p>
+              <p class="text-xs text-slate-400">المحصل</p>
+              <p class="mt-1 font-bold text-sky-300">
+                {{ formatMoney(summary.paymentsCollected ?? summary.paymentsTotal) }}
+              </p>
             </div>
             <div class="rounded-xl border border-white/5 bg-black/20 px-3 py-2">
-              <p class="text-xs text-slate-400">حجوزات</p>
-              <p class="mt-1 font-bold text-amber-300">
-                {{ summary.reservations ?? 0 }}
+              <p class="text-xs text-slate-400">حجوزات ملغاة</p>
+              <p class="mt-1 font-bold text-rose-300">
+                {{ summary.cancelledReservations ?? 0 }}
               </p>
             </div>
           </div>
@@ -366,6 +374,7 @@ const ACTIVITY_COLORS = {
   sales: "#38bdf8",
   reservations: "#fbbf24",
   delivered: "#34d399",
+  cancelled: "#fb7185",
   movements: "#a78bfa",
 };
 
@@ -504,6 +513,34 @@ const deliveredRows = computed(() =>
   })),
 );
 
+const cancelledRows = computed(() =>
+  (report.value?.cancelledReservations || []).map((item) => {
+    const refundAmount = (item.refunds || []).reduce(
+      (sum, refund) => sum + Number(refund.amount || 0),
+      0,
+    );
+    return {
+      time: formatTime(item.updatedAt),
+      number: item.reservationNumber || "-",
+      student: item.student?.name || "-",
+      product: item.product?.name || "-",
+      paid: formatMoney(item.paidAmount),
+      refund: formatMoney(refundAmount || item.paidAmount),
+      by: item.createdBy?.fullName || "-",
+    };
+  }),
+);
+
+const cancelledColumns = [
+  { field: "time", header: "وقت الإلغاء" },
+  { field: "number", header: "رقم الحجز" },
+  { field: "student", header: "الطالب" },
+  { field: "product", header: "المنتج" },
+  { field: "paid", header: "المدفوع" },
+  { field: "refund", header: "المسترد" },
+  { field: "by", header: "بواسطة" },
+];
+
 const detailSections = computed(() => ({
   sales: {
     title: "المبيعات",
@@ -522,6 +559,12 @@ const detailSections = computed(() => ({
     rows: deliveredRows.value,
     columns: deliveredColumns,
     emptyMessage: "لا توجد حجوزات مسلّمة في هذا اليوم.",
+  },
+  cancelled: {
+    title: "الحجوزات الملغاة",
+    rows: cancelledRows.value,
+    columns: cancelledColumns,
+    emptyMessage: "لا توجد حجوزات ملغاة في هذا اليوم.",
   },
   received: {
     title: "المنتجات المستلمة (وارد)",
@@ -563,6 +606,12 @@ const activityItems = computed(() => {
       label: "حجوزات مسلّمة",
       value: Number(s.deliveredReservations ?? 0),
       color: ACTIVITY_COLORS.delivered,
+    },
+    {
+      key: "cancelled",
+      label: "حجوزات ملغاة",
+      value: Number(s.cancelledReservations ?? 0),
+      color: ACTIVITY_COLORS.cancelled,
     },
     {
       key: "movements",
@@ -729,6 +778,17 @@ const summaryCards = computed(() => {
       borderClass: "border-emerald-500/25 bg-slate-900",
       iconWrapClass: "bg-emerald-500/15 text-emerald-300",
       glowClass: "bg-gradient-to-bl from-emerald-500/10 to-transparent",
+    },
+    {
+      key: "cancelled",
+      label: "الحجوزات الملغاة",
+      value: s.cancelledReservations ?? 0,
+      hint: "إلغاءات اليوم والاسترداد",
+      icon: "pi-times-circle",
+      clickable: true,
+      borderClass: "border-rose-500/25 bg-slate-900",
+      iconWrapClass: "bg-rose-500/15 text-rose-300",
+      glowClass: "bg-gradient-to-bl from-rose-500/10 to-transparent",
     },
     {
       key: "received",

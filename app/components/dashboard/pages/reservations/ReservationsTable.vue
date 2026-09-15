@@ -43,7 +43,7 @@
       <div class="flex flex-wrap justify-center gap-1">
         <Button
           v-if="canModify(data)"
-          label="تبديل منتج"
+          label="استبدال منتج"
           icon="pi pi-sync"
           text
           size="small"
@@ -52,7 +52,7 @@
         />
         <Button
           v-if="canModify(data)"
-          label="إلغاء"
+          label="إلغاء الحجز"
           icon="pi pi-times"
           text
           size="small"
@@ -78,6 +78,7 @@ defineEmits(["change-product", "cancel"]);
 
 const columns = [
   { field: "reservationNumber", header: "رقم الحجز" },
+  { field: "createdAtLabel", header: "تاريخ الحجز" },
   { field: "studentName", header: "الطالب" },
   { field: "productName", header: "المنتج" },
   { field: "sellingPriceLabel", header: "سعر البيع", slot: "sellingPriceLabel" },
