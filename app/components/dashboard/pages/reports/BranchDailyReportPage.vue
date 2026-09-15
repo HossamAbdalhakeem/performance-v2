@@ -157,10 +157,22 @@
                 {{ formatMoney(summary.paymentsCollected ?? summary.paymentsTotal) }}
               </p>
             </div>
-            <div class="rounded-xl border border-white/5 bg-black/20 px-3 py-2">
+            <div
+              v-if="!isCustomerService"
+              class="rounded-xl border border-white/5 bg-black/20 px-3 py-2"
+            >
               <p class="text-xs text-slate-400">حجوزات ملغاة</p>
               <p class="mt-1 font-bold text-rose-300">
                 {{ summary.cancelledReservations ?? 0 }}
+              </p>
+            </div>
+            <div
+              v-else
+              class="rounded-xl border border-white/5 bg-black/20 px-3 py-2"
+            >
+              <p class="text-xs text-slate-400">جاهزة للتسليم</p>
+              <p class="mt-1 font-bold text-emerald-300">
+                {{ summary.readyReservations ?? 0 }}
               </p>
             </div>
           </div>
@@ -715,18 +727,6 @@ const activityItems = computed(() => {
         value: Number(s.waitingReservations ?? 0),
         color: ACTIVITY_COLORS.sales,
       },
-      {
-        key: "delivered",
-        label: "مسلّمة اليوم",
-        value: Number(s.deliveredReservations ?? 0),
-        color: "#34d399",
-      },
-      {
-        key: "cancelled",
-        label: "ملغاة",
-        value: Number(s.cancelledReservations ?? 0),
-        color: ACTIVITY_COLORS.cancelled,
-      },
     ];
   }
 
@@ -922,39 +922,6 @@ const summaryCards = computed(() => {
         borderClass: "border-sky-500/25 bg-slate-900",
         iconWrapClass: "bg-sky-500/15 text-sky-300",
         glowClass: "bg-gradient-to-bl from-sky-500/10 to-transparent",
-      },
-      {
-        key: "delivered",
-        label: "الحجوزات المسلّمة",
-        value: s.deliveredReservations ?? 0,
-        hint: "من حجوزاتك وتم تسليمها اليوم",
-        icon: "pi-check-circle",
-        clickable: true,
-        borderClass: "border-teal-500/25 bg-slate-900",
-        iconWrapClass: "bg-teal-500/15 text-teal-300",
-        glowClass: "bg-gradient-to-bl from-teal-500/10 to-transparent",
-      },
-      {
-        key: "cancelled",
-        label: "الحجوزات الملغاة",
-        value: s.cancelledReservations ?? 0,
-        hint: "من حجوزاتك وألغيت اليوم",
-        icon: "pi-times-circle",
-        clickable: true,
-        borderClass: "border-rose-500/25 bg-slate-900",
-        iconWrapClass: "bg-rose-500/15 text-rose-300",
-        glowClass: "bg-gradient-to-bl from-rose-500/10 to-transparent",
-      },
-      {
-        key: "students",
-        label: "طلاب جدد",
-        value: s.studentsCreated ?? 0,
-        hint: "طلاب أضفتهم اليوم",
-        icon: "pi-users",
-        clickable: false,
-        borderClass: "border-violet-500/25 bg-slate-900",
-        iconWrapClass: "bg-violet-500/15 text-violet-300",
-        glowClass: "bg-gradient-to-bl from-violet-500/10 to-transparent",
       },
       {
         key: "branches",
