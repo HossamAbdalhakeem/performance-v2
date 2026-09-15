@@ -477,6 +477,16 @@ const selectedDate = ref(todayInputValue());
 
 const summary = computed(() => report.value?.summary || {});
 
+const undeliveredReservationsCount = computed(() => {
+  const s = summary.value;
+  return Math.max(
+    0,
+    Number(s.reservations ?? 0) -
+      Number(s.deliveredReservations ?? 0) -
+      Number(s.cancelledReservations ?? 0),
+  );
+});
+
 const paymentMethodItems = computed(() =>
   Array.isArray(summary.value.paymentsByMethod)
     ? summary.value.paymentsByMethod
@@ -738,9 +748,9 @@ const activityItems = computed(() => {
       color: ACTIVITY_COLORS.delivered,
     },
     {
-      key: "reservations",
-      label: "حجوزات جديدة",
-      value: Number(s.reservations ?? 0),
+      key: "undelivered",
+      label: "حجوزات لم تستلم",
+      value: undeliveredReservationsCount.value,
       color: ACTIVITY_COLORS.reservations,
     },
     {
@@ -944,12 +954,12 @@ const summaryCards = computed(() => {
       glowClass: "bg-gradient-to-bl from-sky-500/10 to-transparent",
     },
     {
-      key: "reservations",
-      label: "الحجوزات الجديدة",
-      value: s.reservations ?? 0,
-      hint: "حجوزات تم إنشاؤها اليوم",
-      icon: "pi-bookmark",
-      clickable: true,
+      key: "undelivered",
+      label: "حجوزات لم تستلم",
+      value: undeliveredReservationsCount.value,
+      hint: "حجوزات اليوم التي لم تُسلَّم بعد",
+      icon: "pi-clock",
+      clickable: false,
       borderClass: "border-amber-500/25 bg-slate-900",
       iconWrapClass: "bg-amber-500/15 text-amber-300",
       glowClass: "bg-gradient-to-bl from-amber-500/10 to-transparent",
