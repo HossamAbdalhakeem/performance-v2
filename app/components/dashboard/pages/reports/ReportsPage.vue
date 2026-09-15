@@ -131,6 +131,12 @@
             }}</strong>
           </p>
           <p>
+            مرتجعات:
+            <strong class="text-white">{{
+              formatNumber(summary.refundsTotal)
+            }}</strong>
+          </p>
+          <p>
             صافي الربح:
             <strong class="text-white">{{
               formatNumber(salesBreakdown.netProfit)
@@ -351,6 +357,7 @@ const exportReports = () => {
     ["إجمالي المخزون", s.inventoryTotal ?? 0],
     ["مبيعات فرع", breakdown.branchSales ?? 0],
     ["محجوزات", breakdown.reservations ?? 0],
+    ["مرتجعات", s.refundsTotal ?? 0],
     ["صافي الربح", breakdown.netProfit ?? 0],
     ["صافي المدفوعات", s.paymentsTotal ?? 0],
     [],
