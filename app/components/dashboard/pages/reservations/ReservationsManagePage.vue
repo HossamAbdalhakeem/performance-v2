@@ -296,6 +296,38 @@
           </div>
         </div>
 
+        <div
+          v-if="priceComparison?.kind === 'less'"
+          class="rounded-xl border px-4 py-3 text-sm"
+          :class="priceComparison.boxClass"
+        >
+          <p class="font-semibold" :class="priceComparison.titleClass">
+            {{ priceComparison.title }}
+          </p>
+          <div class="mt-2 grid gap-1 text-slate-300">
+            <div class="flex items-center justify-between gap-2">
+              <span>المدفوع على الحجز</span>
+              <span class="font-medium text-slate-100">{{
+                formatMoney(priceComparison.oldTotal)
+              }}</span>
+            </div>
+            <div class="flex items-center justify-between gap-2">
+              <span>سعر المنتج الجديد</span>
+              <span class="font-medium text-slate-100">{{
+                formatMoney(priceComparison.newTotal)
+              }}</span>
+            </div>
+            <div
+              class="flex items-center justify-between gap-2 border-t border-white/10 pt-1"
+            >
+              <span>{{ priceComparison.diffLabel }}</span>
+              <span class="font-bold" :class="priceComparison.diffClass">
+                {{ formatMoney(Math.abs(priceComparison.difference)) }}
+              </span>
+            </div>
+          </div>
+        </div>
+
         <div class="flex flex-col gap-2 text-right">
           <label class="text-sm font-medium text-slate-700">المنتج الجديد</label>
           <Select
@@ -382,7 +414,20 @@
             لا يمكن تحميل منتجات الفرع لأن الفرع غير معروف لهذا الحجز.
           </p>
           <p v-if="exchangeError" class="text-xs text-red-500">{{ exchangeError }}</p>
+          <p v-if="exchangePaymentError" class="text-xs text-red-500">
+            {{ exchangePaymentError }}
+          </p>
         </div>
+
+        <PaymentFields
+          v-if="priceComparison?.kind === 'less'"
+          v-model:method="exchangeRefundMethod"
+          v-model:image="exchangeImage"
+          v-model:image-data-url="exchangeProofKey"
+          method-label="طريقة رد فرق السعر"
+          :method-invalid="!!exchangePaymentError"
+          :method-error="exchangePaymentError"
+        />
       </div>
 
       <template #footer>
@@ -448,6 +493,13 @@
             </p>
           </div>
         </div>
+        <p
+          v-if="priceComparison?.kind === 'less'"
+          class="rounded-lg border px-3 py-2 text-slate-200"
+          :class="priceComparison.boxClass"
+        >
+          {{ priceComparison.confirmText }}
+        </p>
       </div>
 
       <template #footer>
@@ -481,6 +533,7 @@ import Select from "primevue/select";
 import IconField from "primevue/iconfield";
 import InputIcon from "primevue/inputicon";
 import ReservationsTable from "~/components/dashboard/pages/reservations/ReservationsTable.vue";
+import PaymentFields from "~/components/shared/payment-fields/index.vue";
 import { inventoryService } from "~/services/inventoryService";
 import { reservationService } from "~/services/reservationService";
 import { useAppToast } from "~/composables/useAppToast";
@@ -505,6 +558,10 @@ const reservations = ref([]);
 const productOptions = ref([]);
 const newProductId = ref(null);
 const exchangeError = ref("");
+const exchangePaymentError = ref("");
+const exchangeRefundMethod = ref("CASH");
+const exchangeImage = ref(null);
+const exchangeProofKey = ref("");
 const filters = reactive({ search: "", status: null });
 
 const cancelDetailVisible = ref(false);
@@ -607,6 +664,32 @@ const filteredReservations = computed(() => {
 const selectedNewProduct = computed(() =>
   productOptions.value.find((item) => item.value === newProductId.value) || null,
 );
+
+const priceComparison = computed(() => {
+  if (!selectedReservation.value || !selectedNewProduct.value) return null;
+
+  const paidAmount = roundMoney(selectedReservation.value.paidAmount);
+  const newPrice = roundMoney(selectedNewProduct.value.displayPrice);
+  const difference = roundMoney(newPrice - paidAmount);
+
+  if (difference >= 0) return null;
+
+  return {
+    kind: "less",
+    oldTotal: paidAmount,
+    newTotal: newPrice,
+    difference,
+    title: "سيتم رد فرق السعر للطالب",
+    titleClass: "text-emerald-300",
+    boxClass: "border-white/10 bg-slate-900",
+    diffLabel: "المبلغ الذي سيُرد للطالب",
+    diffClass: "text-emerald-300",
+    confirmText: `سيتم رد فرق سعر قدره ${formatMoney(Math.abs(difference))} للطالب.`,
+  };
+});
+
+const needsProof = (method) =>
+  method === "WALLET" || method === "INSTAPAY";
 
 const mapInventoryProductOption = (item) => {
   const product = item.product || item;
@@ -728,6 +811,10 @@ const openExchangeDialog = async (item) => {
   selectedReservation.value = item;
   newProductId.value = null;
   exchangeError.value = "";
+  exchangePaymentError.value = "";
+  exchangeRefundMethod.value = "CASH";
+  exchangeImage.value = null;
+  exchangeProofKey.value = "";
   cancelDetailVisible.value = false;
   cancelConfirmVisible.value = false;
   exchangeConfirmVisible.value = false;
@@ -741,11 +828,17 @@ const closeExchangeFlow = () => {
   exchangeConfirmVisible.value = false;
   newProductId.value = null;
   exchangeError.value = "";
+  exchangePaymentError.value = "";
+  exchangeRefundMethod.value = "CASH";
+  exchangeImage.value = null;
+  exchangeProofKey.value = "";
   if (!cancelDetailVisible.value) selectedReservation.value = null;
 };
 
 const requestExchangeConfirm = () => {
   exchangeError.value = "";
+  exchangePaymentError.value = "";
+
   if (!newProductId.value) {
     exchangeError.value = "اختر المنتج الجديد قبل التأكيد.";
     return;
@@ -754,6 +847,25 @@ const requestExchangeConfirm = () => {
     exchangeError.value = "اختر منتجًا مختلفًا عن المنتج الحالي.";
     return;
   }
+  if (!selectedNewProduct.value?.isAvailable) {
+    exchangeError.value = "المنتج المختار غير متاح في مخزون الفرع.";
+    return;
+  }
+
+  if (priceComparison.value?.kind === "less") {
+    if (!exchangeRefundMethod.value) {
+      exchangePaymentError.value = "اختر طريقة رد فرق السعر.";
+      return;
+    }
+    if (
+      needsProof(exchangeRefundMethod.value) &&
+      !String(exchangeProofKey.value || "").trim()
+    ) {
+      exchangePaymentError.value = "صورة إثبات الرد مطلوبة لطريقة الرد المحددة.";
+      return;
+    }
+  }
+
   exchangeConfirmVisible.value = true;
 };
 
@@ -761,13 +873,28 @@ const confirmExchange = async () => {
   if (!selectedReservation.value?.id || !newProductId.value) return;
   busy.value = true;
   try {
-    await reservationService.changeProduct(selectedReservation.value.id, {
+    const payload = {
       newProductId: newProductId.value,
-    });
+    };
+
+    if (priceComparison.value?.kind === "less") {
+      payload.refundMethod = exchangeRefundMethod.value;
+      if (exchangeProofKey.value) {
+        payload.proofReference = exchangeProofKey.value;
+      }
+    }
+
+    await reservationService.changeProduct(
+      selectedReservation.value.id,
+      payload,
+    );
     exchangeConfirmVisible.value = false;
     exchangeDetailVisible.value = false;
     selectedReservation.value = null;
     newProductId.value = null;
+    exchangeRefundMethod.value = "CASH";
+    exchangeImage.value = null;
+    exchangeProofKey.value = "";
     showSuccess("تم استبدال منتج الحجز بنجاح.");
     await loadData();
   } catch (error) {
@@ -779,6 +906,11 @@ const confirmExchange = async () => {
 
 watch(newProductId, () => {
   if (exchangeError.value) exchangeError.value = "";
+  if (exchangePaymentError.value) exchangePaymentError.value = "";
+});
+
+watch(exchangeRefundMethod, () => {
+  if (exchangePaymentError.value) exchangePaymentError.value = "";
 });
 
 onMounted(loadData);

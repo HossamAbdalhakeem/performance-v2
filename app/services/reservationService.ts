@@ -73,12 +73,30 @@ export const reservationService = {
   },
 
   async changeProduct(id: string, payload: Record<string, any>) {
+    const body: Record<string, any> = {
+      newProductId:
+        payload.newProductId ??
+        payload.new_product_id ??
+        payload.productId ??
+        payload.product_id,
+    };
+
+    const refundMethodRaw = payload.refundMethod ?? payload.refund_method;
+    if (refundMethodRaw != null && String(refundMethodRaw).trim() !== "") {
+      const refundMethod = String(refundMethodRaw).toUpperCase();
+      body.refundMethod = PAYMENT_METHODS.has(refundMethod)
+        ? refundMethod
+        : "CASH";
+    }
+
+    const proofReference =
+      payload.proofReference || payload.proof_reference || payload.payment_proof_path;
+    if (proofReference) body.proofReference = proofReference;
+
     return firstRow(
       await apiFetch(`/reservations/${id}/change-product`, {
         method: "POST",
-        body: {
-          newProductId: payload.newProductId ?? payload.new_product_id ?? payload.productId ?? payload.product_id,
-        },
+        body,
       }),
     );
   },
