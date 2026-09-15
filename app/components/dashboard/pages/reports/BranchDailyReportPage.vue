@@ -187,7 +187,7 @@
               <p class="mt-0.5 text-xs text-slate-400">
                 {{
                   isCustomerService
-                    ? "حالة حجوزاتك عبر كل الفروع"
+                    ? "توزيع حالات حجوزاتك عبر كل الفروع"
                     : "مقارنة بين عمليات البيع والحجز والمخزن"
                 }}
               </p>
@@ -710,12 +710,6 @@ const activityItems = computed(() => {
   if (isCustomerService.value) {
     return [
       {
-        key: "reservations",
-        label: "حجوزات جديدة",
-        value: Number(s.reservations ?? 0),
-        color: ACTIVITY_COLORS.reservations,
-      },
-      {
         key: "ready",
         label: "جاهزة",
         value: Number(s.readyReservations ?? 0),
@@ -738,16 +732,16 @@ const activityItems = computed(() => {
       color: ACTIVITY_COLORS.sales,
     },
     {
-      key: "reservations",
-      label: "حجوزات جديدة",
-      value: Number(s.reservations ?? 0),
-      color: ACTIVITY_COLORS.reservations,
-    },
-    {
       key: "delivered",
       label: "حجوزات مسلّمة",
       value: Number(s.deliveredReservations ?? 0),
       color: ACTIVITY_COLORS.delivered,
+    },
+    {
+      key: "reservations",
+      label: "حجوزات جديدة",
+      value: Number(s.reservations ?? 0),
+      color: ACTIVITY_COLORS.reservations,
     },
     {
       key: "cancelled",
