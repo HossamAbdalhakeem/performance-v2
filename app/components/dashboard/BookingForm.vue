@@ -19,14 +19,13 @@
     </div>
 
     <p
-      v-if="feedback.message"
-      class="rounded-xl px-3 py-2 text-sm"
-      :class="feedback.type === 'error' ? 'bg-red-50 text-red-600' : 'bg-emerald-50 text-emerald-700'"
+      v-if="feedback.message && feedback.type === 'error'"
+      class="rounded-xl bg-red-50 px-3 py-2 text-sm text-red-600"
     >
       {{ feedback.message }}
     </p>
 
-    <div class="grid gap-4" :class="showReceipt && receiptCode ? 'xl:grid-cols-[1fr_240px]' : ''">
+    <div class="grid gap-4">
       <Form
         v-slot="{ errors: fieldErrors, setFieldValue }"
         :key="formKey"
@@ -215,37 +214,26 @@
           </div>
         </Field>
 
-        <Field v-slot="{}" v-model="form.paymentMethod" name="paymentMethod" rules="required">
-          <div class="flex flex-col gap-2 text-right">
-            <label class="text-sm font-medium text-slate-700">طريقة الدفع</label>
-            <div class="space-y-2 rounded-xl border border-white/10 bg-slate-950/60 p-3">
-              <label
-                v-for="option in paymentOptions"
-                :key="option.value"
-                class="flex cursor-pointer items-center justify-end gap-2 text-sm text-slate-200"
-              >
-                <span>{{ option.label }}</span>
-                <input
-                  v-model="form.paymentMethod"
-                  type="radio"
-                  :value="option.value"
-                  class="accent-sky-400"
-                />
-              </label>
-            </div>
-            <ErrorMessage name="paymentMethod" class="text-xs text-red-500" />
-          </div>
-        </Field>
-
-        <div class="flex h-full flex-col gap-2 text-right">
-          <ImageUpload
-            v-model="proofFile"
-            label="إرفاق صورة التحويل (اختياري)"
-            placeholder="اضغط لرفع الصورة"
-            :max-size-mb="0.5"
-            @select="onProofSelected"
-            @clear="clearProof"
-          />
+        <div class="md:col-span-2">
+          <Field
+            v-slot="{ errorMessage }"
+            v-model="form.paymentMethod"
+            name="paymentMethod"
+            rules="required"
+          >
+            <PaymentFields
+              v-model:method="form.paymentMethod"
+              v-model:image="proofFile"
+              v-model:image-data-url="proofDataUrl"
+              :exclude="paymentExclude"
+              show-image-when="always"
+              require-image-when="never"
+              image-label="إرفاق صورة التحويل (اختياري)"
+              image-placeholder="اضغط لرفع الصورة"
+              :method-invalid="!!errorMessage"
+              :method-error="errorMessage || ''"
+            />
+          </Field>
         </div>
 
         <div class="md:col-span-2 flex justify-center">
@@ -258,31 +246,56 @@
           />
         </div>
       </Form>
+    </div>
 
-      <div
-        v-if="showReceipt && receiptCode"
-        class="flex flex-col items-center justify-center rounded-2xl border border-white/10 bg-slate-900 p-5 text-center"
-      >
+    <Dialog
+      v-model:visible="successDialogVisible"
+      modal
+      dir="rtl"
+      :closable="false"
+      :dismissableMask="false"
+      :closeOnEscape="false"
+      :style="{ width: '400px', maxWidth: '95vw' }"
+      :pt="{
+        header: { class: 'hidden' },
+        content: { class: 'pt-6' },
+      }"
+    >
+      <div class="flex flex-col items-center justify-center text-center">
         <div class="mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-500 text-2xl font-bold text-white">
           ✓
         </div>
-        <p class="text-sm font-bold text-white">تم تسجيل الحجز بنجاح</p>
-        <p class="mt-3 text-xs text-slate-300">رقم الحجز</p>
-        <div class="mt-2 rounded-xl bg-emerald-500/20 px-4 py-2 text-sm font-bold text-emerald-200">
-          {{ receiptCode }}
-        </div>
-        <p class="mt-3 text-xs text-slate-400">احتفظ برقم الحجز لتسليم الكتاب لاحقًا</p>
+        <p class="text-base font-bold text-slate-900">تم تسجيل الحجز بنجاح</p>
+        <template v-if="showReceipt && receiptCode">
+          <p class="mt-4 text-xs text-slate-500">رقم الحجز</p>
+          <div class="mt-2 rounded-xl bg-emerald-500/15 px-4 py-2 text-sm font-bold text-emerald-700">
+            {{ receiptCode }}
+          </div>
+          <p class="mt-3 text-xs text-slate-500">احتفظ برقم الحجز لتسليم الكتاب لاحقًا</p>
+        </template>
       </div>
-    </div>
+
+      <template #footer>
+        <div class="flex w-full justify-center">
+          <Button
+            label="إغلاق"
+            severity="secondary"
+            class="min-w-[120px]"
+            @click="closeSuccessDialog"
+          />
+        </div>
+      </template>
+    </Dialog>
   </div>
 </template>
 
 <script setup>
 import Button from "primevue/button";
+import Dialog from "primevue/dialog";
 import Select from "primevue/select";
 import AutoComplete from "primevue/autocomplete";
 import AppInputNumber from "~/components/dashboard/AppInputNumber.vue";
-import ImageUpload from "~/components/shared/image-upload/index.vue";
+import PaymentFields from "~/components/shared/payment-fields/index.vue";
 import { Form, Field, ErrorMessage } from "vee-validate";
 import { productService } from "~/services/productService";
 import { studentService } from "~/services/studentService";
@@ -310,6 +323,7 @@ const isCustomerService = computed(() => {
 const saving = ref(false);
 const formKey = ref(0);
 const receiptCode = ref("");
+const successDialogVisible = ref(false);
 const proofFile = ref(null);
 const proofDataUrl = ref("");
 const searchingStudents = ref(false);
@@ -320,20 +334,12 @@ const products = ref([]);
 const branches = ref([]);
 const feedback = reactive({ type: "success", message: "" });
 
-const allPaymentOptions = [
-  { label: "كاش", value: "cash" },
-  { label: "انستا باي", value: "instapay" },
-  { label: "محفظة إلكترونية", value: "wallet" },
-];
-
-const paymentOptions = computed(() =>
-  isCustomerService.value
-    ? allPaymentOptions.filter((option) => option.value !== "cash")
-    : allPaymentOptions,
+const paymentExclude = computed(() =>
+  isCustomerService.value ? ["CASH"] : [],
 );
 
 const defaultPaymentMethod = computed(() =>
-  isCustomerService.value ? "instapay" : "cash",
+  isCustomerService.value ? "INSTAPAY" : "CASH",
 );
 
 const form = reactive({
@@ -532,28 +538,9 @@ const ensureStudent = async () => {
   return created.id;
 };
 
-const fileToDataUrl = (file) =>
-  new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result || ""));
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-
 const clearProof = () => {
   proofFile.value = null;
   proofDataUrl.value = "";
-};
-
-const onProofSelected = async (file) => {
-  try {
-    proofFile.value = file;
-    proofDataUrl.value = await fileToDataUrl(file);
-  } catch {
-    clearProof();
-    feedback.type = "error";
-    feedback.message = "تعذر قراءة صورة الإثبات.";
-  }
 };
 
 const resetForm = () => {
@@ -570,6 +557,12 @@ const resetForm = () => {
   phoneSuggestions.value = [];
   clearProof();
   formKey.value += 1;
+};
+
+const closeSuccessDialog = () => {
+  successDialogVisible.value = false;
+  receiptCode.value = "";
+  feedback.message = "";
 };
 
 const handleSubmit = async () => {
@@ -604,17 +597,16 @@ const handleSubmit = async () => {
       quantity: 1,
     });
 
-    if (props.showReceipt) {
-      receiptCode.value =
-        result?.reservation_number ||
-        result?.reservationNumber ||
-        result?.code ||
-        result?.id ||
-        "";
-    }
+    receiptCode.value =
+      result?.reservation_number ||
+      result?.reservationNumber ||
+      result?.code ||
+      result?.id ||
+      "";
 
     feedback.type = "success";
     feedback.message = "تم تسجيل الحجز بنجاح.";
+    successDialogVisible.value = true;
     resetForm();
   } catch (error) {
     feedback.type = "error";
@@ -632,7 +624,7 @@ watch(
 );
 
 watch(isCustomerService, (value) => {
-  if (value && form.paymentMethod === "cash") {
+  if (value && form.paymentMethod === "CASH") {
     form.paymentMethod = defaultPaymentMethod.value;
   }
   if (!value) {
@@ -644,7 +636,7 @@ onMounted(async () => {
   try {
     await Promise.all([loadProducts(), loadBranches()]);
     if (props.initialProduct) form.productId = props.initialProduct;
-    if (isCustomerService.value && form.paymentMethod === "cash") {
+    if (isCustomerService.value && form.paymentMethod === "CASH") {
       form.paymentMethod = defaultPaymentMethod.value;
     }
   } catch (error) {

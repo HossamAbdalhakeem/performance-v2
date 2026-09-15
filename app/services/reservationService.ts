@@ -42,30 +42,15 @@ export const reservationService = {
     );
   },
 
-  async deliverReservation(id: string, payload: Record<string, any> | string = {}) {
-    const normalized =
-      typeof payload === "string"
-        ? { note: payload, method: "CASH" }
-        : payload || {};
-
-    const method = String(normalized.method || normalized.payment_method || "CASH").toUpperCase();
+  async deliverReservation(id: string, payload: Record<string, any> = {}) {
+    const method = String(payload.method || payload.payment_method || "CASH").toUpperCase();
     const body: Record<string, any> = {
       method: PAYMENT_METHODS.has(method) ? method : "CASH",
     };
 
-    const note = normalized.note ?? normalized.proofReference ?? normalized.proof_reference;
-    if (note) body.note = note;
-
-    const remainingAmount =
-      normalized.remainingAmount ?? normalized.remaining_amount ?? normalized.paidAmount;
-    if (remainingAmount != null && remainingAmount !== "") {
-      body.remainingAmount = Number(remainingAmount);
-      body.paidAmount = Number(remainingAmount);
-    }
-
-    if (normalized.proofReference || normalized.proof_reference) {
-      body.proofReference = normalized.proofReference || normalized.proof_reference;
-    }
+    const proofReference =
+      payload.proofReference || payload.proof_reference || payload.note;
+    if (proofReference) body.proofReference = proofReference;
 
     return firstRow(
       await apiFetch(`/reservations/${id}/deliver`, {

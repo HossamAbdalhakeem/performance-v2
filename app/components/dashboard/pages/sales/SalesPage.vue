@@ -7,13 +7,8 @@
 
       <template #content>
         <p
-          v-if="feedback.message"
-          class="mb-4 rounded-xl px-3 py-2 text-sm"
-          :class="
-            feedback.type === 'error'
-              ? 'bg-red-50 text-red-600'
-              : 'bg-emerald-50 text-emerald-700'
-          "
+          v-if="feedback.message && feedback.type === 'error'"
+          class="mb-4 rounded-xl bg-red-50 px-3 py-2 text-sm text-red-600"
         >
           {{ feedback.message }}
         </p>
@@ -129,11 +124,12 @@
                 :options="productOptions"
                 optionLabel="label"
                 optionValue="value"
-                placeholder="اختر المنتج"
+                placeholder="اختر المنتج المتاح في الفرع"
                 filter
                 :filter-fields="['name', 'teacherName', 'label']"
                 class="w-full product-select"
                 :class="{ 'p-invalid': errorMessage || fieldErrors.productId }"
+                @update:model-value="onProductChange"
               >
                 <template #value="{ placeholder }">
                   <div
@@ -144,13 +140,21 @@
                       <span class="font-medium text-slate-100">{{
                         selectedProductOption.name
                       }}</span>
-                      <span class="shrink-0 text-sm text-sky-300">
+                      <span
+                        class="shrink-0 rounded-full bg-emerald-500/20 px-2 py-0.5 text-xs font-semibold text-emerald-300"
+                      >
+                        متاح {{ selectedProductOption.availableQuantity }}
+                      </span>
+                    </div>
+                    <div class="mt-0.5 flex items-center justify-between gap-3">
+                      <p class="text-xs text-slate-400">
+                        مقدم من أ/
+                        {{ selectedProductOption.teacherName || "-" }}
+                      </p>
+                      <span class="text-xs text-sky-300">
                         سعره {{ selectedProductOption.priceLabel }}
                       </span>
                     </div>
-                    <p class="mt-0.5 text-xs text-slate-400">
-                      مقدم من أ/ {{ selectedProductOption.teacherName || "-" }}
-                    </p>
                   </div>
                   <span v-else>{{ placeholder }}</span>
                 </template>
@@ -158,13 +162,20 @@
                   <div class="w-full py-1 text-right">
                     <div class="flex items-start justify-between gap-3">
                       <span class="font-medium">{{ option.name }}</span>
-                      <span class="shrink-0 text-sm text-sky-300"
+                      <span
+                        class="shrink-0 rounded-full bg-emerald-500/15 px-2 py-0.5 text-xs font-semibold text-emerald-700"
+                      >
+                        متاح {{ option.availableQuantity }}
+                      </span>
+                    </div>
+                    <div class="mt-0.5 flex items-center justify-between gap-3">
+                      <p class="text-xs text-slate-400">
+                        مقدم من أ/ {{ option.teacherName || "-" }}
+                      </p>
+                      <span class="shrink-0 text-sm text-sky-600"
                         >سعره {{ option.priceLabel }}</span
                       >
                     </div>
-                    <p class="mt-0.5 text-xs text-slate-400">
-                      مقدم من أ/ {{ option.teacherName || "-" }}
-                    </p>
                   </div>
                 </template>
               </Select>
@@ -179,13 +190,25 @@
             rules="required|min_value:1"
           >
             <div class="flex flex-col gap-2 text-right">
-              <label class="text-sm font-medium text-slate-700">الكمية</label>
+              <div class="flex items-center justify-between gap-2">
+                <label class="text-sm font-medium text-slate-700">الكمية</label>
+                <span
+                  v-if="selectedProductOption"
+                  class="rounded-full bg-sky-500/10 px-2.5 py-0.5 text-xs font-semibold text-sky-700"
+                >
+                  المتاح للبيع: {{ selectedProductOption.availableQuantity }}
+                </span>
+              </div>
               <AppInputNumber
                 v-model="form.quantity"
                 :min="1"
+                :max="maxQuantity"
                 :max-fraction-digits="0"
-                :invalid="!!(errorMessage || fieldErrors.quantity)"
+                :invalid="!!(errorMessage || fieldErrors.quantity || quantityError)"
               />
+              <p v-if="quantityError" class="text-xs text-red-500">
+                {{ quantityError }}
+              </p>
               <ErrorMessage name="quantity" class="text-xs text-red-500" />
             </div>
           </Field>
@@ -203,52 +226,24 @@
               {{ formatMoney(requiredAmount) }}
             </p>
           </div>
-          <div class="md:col-span-2 grid gap-4 md:grid-cols-2">
+          <div class="md:col-span-2">
             <Field
-              v-slot="{}"
+              v-slot="{ errorMessage }"
               v-model="form.method"
               name="method"
               rules="required"
             >
-              <div class="flex h-full flex-col gap-2 text-right">
-                <label class="text-sm font-medium text-slate-700"
-                  >طريقة الدفع</label
-                >
-                <div
-                  class="space-y-2 rounded-xl border border-white/10 bg-slate-950/60 p-3"
-                >
-                  <label
-                    v-for="option in paymentOptions"
-                    :key="option.value"
-                    class="flex cursor-pointer items-center justify-end gap-2 text-sm text-slate-200"
-                  >
-                    <span>{{ option.label }}</span>
-                    <input
-                      v-model="form.method"
-                      type="radio"
-                      :value="option.value"
-                      class="accent-sky-400"
-                    />
-                  </label>
-                </div>
-                <ErrorMessage name="method" class="text-xs text-red-500" />
-              </div>
-            </Field>
-
-            <div class="flex h-full flex-col gap-2 text-right" v-if="needsProof">
-              <ImageUpload
-                v-model="proofFile"
-                label="صورة إثبات الدفع (اختياري)"
-                placeholder="ارفع صورة المحفظة / إنستاباي"
-                :max-size-mb="0.5"
-                :invalid="proofRequiredError"
-                @select="onProofSelected"
-                @clear="proofDataUrl = ''"
+              <PaymentFields
+                ref="paymentFieldsRef"
+                v-model:method="form.method"
+                v-model:image="proofFile"
+                v-model:image-data-url="proofDataUrl"
+                :method-invalid="!!(errorMessage || fieldErrors.method)"
+                :method-error="errorMessage || ''"
+                :image-invalid="proofRequiredError"
+                @change="onPaymentChange"
               />
-              <p v-if="proofRequiredError" class="text-xs text-red-500">
-                صورة إثبات الدفع مطلوبة لطريقة الدفع المحددة.
-              </p>
-            </div>
+            </Field>
           </div>
 
           <div class="md:col-span-2 flex justify-center">
@@ -263,38 +258,116 @@
         </Form>
       </template>
     </Card>
+
+    <Dialog
+      v-model:visible="successDialogVisible"
+      modal
+      dir="rtl"
+      :closable="false"
+      :dismissableMask="false"
+      :closeOnEscape="false"
+      :style="{ width: '440px', maxWidth: '95vw' }"
+      :pt="{
+        header: { class: 'hidden' },
+        content: { class: 'pt-6' },
+      }"
+    >
+      <div v-if="saleSummary" class="flex flex-col items-center text-center">
+        <div class="mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-500 text-2xl font-bold text-white">
+          ✓
+        </div>
+        <p class="text-base font-bold text-slate-900">تم تسجيل البيع بنجاح</p>
+
+        <div class="mt-5 w-full space-y-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-right">
+          <div class="flex items-start justify-between gap-3">
+            <span class="text-xs text-slate-500">المنتج</span>
+            <div class="text-sm font-semibold text-slate-900">
+              <p>{{ saleSummary.productName }}</p>
+              <p v-if="saleSummary.teacherName" class="mt-0.5 text-xs font-normal text-slate-500">
+                مقدم من أ/ {{ saleSummary.teacherName }}
+              </p>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-between gap-3 border-t border-slate-200 pt-3">
+            <span class="text-xs text-slate-500">الطالب</span>
+            <span class="text-sm font-medium text-slate-800">{{ saleSummary.studentName }}</span>
+          </div>
+
+          <div class="flex items-center justify-between gap-3 border-t border-slate-200 pt-3">
+            <span class="text-xs text-slate-500">الكمية</span>
+            <span class="text-sm font-medium text-slate-800">{{ saleSummary.quantity }}</span>
+          </div>
+
+          <div class="flex items-center justify-between gap-3 border-t border-slate-200 pt-3">
+            <span class="text-xs text-slate-500">سعر الوحدة</span>
+            <span class="text-sm font-medium text-slate-800">{{ formatMoney(saleSummary.unitPrice) }}</span>
+          </div>
+
+          <div class="flex items-center justify-between gap-3 border-t border-slate-200 pt-3">
+            <span class="text-xs text-slate-500">طريقة الدفع</span>
+            <span class="text-sm font-medium text-slate-800">{{ saleSummary.methodLabel }}</span>
+          </div>
+
+          <div class="flex items-center justify-between gap-3 border-t border-emerald-200 pt-3">
+            <span class="text-sm font-semibold text-emerald-700">الإجمالي</span>
+            <span class="text-lg font-extrabold text-emerald-700">
+              {{ formatMoney(saleSummary.totalAmount) }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <template #footer>
+        <div class="flex w-full justify-center">
+          <Button
+            label="إغلاق"
+            severity="secondary"
+            class="min-w-[120px]"
+            @click="closeSuccessDialog"
+          />
+        </div>
+      </template>
+    </Dialog>
   </div>
 </template>
 
 <script setup>
 import Card from "primevue/card";
 import Button from "primevue/button";
+import Dialog from "primevue/dialog";
 import Select from "primevue/select";
 import AutoComplete from "primevue/autocomplete";
 import AppInputNumber from "~/components/dashboard/AppInputNumber.vue";
-import ImageUpload from "~/components/shared/image-upload/index.vue";
+import PaymentFields from "~/components/shared/payment-fields/index.vue";
 import { Form, Field, ErrorMessage } from "vee-validate";
 import { saleService } from "~/services/saleService";
-import { productService } from "~/services/productService";
+import { inventoryService } from "~/services/inventoryService";
 import { studentService } from "~/services/studentService";
+import { useAuthStore } from "~/store/auth";
 import { useThrottledCallback } from "~/composables/useThrottledCallback";
 
+const METHOD_LABELS = {
+  CASH: "كاش",
+  INSTAPAY: "انستا باي",
+  WALLET: "محفظة إلكترونية",
+};
+
+const authStore = useAuthStore();
 const saving = ref(false);
 const searchingStudents = ref(false);
 const formKey = ref(0);
 const proofFile = ref(null);
 const proofDataUrl = ref("");
 const proofRequiredError = ref(false);
+const paymentFieldsRef = ref(null);
+const quantityError = ref("");
+const successDialogVisible = ref(false);
+const saleSummary = ref(null);
 const feedback = reactive({ type: "success", message: "" });
 const nameSuggestions = ref([]);
 const phoneSuggestions = ref([]);
 const selectedStudent = ref(null);
-
-const paymentOptions = [
-  { label: "كاش", value: "CASH" },
-  { label: "انستا باي", value: "INSTAPAY" },
-  { label: "محفظة إلكترونية", value: "WALLET" },
-];
 
 const form = reactive({
   studentName: "",
@@ -314,8 +387,17 @@ const formInitialValues = {
 
 const products = ref([]);
 
+const branchId = computed(
+  () =>
+    authStore.user?.branch_id ||
+    authStore.user?.branchId ||
+    authStore.user?.branches?.[0]?.id ||
+    null
+);
+
 const productOptions = computed(() =>
-  products.value.map((product) => {
+  products.value.map((item) => {
+    const product = item.product || item;
     const teacherName =
       product.teacher?.name ||
       product.teacherName ||
@@ -323,13 +405,21 @@ const productOptions = computed(() =>
       "";
     const priceLabel = `${Number(product.sellingPrice || 0).toFixed(2)}ج.م`;
     const name = product.name || "-";
+    const availableQuantity = Number(
+      item.availableQuantity ??
+        Math.max(
+          0,
+          Number(item.physicalQuantity || 0) - Number(item.reservedQuantity || 0)
+        )
+    );
 
     return {
       name,
       teacherName,
       priceLabel,
-      label: `${name} سعره ${priceLabel} مقدم من أ/ ${teacherName || "-"}`,
-      value: product.id,
+      availableQuantity,
+      label: `${name} · متاح ${availableQuantity} · سعره ${priceLabel}`,
+      value: product.id || item.productId,
       sellingPrice: Number(product.sellingPrice || 0),
     };
   })
@@ -341,19 +431,22 @@ const selectedProductOption = computed(
     null
 );
 
-const selectedProduct = computed(
-  () => products.value.find((product) => product.id === form.productId) || null
+const selectedProduct = computed(() => {
+  const row = products.value.find(
+    (item) => (item.product?.id || item.productId || item.id) === form.productId
+  );
+  return row?.product || row || null;
+});
+
+const maxQuantity = computed(() =>
+  Math.max(1, Number(selectedProductOption.value?.availableQuantity || 1))
 );
 
 const unitPrice = computed(() =>
-  Number(selectedProduct.value?.sellingPrice || 0)
+  Number(selectedProduct.value?.sellingPrice || selectedProductOption.value?.sellingPrice || 0)
 );
 const requiredAmount = computed(() =>
   Number((unitPrice.value * Number(form.quantity || 0)).toFixed(2))
-);
-
-const needsProof = computed(
-  () => form.method === "WALLET" || form.method === "INSTAPAY"
 );
 
 const formatMoney = (value) =>
@@ -366,9 +459,48 @@ const normalizeStudent = (student) => ({
 });
 
 const loadProducts = async () => {
-  const items = await productService.getProducts();
-  const list = Array.isArray(items) ? items : items?.data || [];
-  products.value = list.filter((product) => product.status !== "INACTIVE");
+  if (!branchId.value) {
+    products.value = [];
+    throw new Error("لا يوجد فرع مرتبط بالمستخدم الحالي.");
+  }
+
+  const items = await inventoryService.getBranchInventory(branchId.value, {
+    availableOnly: true,
+  });
+  products.value = Array.isArray(items) ? items : items?.data || [];
+};
+
+const onProductChange = (productId) => {
+  quantityError.value = "";
+  form.productId = productId;
+  const available = productOptions.value.find(
+    (option) => option.value === productId
+  )?.availableQuantity;
+  if (available != null && Number(form.quantity) > Number(available)) {
+    form.quantity = Number(available);
+  }
+};
+
+const validateQuantity = () => {
+  quantityError.value = "";
+  const available = Number(selectedProductOption.value?.availableQuantity || 0);
+  const qty = Number(form.quantity || 0);
+
+  if (!selectedProductOption.value) {
+    return false;
+  }
+
+  if (qty < 1) {
+    quantityError.value = "الكمية يجب أن تكون 1 على الأقل.";
+    return false;
+  }
+
+  if (qty > available) {
+    quantityError.value = `الكمية المطلوبة أكبر من المتاح (${available}).`;
+    return false;
+  }
+
+  return true;
 };
 
 const searchStudents = async (term = "") => {
@@ -506,23 +638,16 @@ const ensureStudent = async () => {
   return created.id;
 };
 
-const fileToDataUrl = (file) =>
-  new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result || ""));
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-
-const onProofSelected = async (file) => {
+const onPaymentChange = ({ method, image, imageDataUrl }) => {
   proofRequiredError.value = false;
-  try {
-    proofDataUrl.value = await fileToDataUrl(file);
-  } catch {
-    proofDataUrl.value = "";
-    feedback.type = "error";
-    feedback.message = "تعذر قراءة صورة الإثبات.";
-  }
+  form.method = method;
+  proofFile.value = image;
+  proofDataUrl.value = imageDataUrl || "";
+};
+
+const closeSuccessDialog = () => {
+  successDialogVisible.value = false;
+  saleSummary.value = null;
 };
 
 const resetForm = () => {
@@ -539,35 +664,60 @@ const resetForm = () => {
   proofFile.value = null;
   proofDataUrl.value = "";
   proofRequiredError.value = false;
+  quantityError.value = "";
+  paymentFieldsRef.value?.reset?.();
   formKey.value += 1;
 };
 
 const submitSale = async () => {
   feedback.message = "";
   proofRequiredError.value = false;
+  quantityError.value = "";
 
-  if (needsProof.value && !proofFile.value) {
+  if (paymentFieldsRef.value && !paymentFieldsRef.value.validate()) {
     proofRequiredError.value = true;
+    return;
+  }
+
+  if (!validateQuantity()) {
     return;
   }
 
   saving.value = true;
   try {
     const studentId = await ensureStudent();
+    const needsProof =
+      form.method === "WALLET" || form.method === "INSTAPAY";
+    const product = selectedProductOption.value;
+    const quantity = Number(form.quantity || 0);
+    const lineUnitPrice = Number(product?.sellingPrice || unitPrice.value || 0);
+    const totalAmount = Number((lineUnitPrice * quantity).toFixed(2));
+    const studentName = asText(form.studentName, "name");
+    const method = form.method;
 
     await saleService.createSale({
       studentId,
       productId: form.productId,
-      quantity: form.quantity,
-      method: form.method,
-      proofReference: needsProof.value
+      quantity,
+      method,
+      proofReference: needsProof
         ? proofDataUrl.value || proofFile.value?.name
         : undefined,
     });
 
-    feedback.type = "success";
-    feedback.message = "تم تسجيل البيع بنجاح.";
+    saleSummary.value = {
+      productName: product?.name || "-",
+      teacherName: product?.teacherName || "",
+      studentName: studentName || "-",
+      quantity,
+      unitPrice: lineUnitPrice,
+      totalAmount,
+      methodLabel: METHOD_LABELS[method] || method,
+    };
+    successDialogVisible.value = true;
+
     resetForm();
+    await loadProducts();
   } catch (error) {
     feedback.type = "error";
     feedback.message = error?.message || "تعذر تسجيل البيع.";
@@ -577,12 +727,10 @@ const submitSale = async () => {
 };
 
 watch(
-  () => form.method,
-  (method) => {
-    if (method === "CASH") {
-      proofFile.value = null;
-      proofDataUrl.value = "";
-      proofRequiredError.value = false;
+  () => form.quantity,
+  () => {
+    if (selectedProductOption.value) {
+      validateQuantity();
     }
   }
 );

@@ -55,7 +55,7 @@ export default defineNuxtConfig({
   // Site config used by @nuxtjs/robots & @nuxtjs/sitemap
   // (NUXT_PUBLIC_SITE_URL comes from .env, set the real domain in production)
   site: {
-    url: process.env.NUXT_PUBLIC_SITE_URL ||process.env.SITE_URL || 'http://localhost:8000',
+    url: process.env.NUXT_PUBLIC_SITE_URL || process.env.SITE_URL || 'http://localhost:8000',
   },
   devServer: {
     port: 8000,
@@ -68,12 +68,7 @@ export default defineNuxtConfig({
     public: {
       baseUrl: process.env.NUXT_ENV_BASE_URL || 'http://localhost:8000',
       siteUrl: process.env.NUXT_PUBLIC_SITE_URL,
-      // Optional legacy storage client (payment uploads). Not used for auth/API.
-      supabaseUrl: process.env.NUXT_PUBLIC_SUPABASE_URL || '',
-      supabaseKey:
-        process.env.NUXT_PUBLIC_SUPABASE_ANON_KEY ||
-        process.env.NUXT_ENV_SUPABASE_KEY ||
-        '',
+
     },
   },
 

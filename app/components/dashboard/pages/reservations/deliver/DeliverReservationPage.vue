@@ -5,7 +5,6 @@
         v-model="search"
         placeholder="🔍 ابحث باسم الطالب أو رقم الموبايل أو رقم الحجز"
         class="w-full rounded-xl border border-slate-700 bg-slate-900 text-right text-slate-100 placeholder:text-slate-400"
-        @update:modelValue="onSearchInput"
       />
     </div>
 
@@ -22,20 +21,16 @@
     </p>
 
     <AppDataTable
-      :value="reservations"
+      :value="filteredReservations"
       :columns="tableColumns"
       :loading="loading"
       :empty-message="emptyMessage"
-      :skeleton-rows="2"
+      :skeleton-rows="4"
     >
       <template #status="{ data }">
         <span
           class="rounded-md px-2 py-1 text-xs font-bold"
-          :class="
-            data.hasRemaining
-              ? 'bg-orange-500/20 text-orange-300'
-              : 'bg-[#fef3c7] text-[#b45309]'
-          "
+          :class="statusClass(data)"
         >
           {{ data.statusLabel }}
         </span>
@@ -75,31 +70,40 @@
             <span class="text-slate-400">الطالب:</span>
             {{ selectedReservation.studentName }}
           </p>
-        </div>
-
-        <div
-          v-if="needsRemainingPayment"
-          class="flex flex-col gap-2 text-right"
-        >
-          <label class="text-xs text-slate-300">سداد المبلغ المتبقي</label>
-          <AppInputNumber
-            v-model="remainingPaidAmount"
-            mode="currency"
-            currency="EGP"
-            :min="0"
-            :min-fraction-digits="2"
-            :use-grouping="true"
-          />
-          <p class="text-[11px] leading-[1] text-orange-300">
-            المتبقي: {{ formatMoney(selectedReservation.remainingAmount) }}
+          <p class="mt-1">
+            <span class="text-slate-400">المنتج:</span>
+            {{ selectedReservation.productName }}
+          </p>
+          <p class="mt-1">
+            <span class="text-slate-400">المدفوع:</span>
+            {{ formatMoney(selectedReservation.paidAmount) }}
+          </p>
+          <p v-if="needsRemainingPayment" class="mt-1 text-orange-300">
+            <span class="text-slate-400">المتبقي:</span>
+            {{ formatMoney(selectedReservation.remainingAmount) }}
           </p>
         </div>
 
         <div class="flex flex-col gap-2 text-right">
-          <label class="text-xs text-slate-300">ملاحظة (اختياري)</label>
+          <label class="text-xs text-slate-300">
+            طريقة الدفع
+            <span v-if="needsRemainingPayment" class="text-orange-300">(مطلوبة للمبلغ المتبقي)</span>
+          </label>
+          <Select
+            v-model="paymentMethod"
+            :options="paymentOptions"
+            optionLabel="label"
+            optionValue="value"
+            placeholder="اختر طريقة الدفع"
+            class="w-full"
+          />
+        </div>
+
+        <div class="flex flex-col gap-2 text-right">
+          <label class="text-xs text-slate-300">مرجع الإثبات (اختياري)</label>
           <InputText
-            v-model="note"
-            placeholder="سجّل ملاحظة إن وجدت"
+            v-model="proofReference"
+            placeholder="رقم العملية / مرجع التحويل"
             class="w-full rounded-xl border border-slate-700 bg-slate-900 text-right text-slate-100 placeholder:text-slate-400"
           />
         </div>
@@ -132,24 +136,29 @@
 import Button from "primevue/button";
 import Dialog from "primevue/dialog";
 import InputText from "primevue/inputtext";
+import Select from "primevue/select";
 import AppDataTable from "~/components/shared/app-data-table/index.vue";
-import AppInputNumber from "~/components/dashboard/AppInputNumber.vue";
 import { reservationService } from "~/services/reservationService";
-import { useThrottledCallback } from "~/composables/useThrottledCallback";
 
-const DELIVERABLE_STATUSES = new Set([
-  "PENDING",
-  "READY",
-  "WAITING_FOR_STOCK",
-  "pending",
-  "ready",
-]);
+const STATUS_META = {
+  PENDING: { label: "قيد الانتظار", class: "bg-amber-500/20 text-amber-300" },
+  WAITING_FOR_STOCK: { label: "بانتظار المخزون", class: "bg-amber-500/20 text-amber-300" },
+  READY: { label: "جاهز للتسليم", class: "bg-emerald-500/20 text-emerald-300" },
+  DELIVERED: { label: "تم التسليم", class: "bg-slate-500/20 text-slate-300" },
+  CANCELLED: { label: "ملغي", class: "bg-red-500/20 text-red-300" },
+};
+
+const paymentOptions = [
+  { label: "كاش", value: "CASH" },
+  { label: "انستا باي", value: "INSTAPAY" },
+  { label: "محفظة إلكترونية", value: "WALLET" },
+];
 
 const loading = ref(false);
 const delivering = ref(false);
 const search = ref("");
-const note = ref("");
-const remainingPaidAmount = ref(null);
+const paymentMethod = ref("CASH");
+const proofReference = ref("");
 const dialogVisible = ref(false);
 const dialogError = ref("");
 const selectedReservation = ref(null);
@@ -161,7 +170,7 @@ const formatMoney = (value) => `${Number(value || 0).toFixed(2)} ج.م`;
 const emptyMessage = computed(() =>
   search.value.trim()
     ? "لا توجد حجوزات مطابقة"
-    : "ابدأ بالبحث لعرض الحجوزات",
+    : "لا توجد حجوزات قابلة للعرض",
 );
 
 const tableColumns = [
@@ -190,59 +199,61 @@ const canConfirmDeliver = computed(() => {
   if (!selectedReservation.value || !isDeliverable(selectedReservation.value)) {
     return false;
   }
-
-  if (needsRemainingPayment.value) {
-    return Number(remainingPaidAmount.value || 0) > 0;
-  }
-
-  return true;
+  return Boolean(paymentMethod.value);
 });
 
-const isDeliverable = (item) => {
-  if (!item) return false;
-  return (
-    DELIVERABLE_STATUSES.has(item.status) ||
-    item.statusLabel === "قيد الحجز" ||
-    item.hasRemaining
-  );
-};
+const filteredReservations = computed(() => {
+  const q = search.value.trim().toLowerCase();
+  if (!q) return reservations.value;
+
+  return reservations.value.filter((item) => {
+    return (
+      String(item.reservationNumber || "").toLowerCase().includes(q) ||
+      String(item.studentName || "").toLowerCase().includes(q) ||
+      String(item.phone || "").toLowerCase().includes(q) ||
+      String(item.productName || "").toLowerCase().includes(q)
+    );
+  });
+});
+
+const isDeliverable = (item) => item?.status === "READY";
+
+const statusClass = (item) =>
+  STATUS_META[item?.status]?.class || "bg-slate-500/20 text-slate-300";
 
 const getRemainingAmount = (item) => {
-  if (item.remainingAmount != null) return Number(item.remainingAmount);
-  if (item.remaining_amount != null) return Number(item.remaining_amount);
-
   const total = Number(item.totalAmount ?? item.total_amount ?? 0);
-  const paid = Number(item.paidAmount ?? item.paid_amount ?? item.deposit ?? 0);
+  const paid = Number(item.paidAmount ?? item.paid_amount ?? 0);
   return Math.max(total - paid, 0);
 };
 
 const normalizeReservation = (item) => {
   const remainingAmount = getRemainingAmount(item);
-  const status = String(item.status || "PENDING").toUpperCase();
-  const hasRemaining = remainingAmount > 0;
-  const paidAmount = Number(
-    item.paidAmount ?? item.paid_amount ?? item.deposit ?? 0,
-  );
+  const status = String(item.status || "").toUpperCase();
+  const meta = STATUS_META[status] || { label: status || "-" };
+  const paidAmount = Number(item.paidAmount ?? item.paid_amount ?? 0);
 
   return {
     ...item,
     id: item.id,
     reservationNumber:
       item.reservationNumber || item.reservation_number || item.code || item.id,
-    studentName: item.student?.name || item.student_name || item.student || "-",
+    studentName: item.student?.name || item.student_name || "-",
     phone: item.student?.phone || item.phone || "",
     teacherName:
+      item.product?.teacher?.fullName ||
       item.product?.teacher?.name ||
-      item.teacher?.name ||
       item.teacher_name ||
-      item.teacher ||
       "-",
-    productName: item.product?.name || item.product_name || item.product || "-",
+    productName: item.product?.name || item.product_name || "-",
     paidAmount,
     remainingAmount,
-    hasRemaining,
+    hasRemaining: remainingAmount > 0,
     status,
-    statusLabel: hasRemaining ? "متبقي مبلغ" : "قيد الحجز",
+    statusLabel:
+      remainingAmount > 0 && status === "READY"
+        ? "جاهز · متبقي مبلغ"
+        : meta.label,
   };
 };
 
@@ -250,11 +261,9 @@ const openDeliverDialog = (item) => {
   if (!isDeliverable(item)) return;
 
   selectedReservation.value = item;
-  note.value = "";
+  paymentMethod.value = "CASH";
+  proofReference.value = "";
   dialogError.value = "";
-  remainingPaidAmount.value = item.hasRemaining
-    ? Number(item.remainingAmount || 0)
-    : null;
   dialogVisible.value = true;
   feedback.message = "";
 };
@@ -262,25 +271,17 @@ const openDeliverDialog = (item) => {
 const closeDeliverDialog = () => {
   dialogVisible.value = false;
   selectedReservation.value = null;
-  note.value = "";
-  remainingPaidAmount.value = null;
+  paymentMethod.value = "CASH";
+  proofReference.value = "";
   dialogError.value = "";
 };
 
-const searchReservations = async (term = "") => {
-  const query = String(term || "").trim();
+const loadReservations = async () => {
+  loading.value = true;
   feedback.message = "";
 
-  if (!query) {
-    reservations.value = [];
-    loading.value = false;
-    return;
-  }
-
-  loading.value = true;
-
   try {
-    const items = await reservationService.getReservations({ search: query });
+    const items = await reservationService.getReservations();
     const list = Array.isArray(items) ? items : items?.data || [];
     reservations.value = list
       .map(normalizeReservation)
@@ -288,18 +289,10 @@ const searchReservations = async (term = "") => {
   } catch (error) {
     reservations.value = [];
     feedback.type = "error";
-    feedback.message = error?.message || "تعذر البحث في الحجوزات.";
+    feedback.message = error?.message || "تعذر تحميل الحجوزات.";
   } finally {
     loading.value = false;
   }
-};
-
-const { run: runSearch } = useThrottledCallback((term) => {
-  searchReservations(term);
-}, 350);
-
-const onSearchInput = (value) => {
-  runSearch(value || "");
 };
 
 const deliverReservation = async () => {
@@ -311,14 +304,8 @@ const deliverReservation = async () => {
 
   try {
     await reservationService.deliverReservation(selectedReservation.value.id, {
-      note: note.value || undefined,
-      remainingAmount: needsRemainingPayment.value
-        ? Number(remainingPaidAmount.value || 0)
-        : undefined,
-      paidAmount: needsRemainingPayment.value
-        ? Number(remainingPaidAmount.value || 0)
-        : undefined,
-      method: "CASH",
+      method: paymentMethod.value,
+      proofReference: proofReference.value.trim() || undefined,
     });
 
     const deliveredId = selectedReservation.value.id;
@@ -332,4 +319,6 @@ const deliverReservation = async () => {
     delivering.value = false;
   }
 };
+
+onMounted(loadReservations);
 </script>

@@ -16,8 +16,16 @@ export const inventoryService = {
     return asList(await apiFetch("/inventory", { method: "GET", params }));
   },
 
-  async getBranchInventory(branchId: string) {
-    return asList(await apiFetch(`/inventory/${branchId}`, { method: "GET" }));
+  async getBranchInventory(
+    branchId: string,
+    params: Record<string, any> = {},
+  ) {
+    return asList(
+      await apiFetch(`/inventory/${branchId}`, {
+        method: "GET",
+        params,
+      }),
+    );
   },
 
   async getStockItem(branchId: string, productId: string) {
@@ -27,7 +35,6 @@ export const inventoryService = {
   },
 
   async addStock(payload: Record<string, any>) {
-    console.log('payload',payload);
     const branchId = resolveId(payload.branchId ?? payload.branch_id);
     const productId = resolveId(payload.productId ?? payload.product_id);
 
