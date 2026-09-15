@@ -11,20 +11,6 @@
       </NuxtLink>
     </div>
 
-    <div
-      v-if="showHint"
-      class="rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-4 py-2 text-center text-sm text-emerald-700"
-    >
-      يتم تسجيل الحجز ويظهر رقم حجز للطالب
-    </div>
-
-    <p
-      v-if="feedback.message && feedback.type === 'error'"
-      class="rounded-xl bg-red-50 px-3 py-2 text-sm text-red-600"
-    >
-      {{ feedback.message }}
-    </p>
-
     <div class="grid gap-4">
       <Form
         v-slot="{ errors: fieldErrors, setFieldValue }"
@@ -255,24 +241,80 @@
       :closable="false"
       :dismissableMask="false"
       :closeOnEscape="false"
-      :style="{ width: '400px', maxWidth: '95vw' }"
+      :style="{ width: '440px', maxWidth: '95vw' }"
       :pt="{
         header: { class: 'hidden' },
         content: { class: 'pt-6' },
       }"
     >
-      <div class="flex flex-col items-center justify-center text-center">
+      <div v-if="reservationSummary" class="flex flex-col items-center text-center">
         <div class="mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-500 text-2xl font-bold text-white">
           ✓
         </div>
         <p class="text-base font-bold text-slate-900">تم تسجيل الحجز بنجاح</p>
-        <template v-if="showReceipt && receiptCode">
-          <p class="mt-4 text-xs text-slate-500">رقم الحجز</p>
-          <div class="mt-2 rounded-xl bg-emerald-500/15 px-4 py-2 text-sm font-bold text-emerald-700">
-            {{ receiptCode }}
+
+        <div class="mt-5 w-full space-y-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-right">
+          <div class="flex items-center justify-between gap-3">
+            <span class="text-xs text-slate-500">رقم الحجز</span>
+            <span class="text-sm font-bold text-emerald-700 break-all">
+              {{ reservationSummary.reservationNumber }}
+            </span>
           </div>
-          <p class="mt-3 text-xs text-slate-500">احتفظ برقم الحجز لتسليم الكتاب لاحقًا</p>
-        </template>
+
+          <div class="flex items-center justify-between gap-3 border-t border-slate-200 pt-3">
+            <span class="text-xs text-slate-500">التاريخ والوقت</span>
+            <span class="text-sm font-medium text-slate-800">
+              {{ reservationSummary.dateTimeLabel }}
+            </span>
+          </div>
+
+          <div class="flex items-start justify-between gap-3 border-t border-slate-200 pt-3">
+            <span class="text-xs text-slate-500">المنتج</span>
+            <div class="text-sm font-semibold text-slate-900">
+              <p>{{ reservationSummary.productName }}</p>
+              <p v-if="reservationSummary.teacherName" class="mt-0.5 text-xs font-normal text-slate-500">
+                مقدم من أ/ {{ reservationSummary.teacherName }}
+              </p>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-between gap-3 border-t border-slate-200 pt-3">
+            <span class="text-xs text-slate-500">السنة الدراسية</span>
+            <span class="text-sm font-medium text-slate-800">
+              {{ reservationSummary.studyYearName || "-" }}
+            </span>
+          </div>
+
+          <div class="flex items-center justify-between gap-3 border-t border-slate-200 pt-3">
+            <span class="text-xs text-slate-500">الطالب</span>
+            <span class="text-sm font-medium text-slate-800">
+              {{ reservationSummary.studentName }}
+            </span>
+          </div>
+
+          <div class="flex items-center justify-between gap-3 border-t border-slate-200 pt-3">
+            <span class="text-xs text-slate-500">المبلغ المدفوع</span>
+            <span class="text-sm font-medium text-slate-800">
+              {{ formatMoney(reservationSummary.paidAmount) }}
+            </span>
+          </div>
+
+          <div class="flex items-center justify-between gap-3 border-t border-slate-200 pt-3">
+            <span class="text-xs text-slate-500">طريقة الدفع</span>
+            <span class="text-sm font-medium text-slate-800">
+              {{ reservationSummary.methodLabel }}
+            </span>
+          </div>
+
+          <div class="flex items-center justify-between gap-3 border-t border-emerald-200 pt-3">
+            <span class="text-sm font-semibold text-emerald-700">إجمالي الحجز</span>
+            <span class="text-lg font-extrabold text-emerald-700">
+              {{ formatMoney(reservationSummary.totalAmount) }}
+            </span>
+          </div>
+        </div>
+
+        <p class="mt-3 text-xs text-slate-500">احتفظ برقم الحجز لتسليم الكتاب لاحقًا</p>
       </div>
 
       <template #footer>
@@ -290,6 +332,8 @@
 </template>
 
 <script setup>
+defineOptions({ name: "DashboardBookingForm" });
+
 import Button from "primevue/button";
 import Dialog from "primevue/dialog";
 import Select from "primevue/select";
@@ -301,12 +345,12 @@ import { productService } from "~/services/productService";
 import { studentService } from "~/services/studentService";
 import { branchService } from "~/services/branchService";
 import { useThrottledCallback } from "~/composables/useThrottledCallback";
+import { useAppToast } from "~/composables/useAppToast";
 
 const props = defineProps({
   title: { type: String, default: "احجز كتاب" },
   submitLabel: { type: String, default: "تأكيد الحجز" },
   showHeader: { type: Boolean, default: false },
-  showHint: { type: Boolean, default: false },
   showReceipt: { type: Boolean, default: false },
   backTo: { type: String, default: "" },
   initialProduct: { type: [String, Number], default: "" },
@@ -314,6 +358,14 @@ const props = defineProps({
   role: { type: String, default: "" },
   submitFn: { type: Function, required: true },
 });
+
+const METHOD_LABELS = {
+  CASH: "كاش",
+  INSTAPAY: "انستا باي",
+  WALLET: "محفظة إلكترونية",
+};
+
+const { showError } = useAppToast();
 
 const isCustomerService = computed(() => {
   const role = String(props.role || "").toUpperCase();
@@ -323,6 +375,7 @@ const isCustomerService = computed(() => {
 const saving = ref(false);
 const formKey = ref(0);
 const receiptCode = ref("");
+const reservationSummary = ref(null);
 const successDialogVisible = ref(false);
 const proofFile = ref(null);
 const proofDataUrl = ref("");
@@ -332,7 +385,6 @@ const phoneSuggestions = ref([]);
 const selectedStudent = ref(null);
 const products = ref([]);
 const branches = ref([]);
-const feedback = reactive({ type: "success", message: "" });
 
 const paymentExclude = computed(() =>
   isCustomerService.value ? ["CASH"] : [],
@@ -377,6 +429,11 @@ const productOptions = computed(() =>
     return {
       name,
       teacherName,
+      studyYearName:
+        product.studyYear?.name ||
+        product.study_year?.name ||
+        product.studyYearName ||
+        "",
       priceLabel,
       teacherId: product.teacherId || product.teacher_id || product.teacher?.id || "",
       label: `${name} سعره ${priceLabel} مقدم من أ/ ${teacherName || "-"}`,
@@ -393,6 +450,17 @@ const selectedProductOption = computed(() =>
 const productPrice = computed(() => Number(selectedProductOption.value?.sellingPrice || 0));
 
 const formatMoney = (value) => `\u2066${Number(value || 0).toFixed(2)} ج.م\u2069`;
+
+const formatDateTime = (value) => {
+  if (!value) return "-";
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return "-";
+
+  return new Intl.DateTimeFormat("ar-EG", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(date);
+};
 
 const normalizeStudent = (student) => ({
   id: student.id,
@@ -561,12 +629,11 @@ const resetForm = () => {
 
 const closeSuccessDialog = () => {
   successDialogVisible.value = false;
+  reservationSummary.value = null;
   receiptCode.value = "";
-  feedback.message = "";
 };
 
 const handleSubmit = async () => {
-  feedback.message = "";
   saving.value = true;
 
   try {
@@ -576,6 +643,8 @@ const handleSubmit = async () => {
 
     const studentId = await ensureStudent();
     const product = selectedProductOption.value;
+    const method = form.paymentMethod;
+    const paidAmount = Number(form.amount || 0);
 
     const result = await props.submitFn({
       teacher_id: product?.teacherId || "",
@@ -588,8 +657,8 @@ const handleSubmit = async () => {
       amount: form.amount,
       paid_amount: form.amount,
       deposit: form.amount,
-      payment_method: form.paymentMethod,
-      method: form.paymentMethod,
+      payment_method: method,
+      method,
       branchId: form.branchId || undefined,
       branch_id: form.branchId || undefined,
       receipt_image: proofDataUrl.value || null,
@@ -597,20 +666,37 @@ const handleSubmit = async () => {
       quantity: 1,
     });
 
-    receiptCode.value =
-      result?.reservation_number ||
+    const reservationNumber =
       result?.reservationNumber ||
+      result?.reservation_number ||
       result?.code ||
       result?.id ||
       "";
 
-    feedback.type = "success";
-    feedback.message = "تم تسجيل الحجز بنجاح.";
+    receiptCode.value = reservationNumber;
+
+    reservationSummary.value = {
+      reservationNumber,
+      dateTimeLabel: formatDateTime(result?.createdAt || new Date()),
+      productName: product?.name || result?.product?.name || "-",
+      teacherName:
+        product?.teacherName ||
+        result?.product?.teacher?.name ||
+        "",
+      studyYearName:
+        product?.studyYearName ||
+        result?.product?.studyYear?.name ||
+        "",
+      studentName: form.studentName || result?.student?.name || "-",
+      paidAmount: Number(result?.paidAmount ?? paidAmount),
+      totalAmount: Number(result?.totalAmount ?? product?.sellingPrice ?? paidAmount),
+      methodLabel: METHOD_LABELS[method] || method,
+    };
+
     successDialogVisible.value = true;
     resetForm();
   } catch (error) {
-    feedback.type = "error";
-    feedback.message = error?.message || "تعذر تسجيل الحجز.";
+    showError(error?.message || "تعذر تسجيل الحجز.");
   } finally {
     saving.value = false;
   }
@@ -640,8 +726,7 @@ onMounted(async () => {
       form.paymentMethod = defaultPaymentMethod.value;
     }
   } catch (error) {
-    feedback.type = "error";
-    feedback.message = error?.message || "تعذر تحميل بيانات الحجز.";
+    showError(error?.message || "تعذر تحميل بيانات الحجز.");
   }
 });
 </script>

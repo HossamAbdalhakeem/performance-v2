@@ -19,14 +19,22 @@
         :model-value="image"
         :label="imageLabel"
         :placeholder="imagePlaceholder"
-        :max-size-mb="maxSizeMb"
+        :max-size-bytes="maxSizeBytes"
         :invalid="imageInvalid || Boolean(imageError)"
         @update:model-value="onImageFileChange"
         @select="onImageSelect"
         @clear="onImageClear"
         @error="onImageError"
       />
+      <p v-if="uploading" class="text-xs text-sky-600">جاري رفع صورة الإثبات...</p>
       <p v-if="imageError" class="text-xs text-red-500">{{ imageError }}</p>
+      <p
+        v-else-if="imageDataUrl && !uploading"
+        class="truncate text-xs text-emerald-600"
+        :title="imageDataUrl"
+      >
+        تم رفع الصورة بنجاح
+      </p>
     </div>
   </div>
 </template>
@@ -34,15 +42,17 @@
 <script setup>
 import PaymentMethods from "~/components/shared/payment-methods/index.vue";
 import ImageUpload from "~/components/shared/image-upload/index.vue";
+import { paymentService } from "~/services/paymentService";
 
 defineOptions({ name: "PaymentFields" });
 
 const props = defineProps({
   method: { type: String, default: "CASH" },
   image: { type: [Object, File, null], default: null },
+  /** Uploaded storage URL returned by Nest (used as proofReference) */
   imageDataUrl: { type: String, default: "" },
   methodLabel: { type: String, default: "طريقة الدفع" },
-  imageLabel: { type: String, default: "صورة إثبات الدفع (اختياري)" },
+  imageLabel: { type: String, default: "صورة إثبات الدفع" },
   imagePlaceholder: { type: String, default: "ارفع صورة المحفظة / إنستاباي" },
   options: { type: Array, default: null },
   exclude: { type: Array, default: () => [] },
@@ -58,7 +68,6 @@ const props = defineProps({
     default: "non-cash",
     validator: (value) => ["non-cash", "always", "never"].includes(value),
   },
-  maxSizeMb: { type: Number, default: 0.5 },
   methodInvalid: { type: Boolean, default: false },
   methodError: { type: String, default: "" },
   imageInvalid: { type: Boolean, default: false },
@@ -75,7 +84,13 @@ const emit = defineEmits([
   "change",
 ]);
 
+const runtimeConfig = useRuntimeConfig();
+const maxSizeBytes = computed(() =>
+  Number(runtimeConfig.public.paymentScreenshotMaxBytes),
+);
+
 const internalImageError = ref("");
+const uploading = ref(false);
 
 const normalizedMethod = computed(() =>
   String(props.method || "CASH").trim().toUpperCase(),
@@ -107,14 +122,6 @@ const imageError = computed(() => {
   return "";
 });
 
-const fileToDataUrl = (file) =>
-  new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result || ""));
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-
 const emitChange = (next = {}) => {
   emit("change", {
     method: next.method ?? normalizedMethod.value,
@@ -126,6 +133,7 @@ const emitChange = (next = {}) => {
 
 const clearImage = () => {
   internalImageError.value = "";
+  uploading.value = false;
   emit("update:image", null);
   emit("update:imageDataUrl", "");
   emitChange({ image: null, imageDataUrl: "" });
@@ -140,7 +148,7 @@ const onMethodChange = (value) => {
     method === "WALLET" ||
     method === "INSTAPAY";
 
-  if (!keepsImage && props.image) {
+  if (!keepsImage && (props.image || props.imageDataUrl)) {
     emit("update:image", null);
     emit("update:imageDataUrl", "");
     emitChange({ method, image: null, imageDataUrl: "" });
@@ -161,16 +169,21 @@ const onImageFileChange = (file) => {
 const onImageSelect = async (file) => {
   internalImageError.value = "";
   emit("update:image", file);
+  emit("update:imageDataUrl", "");
+  uploading.value = true;
 
   try {
-    const dataUrl = await fileToDataUrl(file);
-    emit("update:imageDataUrl", dataUrl);
-    emitChange({ image: file, imageDataUrl: dataUrl });
-  } catch {
-    internalImageError.value = "تعذر قراءة صورة الإثبات.";
+    const uploaded = await paymentService.uploadPaymentProof(file);
+    emit("update:imageDataUrl", uploaded.file_url);
+    emitChange({ image: file, imageDataUrl: uploaded.file_url });
+  } catch (error) {
+    internalImageError.value =
+      error?.message || "تعذر رفع صورة الإثبات. حاول مرة أخرى.";
     emit("update:image", null);
     emit("update:imageDataUrl", "");
     emitChange({ image: null, imageDataUrl: "" });
+  } finally {
+    uploading.value = false;
   }
 };
 
@@ -182,19 +195,24 @@ const onImageError = (message) => {
   internalImageError.value = message || "تعذر رفع صورة الإثبات.";
 };
 
-/** Returns false when a required proof image is missing. */
+/** Returns false when a required proof image is missing or still uploading. */
 const validate = () => {
   if (!imageRequired.value) return true;
-  if (props.image || props.imageDataUrl) return true;
+  if (uploading.value) {
+    internalImageError.value = "انتظر حتى يكتمل رفع صورة الإثبات.";
+    return false;
+  }
+  if (props.imageDataUrl) return true;
   internalImageError.value = props.imageRequiredMessage;
   return false;
 };
 
 const reset = () => {
   internalImageError.value = "";
+  uploading.value = false;
   emit("update:image", null);
   emit("update:imageDataUrl", "");
 };
 
-defineExpose({ validate, reset, showImage, imageRequired });
+defineExpose({ validate, reset, showImage, imageRequired, uploading });
 </script>

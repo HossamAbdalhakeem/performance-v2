@@ -1,4 +1,5 @@
 <template>
+  <Toast position="top-center" />
   <NuxtRouteAnnouncer />
   <NuxtLayout :name="layoutName">
     <NuxtPage />
@@ -6,6 +7,7 @@
 </template>
 
 <script setup>
+import Toast from "primevue/toast";
 import { useAuthStore } from "~/store/auth.js";
 
 const route = useRoute();

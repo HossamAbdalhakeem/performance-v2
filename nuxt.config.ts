@@ -68,7 +68,9 @@ export default defineNuxtConfig({
     public: {
       baseUrl: process.env.NUXT_ENV_BASE_URL || 'http://localhost:8000',
       siteUrl: process.env.NUXT_PUBLIC_SITE_URL,
-
+      paymentScreenshotMaxBytes: Number(
+        process.env.NUXT_PUBLIC_PAYMENT_SCREENSHOT_MAX_BYTES || 204800,
+      ),
     },
   },
 

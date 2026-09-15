@@ -6,7 +6,6 @@
           title="احجز كتاب"
           submit-label="تأكيد الحجز"
           show-header
-          show-hint
           show-receipt
           back-to="/books"
           :initial-product="selectedBook"

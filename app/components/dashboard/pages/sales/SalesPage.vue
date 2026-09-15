@@ -6,13 +6,6 @@
       </template>
 
       <template #content>
-        <p
-          v-if="feedback.message && feedback.type === 'error'"
-          class="mb-4 rounded-xl bg-red-50 px-3 py-2 text-sm text-red-600"
-        >
-          {{ feedback.message }}
-        </p>
-
         <Form
           v-slot="{ errors: fieldErrors, setFieldValue }"
           :key="formKey"
@@ -279,7 +272,19 @@
         <p class="text-base font-bold text-slate-900">تم تسجيل البيع بنجاح</p>
 
         <div class="mt-5 w-full space-y-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-right">
-          <div class="flex items-start justify-between gap-3">
+          <div class="flex items-center justify-between gap-3">
+            <span class="text-xs text-slate-500">رقم الدفع</span>
+            <span class="text-sm font-bold text-slate-900 break-all">
+              {{ saleSummary.paymentNumber }}
+            </span>
+          </div>
+
+          <div class="flex items-center justify-between gap-3 border-t border-slate-200 pt-3">
+            <span class="text-xs text-slate-500">التاريخ والوقت</span>
+            <span class="text-sm font-medium text-slate-800">{{ saleSummary.dateTimeLabel }}</span>
+          </div>
+
+          <div class="flex items-start justify-between gap-3 border-t border-slate-200 pt-3">
             <span class="text-xs text-slate-500">المنتج</span>
             <div class="text-sm font-semibold text-slate-900">
               <p>{{ saleSummary.productName }}</p>
@@ -287,6 +292,13 @@
                 مقدم من أ/ {{ saleSummary.teacherName }}
               </p>
             </div>
+          </div>
+
+          <div class="flex items-center justify-between gap-3 border-t border-slate-200 pt-3">
+            <span class="text-xs text-slate-500">السنة الدراسية</span>
+            <span class="text-sm font-medium text-slate-800">
+              {{ saleSummary.studyYearName || "-" }}
+            </span>
           </div>
 
           <div class="flex items-center justify-between gap-3 border-t border-slate-200 pt-3">
@@ -346,6 +358,7 @@ import { inventoryService } from "~/services/inventoryService";
 import { studentService } from "~/services/studentService";
 import { useAuthStore } from "~/store/auth";
 import { useThrottledCallback } from "~/composables/useThrottledCallback";
+import { useAppToast } from "~/composables/useAppToast";
 
 const METHOD_LABELS = {
   CASH: "كاش",
@@ -354,6 +367,7 @@ const METHOD_LABELS = {
 };
 
 const authStore = useAuthStore();
+const { showError } = useAppToast();
 const saving = ref(false);
 const searchingStudents = ref(false);
 const formKey = ref(0);
@@ -364,7 +378,6 @@ const paymentFieldsRef = ref(null);
 const quantityError = ref("");
 const successDialogVisible = ref(false);
 const saleSummary = ref(null);
-const feedback = reactive({ type: "success", message: "" });
 const nameSuggestions = ref([]);
 const phoneSuggestions = ref([]);
 const selectedStudent = ref(null);
@@ -403,6 +416,12 @@ const productOptions = computed(() =>
       product.teacherName ||
       product.teacher_name ||
       "";
+    const studyYearName =
+      product.studyYear?.name ||
+      product.study_year?.name ||
+      product.studyYearName ||
+      product.study_year_name ||
+      "";
     const priceLabel = `${Number(product.sellingPrice || 0).toFixed(2)}ج.م`;
     const name = product.name || "-";
     const availableQuantity = Number(
@@ -416,6 +435,7 @@ const productOptions = computed(() =>
     return {
       name,
       teacherName,
+      studyYearName,
       priceLabel,
       availableQuantity,
       label: `${name} · متاح ${availableQuantity} · سعره ${priceLabel}`,
@@ -451,6 +471,17 @@ const requiredAmount = computed(() =>
 
 const formatMoney = (value) =>
   `\u2066${Number(value || 0).toFixed(2)} ج.م\u2069`;
+
+const formatDateTime = (value) => {
+  if (!value) return "-";
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return "-";
+
+  return new Intl.DateTimeFormat("ar-EG", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(date);
+};
 
 const normalizeStudent = (student) => ({
   id: student.id,
@@ -670,7 +701,6 @@ const resetForm = () => {
 };
 
 const submitSale = async () => {
-  feedback.message = "";
   proofRequiredError.value = false;
   quantityError.value = "";
 
@@ -695,23 +725,34 @@ const submitSale = async () => {
     const studentName = asText(form.studentName, "name");
     const method = form.method;
 
-    await saleService.createSale({
+    const sale = await saleService.createSale({
       studentId,
       productId: form.productId,
       quantity,
       method,
-      proofReference: needsProof
-        ? proofDataUrl.value || proofFile.value?.name
-        : undefined,
+      proofReference: needsProof ? proofDataUrl.value || undefined : undefined,
     });
 
+    const payment = Array.isArray(sale?.payments) ? sale.payments[0] : null;
+    const saleProduct = sale?.items?.[0]?.product;
+    const studyYearName =
+      product?.studyYearName ||
+      saleProduct?.studyYear?.name ||
+      selectedProduct.value?.studyYear?.name ||
+      "";
+
     saleSummary.value = {
-      productName: product?.name || "-",
+      paymentNumber: payment?.id || sale?.id || "-",
+      dateTimeLabel: formatDateTime(
+        payment?.createdAt || sale?.createdAt || new Date(),
+      ),
+      productName: product?.name || saleProduct?.name || "-",
       teacherName: product?.teacherName || "",
-      studentName: studentName || "-",
+      studyYearName,
+      studentName: studentName || sale?.student?.name || "-",
       quantity,
       unitPrice: lineUnitPrice,
-      totalAmount,
+      totalAmount: Number(sale?.totalAmount ?? totalAmount),
       methodLabel: METHOD_LABELS[method] || method,
     };
     successDialogVisible.value = true;
@@ -719,8 +760,7 @@ const submitSale = async () => {
     resetForm();
     await loadProducts();
   } catch (error) {
-    feedback.type = "error";
-    feedback.message = error?.message || "تعذر تسجيل البيع.";
+    showError(error?.message || "تعذر تسجيل البيع.");
   } finally {
     saving.value = false;
   }
@@ -739,8 +779,7 @@ onMounted(async () => {
   try {
     await loadProducts();
   } catch (error) {
-    feedback.type = "error";
-    feedback.message = error?.message || "تعذر تحميل بيانات المبيعات.";
+    showError(error?.message || "تعذر تحميل بيانات المبيعات.");
   }
 });
 </script>

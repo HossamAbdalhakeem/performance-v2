@@ -5,14 +5,6 @@
         <span class="text-lg font-bold text-slate-900">الحجوزات</span>
       </template>
       <template #content>
-        <p
-          v-if="feedback.message"
-          class="mb-4 rounded-xl px-3 py-2 text-sm"
-          :class="feedback.type === 'error' ? 'bg-red-50 text-red-600' : 'bg-emerald-50 text-emerald-700'"
-        >
-          {{ feedback.message }}
-        </p>
-
         <div class="mb-5 grid gap-3 md:grid-cols-2">
           <div class="flex flex-col gap-2 text-right">
             <label class="text-sm font-medium text-slate-700">بحث</label>
@@ -73,6 +65,7 @@ import EntityDrawer from "~/components/dashboard/EntityDrawer.vue";
 import ReservationsTable from "~/components/dashboard/pages/reservations/ReservationsTable.vue";
 import ChangeProductForm from "~/components/dashboard/pages/reservations/ChangeProductForm.vue";
 import { reservationService } from "~/services/reservationService";
+import { useAppToast } from "~/composables/useAppToast";
 
 const STATUS_META = {
   PENDING: { label: "قيد الانتظار", severity: "warn" },
@@ -82,12 +75,12 @@ const STATUS_META = {
   CANCELLED: { label: "ملغي", severity: "danger" },
 };
 
+const { showError, showSuccess } = useAppToast();
 const loading = ref(true);
 const changeDrawerVisible = ref(false);
 const selectedReservation = ref(null);
 const reservations = ref([]);
 const filters = reactive({ search: "", status: null });
-const feedback = reactive({ type: "success", message: "" });
 
 const statusOptions = Object.entries(STATUS_META).map(([value, meta]) => ({
   label: meta.label,
@@ -128,8 +121,7 @@ const loadData = async () => {
     const items = await reservationService.getReservations();
     reservations.value = (items || []).map(normalizeReservation);
   } catch (error) {
-    feedback.type = "error";
-    feedback.message = error?.message || "تعذر تحميل الحجوزات.";
+    showError(error?.message || "تعذر تحميل الحجوزات.");
     reservations.value = [];
   } finally {
     loading.value = false;
@@ -144,8 +136,7 @@ const openChangeProduct = (item) => {
 const handleChanged = async () => {
   changeDrawerVisible.value = false;
   selectedReservation.value = null;
-  feedback.type = "success";
-  feedback.message = "تم تبديل منتج الحجز بنجاح.";
+  showSuccess("تم تبديل منتج الحجز بنجاح.");
   await loadData();
 };
 
@@ -153,12 +144,10 @@ const handleCancel = async (item) => {
   if (!item?.id) return;
   try {
     await reservationService.cancelReservation(item.id);
-    feedback.type = "success";
-    feedback.message = "تم إلغاء الحجز بنجاح.";
+    showSuccess("تم إلغاء الحجز بنجاح.");
     await loadData();
   } catch (error) {
-    feedback.type = "error";
-    feedback.message = error?.message || "تعذر إلغاء الحجز.";
+    showError(error?.message || "تعذر إلغاء الحجز.");
   }
 };
 

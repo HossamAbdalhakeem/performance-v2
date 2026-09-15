@@ -6,7 +6,6 @@
           title="حجز الكتب"
           submit-label="تأكيد الحجز"
           show-header
-          show-hint
           show-receipt
           :role="bookingRole"
           :submit-fn="submitReservation"

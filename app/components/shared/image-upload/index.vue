@@ -120,6 +120,7 @@ const props = defineProps({
   cropperTitle: { type: String, default: "قص الصورة" },
   aspectRatio: { type: Number, default: NaN },
   maxSizeMb: { type: Number, default: 0.5 },
+  maxSizeBytes: { type: Number, default: null },
   invalid: { type: Boolean, default: false },
   modelValue: { type: [Object, File, null], default: null },
 });
@@ -136,10 +137,19 @@ const selectedImage = ref("");
 const isProcessing = ref(false);
 const originalFileName = ref("cropped-image.jpg");
 
-const maxBytes = computed(() => Math.max(0.05, props.maxSizeMb) * 1024 * 1024);
+const maxBytes = computed(() => {
+  if (props.maxSizeBytes != null && props.maxSizeBytes > 0) {
+    return props.maxSizeBytes;
+  }
+  return Math.max(0.05, props.maxSizeMb) * 1024 * 1024;
+});
+
 const maxSizeLabel = computed(() => {
-  if (props.maxSizeMb < 1) return `${Math.round(props.maxSizeMb * 1024)} ك.ب`;
-  return `${props.maxSizeMb} م.ب`;
+  const bytes = maxBytes.value;
+  if (bytes < 1024 * 1024) {
+    return `${Math.round(bytes / 1024)} ك.ب`;
+  }
+  return `${(bytes / (1024 * 1024)).toFixed(1)} م.ب`;
 });
 
 const revokePreview = () => {

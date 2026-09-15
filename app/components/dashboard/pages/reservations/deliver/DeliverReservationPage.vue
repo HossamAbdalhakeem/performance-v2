@@ -8,18 +8,6 @@
       />
     </div>
 
-    <p
-      v-if="feedback.message"
-      class="rounded-xl px-3 py-2 text-sm"
-      :class="
-        feedback.type === 'error'
-          ? 'bg-red-500/15 text-red-300'
-          : 'bg-emerald-500/15 text-emerald-300'
-      "
-    >
-      {{ feedback.message }}
-    </p>
-
     <AppDataTable
       :value="filteredReservations"
       :columns="tableColumns"
@@ -139,6 +127,7 @@ import InputText from "primevue/inputtext";
 import Select from "primevue/select";
 import AppDataTable from "~/components/shared/app-data-table/index.vue";
 import { reservationService } from "~/services/reservationService";
+import { useAppToast } from "~/composables/useAppToast";
 
 const STATUS_META = {
   PENDING: { label: "قيد الانتظار", class: "bg-amber-500/20 text-amber-300" },
@@ -154,6 +143,7 @@ const paymentOptions = [
   { label: "محفظة إلكترونية", value: "WALLET" },
 ];
 
+const { showError, showSuccess } = useAppToast();
 const loading = ref(false);
 const delivering = ref(false);
 const search = ref("");
@@ -163,7 +153,6 @@ const dialogVisible = ref(false);
 const dialogError = ref("");
 const selectedReservation = ref(null);
 const reservations = ref([]);
-const feedback = reactive({ type: "success", message: "" });
 
 const formatMoney = (value) => `${Number(value || 0).toFixed(2)} ج.م`;
 
@@ -265,7 +254,6 @@ const openDeliverDialog = (item) => {
   proofReference.value = "";
   dialogError.value = "";
   dialogVisible.value = true;
-  feedback.message = "";
 };
 
 const closeDeliverDialog = () => {
@@ -278,7 +266,6 @@ const closeDeliverDialog = () => {
 
 const loadReservations = async () => {
   loading.value = true;
-  feedback.message = "";
 
   try {
     const items = await reservationService.getReservations();
@@ -288,8 +275,7 @@ const loadReservations = async () => {
       .filter((item) => item.status !== "DELIVERED" && item.status !== "CANCELLED");
   } catch (error) {
     reservations.value = [];
-    feedback.type = "error";
-    feedback.message = error?.message || "تعذر تحميل الحجوزات.";
+    showError(error?.message || "تعذر تحميل الحجوزات.");
   } finally {
     loading.value = false;
   }
@@ -300,7 +286,6 @@ const deliverReservation = async () => {
 
   delivering.value = true;
   dialogError.value = "";
-  feedback.message = "";
 
   try {
     await reservationService.deliverReservation(selectedReservation.value.id, {
@@ -311,10 +296,11 @@ const deliverReservation = async () => {
     const deliveredId = selectedReservation.value.id;
     closeDeliverDialog();
     reservations.value = reservations.value.filter((item) => item.id !== deliveredId);
-    feedback.type = "success";
-    feedback.message = "تم تسليم الحجز بنجاح وتم خصم الكمية من المخزون.";
+    showSuccess("تم تسليم الحجز بنجاح وتم خصم الكمية من المخزون.");
   } catch (error) {
-    dialogError.value = error?.message || "تعذر تسليم الحجز.";
+    const message = error?.message || "تعذر تسليم الحجز.";
+    dialogError.value = message;
+    showError(message);
   } finally {
     delivering.value = false;
   }

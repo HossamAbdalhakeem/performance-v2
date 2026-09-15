@@ -32,10 +32,6 @@
       </div>
     </Field>
 
-    <p v-if="feedback.message" class="rounded-xl bg-red-50 px-3 py-2 text-sm text-red-600">
-      {{ feedback.message }}
-    </p>
-
     <div class="flex justify-end gap-2">
       <Button type="button" label="إلغاء" severity="secondary" text @click="$emit('cancel')" />
       <Button type="submit" label="تأكيد التبديل" :loading="saving" severity="info" />
@@ -49,17 +45,18 @@ import Select from "primevue/select";
 import { Form, Field, ErrorMessage } from "vee-validate";
 import { productService } from "~/services/productService";
 import { reservationService } from "~/services/reservationService";
+import { useAppToast } from "~/composables/useAppToast";
 
 const props = defineProps({
   reservation: { type: Object, default: null },
 });
 
 const emit = defineEmits(["saved", "cancel"]);
+const { showError } = useAppToast();
 
 const saving = ref(false);
 const formKey = ref(0);
 const productOptions = ref([]);
-const feedback = reactive({ message: "" });
 const form = reactive({ newProductId: null });
 const initialValues = { newProductId: null };
 
@@ -74,21 +71,20 @@ const loadProducts = async () => {
         value: product.id,
       }));
   } catch (error) {
-    console.error("Failed to load products", error);
+    showError(error?.message || "تعذر تحميل المنتجات.");
   }
 };
 
 const submit = async () => {
   if (!props.reservation?.id) return;
   saving.value = true;
-  feedback.message = "";
   try {
     const result = await reservationService.changeProduct(props.reservation.id, {
       newProductId: form.newProductId,
     });
     emit("saved", result);
   } catch (error) {
-    feedback.message = error?.message || "تعذر تبديل المنتج.";
+    showError(error?.message || "تعذر تبديل المنتج.");
   } finally {
     saving.value = false;
   }
@@ -99,7 +95,6 @@ watch(
   () => {
     form.newProductId = null;
     formKey.value += 1;
-    feedback.message = "";
   },
   { immediate: true },
 );

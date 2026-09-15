@@ -1,5 +1,9 @@
 import { apiFetch } from "~/utils/apiFetch";
-import { useSupabase } from "~/composables/useSupabase";
+
+export type PaymentScreenshotUploadResult = {
+  file_url: string;
+  mime_type: string;
+};
 
 export const paymentService = {
   async getPayments(params: Record<string, any> = {}) {
@@ -9,15 +13,26 @@ export const paymentService = {
     });
   },
 
-  async uploadPaymentProof(file: File) {
-    const supabase = useSupabase();
-    const path = `payments/${crypto.randomUUID()}/${file.name}`;
-    const { error } = await supabase.storage.from("payments").upload(path, file);
+  /**
+   * Upload a payment proof image through the Nest API
+   * (Nest stores it in Neon Object Storage — never upload from the browser directly).
+   */
+  async uploadPaymentProof(file: File): Promise<PaymentScreenshotUploadResult> {
+    const body = new FormData();
+    body.append("file", file);
 
-    if (error) {
-      throw error;
+    const result = await apiFetch<PaymentScreenshotUploadResult>(
+      "/uploads/payment-screenshot",
+      {
+        method: "POST",
+        body,
+      },
+    );
+
+    if (!result?.file_url) {
+      throw new Error("تعذر رفع صورة الإثبات.");
     }
 
-    return path;
+    return result;
   },
 };
