@@ -64,8 +64,9 @@
             <Button
               type="button"
               icon="pi pi-plus"
-              severity="secondary"
+              severity="info"
               outlined
+              aria-label="إضافة مدرس"
               @click="openTeacherDialog"
             />
           </div>

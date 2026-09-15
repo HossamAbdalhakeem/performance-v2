@@ -24,8 +24,9 @@
           <Button
             type="button"
             icon="pi pi-plus"
-            severity="secondary"
+            severity="info"
             outlined
+            aria-label="إضافة تصنيف"
             @click="showCategoryDialog = true"
           />
         </div>

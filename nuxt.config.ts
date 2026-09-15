@@ -13,7 +13,7 @@ export default defineNuxtConfig({
     '@nuxtjs/sitemap',
     'nuxt-schema-org',
   ],
-  css: ['~/assets/css/tailwind.css'],
+  css: ['primeicons/primeicons.css', '~/assets/css/tailwind.css'],
   vite: {
     optimizeDeps: {
       include: ['cropperjs'],
