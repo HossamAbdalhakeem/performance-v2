@@ -1,7 +1,7 @@
 <template>
   <div
     class="grid gap-4"
-    :class="showImage ? 'md:grid-cols-1' : ''"
+    :class="showImage ? 'grid-cols-2' : 'grid-cols-1'"
     dir="rtl"
   >
     <PaymentMethods
