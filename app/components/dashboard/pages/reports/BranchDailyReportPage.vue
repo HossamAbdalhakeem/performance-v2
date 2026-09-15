@@ -4,7 +4,11 @@
       <div>
         <h2 class="text-xl font-bold text-white">تقرير اليوم</h2>
         <p class="mt-1 text-sm text-slate-400">
-          نظرة سريعة على نشاط الفرع — اضغط أي بطاقة لعرض التفاصيل
+          {{
+            isCustomerService
+              ? "نشاطك عبر كل الفروع — اضغط أي بطاقة لعرض التفاصيل"
+              : "نظرة سريعة على نشاط الفرع — اضغط أي بطاقة لعرض التفاصيل"
+          }}
         </p>
       </div>
       <div class="flex flex-wrap items-center gap-2">
@@ -127,7 +131,9 @@
           />
           <div class="flex items-start justify-between gap-3">
             <div>
-              <p class="text-sm text-emerald-200/80">صافي المدفوعات</p>
+              <p class="text-sm text-emerald-200/80">
+                {{ isCustomerService ? "مدفوعات حجوزاتك" : "صافي المدفوعات" }}
+              </p>
               <p class="mt-2 text-3xl font-extrabold tracking-tight text-white">
                 {{ formatMoney(summary.paymentsTotal) }}
               </p>
@@ -167,7 +173,11 @@
             <div>
               <p class="font-bold text-white">توزيع نشاط اليوم</p>
               <p class="mt-0.5 text-xs text-slate-400">
-                مقارنة بين عمليات البيع والحجز والمخزن
+                {{
+                  isCustomerService
+                    ? "حالة حجوزاتك عبر كل الفروع"
+                    : "مقارنة بين عمليات البيع والحجز والمخزن"
+                }}
               </p>
             </div>
           </div>
@@ -225,8 +235,11 @@
         total-label="إجمالي المحصل"
       />
 
-      <!-- Inventory movement bars -->
-      <div class="rounded-2xl border border-white/10 bg-slate-900/90 p-5">
+      <!-- Inventory movement bars (branch only) -->
+      <div
+        v-if="!isCustomerService"
+        class="rounded-2xl border border-white/10 bg-slate-900/90 p-5"
+      >
         <div class="mb-4 flex flex-wrap items-end justify-between gap-2">
           <div>
             <p class="font-bold text-white">حركة المخزن</p>
@@ -246,6 +259,38 @@
             class="flex h-full items-center justify-center text-sm text-slate-500"
           >
             لا توجد حركات مخزن لهذا اليوم
+          </div>
+        </div>
+      </div>
+
+      <!-- Branches breakdown for customer service -->
+      <div
+        v-else-if="branchBreakdown.length"
+        class="rounded-2xl border border-white/10 bg-slate-900/90 p-5"
+      >
+        <div class="mb-4">
+          <p class="font-bold text-white">التوزيع حسب الفروع</p>
+          <p class="mt-0.5 text-xs text-slate-400">
+            حجوزاتك ومدفوعاتك عبر الفروع اليوم
+          </p>
+        </div>
+        <div class="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+          <div
+            v-for="branch in branchBreakdown"
+            :key="branch.branchId"
+            class="rounded-xl border border-white/5 bg-slate-950/40 px-3 py-3"
+          >
+            <p class="font-semibold text-white">{{ branch.branchName }}</p>
+            <div class="mt-2 flex items-center justify-between gap-2 text-sm">
+              <span class="text-slate-400">حجوزات</span>
+              <span class="font-bold text-amber-300">{{ branch.reservations }}</span>
+            </div>
+            <div class="mt-1 flex items-center justify-between gap-2 text-sm">
+              <span class="text-slate-400">مدفوع</span>
+              <span class="font-bold text-emerald-300">
+                {{ formatMoney(branch.paidTotal) }}
+              </span>
+            </div>
           </div>
         </div>
       </div>
@@ -344,6 +389,7 @@ import AppDataTable from "~/components/shared/app-data-table/index.vue";
 import PaymentMethodsReport from "~/components/shared/payment-methods-report/index.vue";
 import { reportService } from "~/services/reportService";
 import { useAppToast } from "~/composables/useAppToast";
+import { useAuthStore } from "~/store/auth";
 
 ChartJS.register(
   ArcElement,
@@ -357,6 +403,22 @@ ChartJS.register(
 defineOptions({ name: "BranchDailyReportPage" });
 
 const { showError } = useAppToast();
+const authStore = useAuthStore();
+
+const isCustomerService = computed(() => {
+  const roles = authStore.getRoles || authStore.user?.roles || [];
+  const list = Array.isArray(roles) ? roles : [roles];
+  const role =
+    authStore.user?.role ||
+    authStore.getRole ||
+    authStore.dashboardRole ||
+    "";
+  return (
+    list.some((r) => String(r).toUpperCase() === "CUSTOMER_SERVICE") ||
+    String(role).toLowerCase() === "social" ||
+    String(role).toUpperCase() === "CUSTOMER_SERVICE"
+  );
+});
 
 const MOVEMENT_LABELS = {
   STOCK_IN: "استلام",
@@ -407,6 +469,10 @@ const paymentMethodItems = computed(() =>
   Array.isArray(summary.value.paymentsByMethod)
     ? summary.value.paymentsByMethod
     : [],
+);
+
+const branchBreakdown = computed(() =>
+  Array.isArray(summary.value.byBranch) ? summary.value.byBranch : [],
 );
 
 const formatMoney = (value) =>
@@ -462,23 +528,37 @@ const saleColumns = [
   { field: "by", header: "بواسطة" },
 ];
 
-const reservationColumns = [
-  { field: "time", header: "الوقت" },
-  { field: "number", header: "رقم الحجز" },
-  { field: "student", header: "الطالب" },
-  { field: "product", header: "المنتج" },
-  { field: "status", header: "الحالة" },
-  { field: "paid", header: "المدفوع" },
-  { field: "by", header: "بواسطة" },
-];
+const reservationColumns = computed(() => {
+  const cols = [
+    { field: "time", header: "الوقت" },
+    { field: "number", header: "رقم الحجز" },
+    { field: "student", header: "الطالب" },
+    { field: "product", header: "المنتج" },
+  ];
+  if (isCustomerService.value) {
+    cols.push({ field: "branch", header: "الفرع" });
+  }
+  cols.push(
+    { field: "status", header: "الحالة" },
+    { field: "paid", header: "المدفوع" },
+    { field: "by", header: "بواسطة" },
+  );
+  return cols;
+});
 
-const deliveredColumns = [
-  { field: "time", header: "وقت التسليم" },
-  { field: "number", header: "رقم الحجز" },
-  { field: "student", header: "الطالب" },
-  { field: "product", header: "المنتج" },
-  { field: "by", header: "بواسطة" },
-];
+const deliveredColumns = computed(() => {
+  const cols = [
+    { field: "time", header: "وقت التسليم" },
+    { field: "number", header: "رقم الحجز" },
+    { field: "student", header: "الطالب" },
+    { field: "product", header: "المنتج" },
+  ];
+  if (isCustomerService.value) {
+    cols.push({ field: "branch", header: "الفرع" });
+  }
+  cols.push({ field: "by", header: "بواسطة" });
+  return cols;
+});
 
 const receivedRows = computed(() =>
   (detailCache.value.received || []).map(mapMovement),
@@ -512,6 +592,7 @@ const reservationRows = computed(() =>
     number: item.reservationNumber || "-",
     student: item.student?.name || "-",
     product: item.product?.name || "-",
+    branch: item.branch?.name || "-",
     status: STATUS_LABELS[item.status] || item.status,
     paid: formatMoney(item.paidAmount),
     by: item.createdBy?.fullName || "-",
@@ -524,6 +605,7 @@ const deliveredRows = computed(() =>
     number: item.reservationNumber || "-",
     student: item.student?.name || "-",
     product: item.product?.name || "-",
+    branch: item.branch?.name || "-",
     by: item.createdBy?.fullName || "-",
   })),
 );
@@ -539,6 +621,7 @@ const cancelledRows = computed(() =>
       number: item.reservationNumber || "-",
       student: item.student?.name || "-",
       product: item.product?.name || "-",
+      branch: item.branch?.name || "-",
       paid: formatMoney(item.paidAmount),
       refund: formatMoney(refundAmount || item.paidAmount),
       by: item.createdBy?.fullName || "-",
@@ -546,15 +629,23 @@ const cancelledRows = computed(() =>
   }),
 );
 
-const cancelledColumns = [
-  { field: "time", header: "وقت الإلغاء" },
-  { field: "number", header: "رقم الحجز" },
-  { field: "student", header: "الطالب" },
-  { field: "product", header: "المنتج" },
-  { field: "paid", header: "المدفوع" },
-  { field: "refund", header: "المسترد" },
-  { field: "by", header: "بواسطة" },
-];
+const cancelledColumns = computed(() => {
+  const cols = [
+    { field: "time", header: "وقت الإلغاء" },
+    { field: "number", header: "رقم الحجز" },
+    { field: "student", header: "الطالب" },
+    { field: "product", header: "المنتج" },
+  ];
+  if (isCustomerService.value) {
+    cols.push({ field: "branch", header: "الفرع" });
+  }
+  cols.push(
+    { field: "paid", header: "المدفوع" },
+    { field: "refund", header: "المسترد" },
+    { field: "by", header: "بواسطة" },
+  );
+  return cols;
+});
 
 const detailSections = computed(() => ({
   sales: {
@@ -566,19 +657,19 @@ const detailSections = computed(() => ({
   reservations: {
     title: "الحجوزات الجديدة",
     rows: reservationRows.value,
-    columns: reservationColumns,
+    columns: reservationColumns.value,
     emptyMessage: "لا توجد حجوزات جديدة في هذا اليوم.",
   },
   delivered: {
     title: "الحجوزات المسلّمة",
     rows: deliveredRows.value,
-    columns: deliveredColumns,
+    columns: deliveredColumns.value,
     emptyMessage: "لا توجد حجوزات مسلّمة في هذا اليوم.",
   },
   cancelled: {
     title: "الحجوزات الملغاة",
     rows: cancelledRows.value,
-    columns: cancelledColumns,
+    columns: cancelledColumns.value,
     emptyMessage: "لا توجد حجوزات ملغاة في هذا اليوم.",
   },
   received: {
@@ -603,6 +694,42 @@ const detailSections = computed(() => ({
 
 const activityItems = computed(() => {
   const s = summary.value;
+
+  if (isCustomerService.value) {
+    return [
+      {
+        key: "reservations",
+        label: "حجوزات جديدة",
+        value: Number(s.reservations ?? 0),
+        color: ACTIVITY_COLORS.reservations,
+      },
+      {
+        key: "ready",
+        label: "جاهزة",
+        value: Number(s.readyReservations ?? 0),
+        color: ACTIVITY_COLORS.delivered,
+      },
+      {
+        key: "waiting",
+        label: "بانتظار المخزون",
+        value: Number(s.waitingReservations ?? 0),
+        color: ACTIVITY_COLORS.sales,
+      },
+      {
+        key: "delivered",
+        label: "مسلّمة اليوم",
+        value: Number(s.deliveredReservations ?? 0),
+        color: "#34d399",
+      },
+      {
+        key: "cancelled",
+        label: "ملغاة",
+        value: Number(s.cancelledReservations ?? 0),
+        color: ACTIVITY_COLORS.cancelled,
+      },
+    ];
+  }
+
   return [
     {
       key: "sales",
@@ -760,6 +887,89 @@ const barOptions = {
 
 const summaryCards = computed(() => {
   const s = summary.value;
+
+  if (isCustomerService.value) {
+    return [
+      {
+        key: "reservations",
+        label: "الحجوزات الجديدة",
+        value: s.reservations ?? 0,
+        hint: "حجوزاتك عبر كل الفروع",
+        icon: "pi-bookmark",
+        clickable: true,
+        borderClass: "border-amber-500/25 bg-slate-900",
+        iconWrapClass: "bg-amber-500/15 text-amber-300",
+        glowClass: "bg-gradient-to-bl from-amber-500/10 to-transparent",
+      },
+      {
+        key: "ready",
+        label: "جاهزة للتسليم",
+        value: s.readyReservations ?? 0,
+        hint: "من حجوزاتك اليوم",
+        icon: "pi-check",
+        clickable: false,
+        borderClass: "border-emerald-500/25 bg-slate-900",
+        iconWrapClass: "bg-emerald-500/15 text-emerald-300",
+        glowClass: "bg-gradient-to-bl from-emerald-500/10 to-transparent",
+      },
+      {
+        key: "waiting",
+        label: "بانتظار المخزون",
+        value: s.waitingReservations ?? 0,
+        hint: "من حجوزاتك اليوم",
+        icon: "pi-clock",
+        clickable: false,
+        borderClass: "border-sky-500/25 bg-slate-900",
+        iconWrapClass: "bg-sky-500/15 text-sky-300",
+        glowClass: "bg-gradient-to-bl from-sky-500/10 to-transparent",
+      },
+      {
+        key: "delivered",
+        label: "الحجوزات المسلّمة",
+        value: s.deliveredReservations ?? 0,
+        hint: "من حجوزاتك وتم تسليمها اليوم",
+        icon: "pi-check-circle",
+        clickable: true,
+        borderClass: "border-teal-500/25 bg-slate-900",
+        iconWrapClass: "bg-teal-500/15 text-teal-300",
+        glowClass: "bg-gradient-to-bl from-teal-500/10 to-transparent",
+      },
+      {
+        key: "cancelled",
+        label: "الحجوزات الملغاة",
+        value: s.cancelledReservations ?? 0,
+        hint: "من حجوزاتك وألغيت اليوم",
+        icon: "pi-times-circle",
+        clickable: true,
+        borderClass: "border-rose-500/25 bg-slate-900",
+        iconWrapClass: "bg-rose-500/15 text-rose-300",
+        glowClass: "bg-gradient-to-bl from-rose-500/10 to-transparent",
+      },
+      {
+        key: "students",
+        label: "طلاب جدد",
+        value: s.studentsCreated ?? 0,
+        hint: "طلاب أضفتهم اليوم",
+        icon: "pi-users",
+        clickable: false,
+        borderClass: "border-violet-500/25 bg-slate-900",
+        iconWrapClass: "bg-violet-500/15 text-violet-300",
+        glowClass: "bg-gradient-to-bl from-violet-500/10 to-transparent",
+      },
+      {
+        key: "branches",
+        label: "الفروع",
+        value: s.branchesCount ?? 0,
+        hint: "عدد الفروع التي حجزت عليها",
+        icon: "pi-building",
+        clickable: false,
+        borderClass: "border-white/10 bg-slate-900",
+        iconWrapClass: "bg-slate-700/50 text-slate-300",
+        glowClass: "",
+      },
+    ];
+  }
+
   return [
     {
       key: "sales",

@@ -150,6 +150,7 @@ const menuItems = computed(() => {
   if (props.role === "social") {
     return [
       { label: "احجز كتاب", icon: "📝", to: "/books", active: isActive("/books") },
+      { label: "تقرير اليوم", icon: "▤", to: "/reports/daily", active: isActive("/reports/daily") },
     ];
   }
 
