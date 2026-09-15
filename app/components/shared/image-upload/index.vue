@@ -123,6 +123,8 @@ const props = defineProps({
   maxSizeBytes: { type: Number, default: null },
   invalid: { type: Boolean, default: false },
   modelValue: { type: [Object, File, null], default: null },
+  /** Optional async upload; cropper stays open until this resolves */
+  uploadHandler: { type: Function, default: null },
 });
 
 const emit = defineEmits(["update:modelValue", "select", "clear", "error", "cropped"]);
@@ -248,9 +250,15 @@ const handleCropped = async ({ blob, dataURL }) => {
     emit("update:modelValue", file);
     emit("select", file);
     emit("cropped", { blob, dataURL, file });
+
+    if (typeof props.uploadHandler === "function") {
+      await props.uploadHandler(file);
+    }
+
     showCropper.value = false;
   } catch (error) {
-    errorMessage.value = "تعذر حفظ الصورة المقصوصة.";
+    errorMessage.value =
+      error?.message || "تعذر حفظ أو رفع الصورة المقصوصة.";
     emit("error", error);
   } finally {
     isProcessing.value = false;
@@ -263,12 +271,17 @@ const handleCropperError = (error) => {
 };
 
 const handleCropperClose = (isOpen) => {
+  if (!isOpen && isProcessing.value) {
+    showCropper.value = true;
+    return;
+  }
   if (!isOpen) {
     selectedImage.value = previewUrl.value || "";
   }
 };
 
 const handleUploadNew = () => {
+  if (isProcessing.value) return;
   showCropper.value = false;
   nextTick(() => openPicker());
 };

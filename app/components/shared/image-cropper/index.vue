@@ -5,11 +5,13 @@
     dir="rtl"
     :header="title || 'قص الصورة'"
     :style="{ width: '95vw', maxWidth: '1000px', maxHeight: '96vh' }"
-    :closable="true"
+    :closable="!isBusy"
+    :close-on-escape="!isBusy"
+    :dismissable-mask="false"
     :draggable="false"
     :pt="{ header: { class: 'pb-0 text-right' }, content: { class: 'text-right' } }"
     @hide="handleClose"
-    @update:visible="(val) => (visible = val)"
+    @update:visible="onVisibleUpdate"
   >
     <div
       v-if="!imageSrc"
@@ -36,6 +38,7 @@
           icon="pi pi-upload"
           size="small"
           class="mx-auto max-w-fit"
+          :disabled="isBusy"
           @click="handleUploadNew"
         />
       </div>
@@ -60,12 +63,19 @@
           </div>
         </div>
         <div class="flex justify-center gap-2">
-          <Button label="إلغاء" severity="danger" size="small" @click="handleCancel" />
+          <Button
+            label="إلغاء"
+            severity="danger"
+            size="small"
+            :disabled="isBusy"
+            @click="handleCancel"
+          />
           <Button
             label="تأكيد القص"
             severity="success"
             size="small"
-            :loading="processing || isProcessing"
+            :loading="isBusy"
+            :disabled="isBusy"
             @click="handleCrop"
           />
         </div>
@@ -120,6 +130,10 @@ const isProcessing = ref(false);
 const previewImage = ref("");
 const assetsReady = ref(false);
 let assetsPromise = null;
+
+const isBusy = computed(
+  () => Boolean(props.processing) || Boolean(isProcessing.value),
+);
 
 const ensureCropperAssets = async () => {
   if (assetsReady.value && CropperCtor.value) return CropperCtor.value;
@@ -283,14 +297,28 @@ const handleCrop = async () => {
 };
 
 const handleUploadNew = () => {
+  if (isBusy.value) return;
   emit("upload-new");
 };
 
 const handleCancel = () => {
+  if (isBusy.value) return;
   handleClose();
 };
 
+const onVisibleUpdate = (val) => {
+  if (!val && isBusy.value) {
+    visible.value = true;
+    return;
+  }
+  visible.value = val;
+};
+
 const handleClose = () => {
+  if (isBusy.value) {
+    visible.value = true;
+    return;
+  }
   visible.value = false;
 };
 

@@ -21,8 +21,8 @@
         :placeholder="imagePlaceholder"
         :max-size-bytes="maxSizeBytes"
         :invalid="imageInvalid || Boolean(imageError)"
+        :upload-handler="onImageSelect"
         @update:model-value="onImageFileChange"
-        @select="onImageSelect"
         @clear="onImageClear"
         @error="onImageError"
       />
@@ -210,6 +210,7 @@ const onImageSelect = async (file) => {
     emit("update:imageDataUrl", "");
     emit("update:imagePreviewUrl", "");
     emitChange({ image: null, imageDataUrl: "", imagePreviewUrl: "" });
+    throw error;
   } finally {
     uploading.value = false;
   }
