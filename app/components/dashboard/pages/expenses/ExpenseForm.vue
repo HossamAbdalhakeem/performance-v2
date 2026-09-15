@@ -6,12 +6,17 @@
     class="grid gap-4"
     @submit="submit"
   >
-    <Field v-slot="{ field, errorMessage }" name="categoryId" rules="required">
+    <Field
+      v-slot="{ errorMessage }"
+      v-model="form.categoryId"
+      name="categoryId"
+      label="التصنيف"
+      rules="required"
+    >
       <div class="flex flex-col gap-2 text-right">
         <label class="text-sm font-medium text-slate-700">التصنيف</label>
         <div class="flex gap-2">
           <Select
-            v-bind="field"
             v-model="form.categoryId"
             :options="categoryOptions"
             optionLabel="label"
@@ -34,11 +39,10 @@
       </div>
     </Field>
 
-    <Field v-slot="{ field }" name="branchId">
+    <Field v-slot="{}" v-model="form.branchId" name="branchId">
       <div class="flex flex-col gap-2 text-right">
         <label class="text-sm font-medium text-slate-700">الفرع (اختياري)</label>
         <Select
-          v-bind="field"
           v-model="form.branchId"
           :options="branchOptions"
           optionLabel="label"
@@ -51,7 +55,13 @@
       </div>
     </Field>
 
-    <Field v-slot="{ errorMessage }" v-model="form.amount" name="amount" rules="required|min_value:0.01">
+    <Field
+      v-slot="{ errorMessage }"
+      v-model="form.amount"
+      name="amount"
+      label="المبلغ"
+      rules="required|min_value:0.01"
+    >
       <div class="flex flex-col gap-2 text-right">
         <label class="text-sm font-medium text-slate-700">المبلغ</label>
         <AppInputNumber
@@ -66,7 +76,13 @@
       </div>
     </Field>
 
-    <Field v-slot="{ errorMessage }" v-model="form.expenseDate" name="expenseDate" rules="required">
+    <Field
+      v-slot="{ errorMessage }"
+      v-model="form.expenseDate"
+      name="expenseDate"
+      label="تاريخ المصروف"
+      rules="required"
+    >
       <div class="flex flex-col gap-2 text-right">
         <label class="text-sm font-medium text-slate-700">تاريخ المصروف</label>
         <DatePicker
@@ -80,10 +96,10 @@
       </div>
     </Field>
 
-    <Field v-slot="{ field }" name="description">
+    <Field v-slot="{}" v-model="form.description" name="description" label="الوصف">
       <div class="flex flex-col gap-2 text-right">
         <label class="text-sm font-medium text-slate-700">الوصف</label>
-        <Textarea v-bind="field" v-model="form.description" rows="3" class="w-full" />
+        <Textarea v-model="form.description" rows="3" class="w-full" />
       </div>
     </Field>
 
