@@ -219,6 +219,12 @@
         </div>
       </div>
 
+      <!-- Payment methods breakdown -->
+      <PaymentMethodsReport
+        :items="paymentMethodItems"
+        total-label="إجمالي المحصل"
+      />
+
       <!-- Inventory movement bars -->
       <div class="rounded-2xl border border-white/10 bg-slate-900/90 p-5">
         <div class="mb-4 flex flex-wrap items-end justify-between gap-2">
@@ -311,7 +317,7 @@
         v-if="activeDetail"
         :value="activeDetail.rows"
         :columns="activeDetail.columns"
-        :loading="loading"
+        :loading="detailLoading"
         paginator
         :rows="10"
         :empty-message="activeDetail.emptyMessage"
@@ -335,6 +341,7 @@ import Button from "primevue/button";
 import Dialog from "primevue/dialog";
 import Skeleton from "primevue/skeleton";
 import AppDataTable from "~/components/shared/app-data-table/index.vue";
+import PaymentMethodsReport from "~/components/shared/payment-methods-report/index.vue";
 import { reportService } from "~/services/reportService";
 import { useAppToast } from "~/composables/useAppToast";
 
@@ -379,7 +386,9 @@ const ACTIVITY_COLORS = {
 };
 
 const loading = ref(true);
+const detailLoading = ref(false);
 const report = ref(null);
+const detailCache = ref({});
 const detailVisible = ref(false);
 const activeDetailKey = ref(null);
 
@@ -393,6 +402,12 @@ const todayInputValue = () => {
 const selectedDate = ref(todayInputValue());
 
 const summary = computed(() => report.value?.summary || {});
+
+const paymentMethodItems = computed(() =>
+  Array.isArray(summary.value.paymentsByMethod)
+    ? summary.value.paymentsByMethod
+    : [],
+);
 
 const formatMoney = (value) =>
   `\u2066${Number(value || 0).toFixed(2)} ج.م\u2069`;
@@ -466,17 +481,17 @@ const deliveredColumns = [
 ];
 
 const receivedRows = computed(() =>
-  (report.value?.receivedProducts || []).map(mapMovement),
+  (detailCache.value.received || []).map(mapMovement),
 );
 const stockOutRows = computed(() =>
-  (report.value?.stockOutProducts || []).map(mapMovement),
+  (detailCache.value.stockOut || []).map(mapMovement),
 );
 const allMovementRows = computed(() =>
-  (report.value?.stockMovements || []).map(mapMovement),
+  (detailCache.value.allMovements || []).map(mapMovement),
 );
 
 const saleRows = computed(() =>
-  (report.value?.sales || []).map((sale) => ({
+  (detailCache.value.sales || []).map((sale) => ({
     time: formatTime(sale.createdAt),
     student: sale.student?.name || "-",
     products: (sale.items || [])
@@ -492,7 +507,7 @@ const saleRows = computed(() =>
 );
 
 const reservationRows = computed(() =>
-  (report.value?.reservations || []).map((item) => ({
+  (detailCache.value.reservations || []).map((item) => ({
     time: formatTime(item.createdAt),
     number: item.reservationNumber || "-",
     student: item.student?.name || "-",
@@ -504,7 +519,7 @@ const reservationRows = computed(() =>
 );
 
 const deliveredRows = computed(() =>
-  (report.value?.deliveredReservations || []).map((item) => ({
+  (detailCache.value.delivered || []).map((item) => ({
     time: formatTime(item.updatedAt),
     number: item.reservationNumber || "-",
     student: item.student?.name || "-",
@@ -514,7 +529,7 @@ const deliveredRows = computed(() =>
 );
 
 const cancelledRows = computed(() =>
-  (report.value?.cancelledReservations || []).map((item) => {
+  (detailCache.value.cancelled || []).map((item) => {
     const refundAmount = (item.refunds || []).reduce(
       (sum, refund) => sum + Number(refund.amount || 0),
       0,
@@ -848,15 +863,45 @@ const summaryCards = computed(() => {
   ];
 });
 
+const SECTION_RESPONSE_KEY = {
+  sales: "sales",
+  reservations: "reservations",
+  delivered: "deliveredReservations",
+  cancelled: "cancelledReservations",
+  received: "receivedProducts",
+  stockOut: "stockOutProducts",
+  allMovements: "stockMovements",
+};
+
 const activeDetail = computed(() => {
   if (!activeDetailKey.value) return null;
   return detailSections.value[activeDetailKey.value] || null;
 });
 
-const openDetail = (key) => {
+const openDetail = async (key) => {
   if (!detailSections.value[key]) return;
+
   activeDetailKey.value = key;
   detailVisible.value = true;
+
+  if (detailCache.value[key]) return;
+
+  detailLoading.value = true;
+  try {
+    const sectionPayload = await reportService.getDailyReportSection(
+      key,
+      dateRangeParams(),
+    );
+    const responseKey = SECTION_RESPONSE_KEY[key];
+    detailCache.value = {
+      ...detailCache.value,
+      [key]: sectionPayload?.[responseKey] || [],
+    };
+  } catch (error) {
+    showError(error?.message || "تعذر تحميل تفاصيل التقرير.");
+  } finally {
+    detailLoading.value = false;
+  }
 };
 
 const closeDetail = () => {
@@ -866,8 +911,14 @@ const closeDetail = () => {
 
 const loadReport = async () => {
   loading.value = true;
+  detailCache.value = {};
+  detailVisible.value = false;
+  activeDetailKey.value = null;
   try {
-    report.value = await reportService.getDailyReport(dateRangeParams());
+    report.value = await reportService.getDailyReport(
+      dateRangeParams(),
+      "summary",
+    );
   } catch (error) {
     report.value = null;
     showError(error?.message || "تعذر تحميل تقرير اليوم.");

@@ -162,6 +162,7 @@ const menuItems = computed(() => {
     { label: "المستخدمون", icon: "♟", to: "/users", active: isActive("/users") },
     { label: "المصروفات", icon: "﷼", to: "/expenses", active: isActive("/expenses") },
     { label: "الحجوزات", icon: "✓", to: "/reservations/manage", active: isActive("/reservations/manage") },
+    { label: "استبدال واسترداد", icon: "⇄", to: "/sales/exchange", active: isActive("/sales/exchange") },
     { label: "التقارير", icon: "▤", to: "/reports", active: isActive("/reports") },
   ];
 });

@@ -11,15 +11,52 @@ const todayRange = () => {
   };
 };
 
+export type DailyReportSection =
+  | "summary"
+  | "sales"
+  | "reservations"
+  | "delivered"
+  | "cancelled"
+  | "received"
+  | "stockOut"
+  | "allMovements";
+
+const SECTION_HEADER: Record<DailyReportSection, string> = {
+  summary: "summary",
+  sales: "sales",
+  reservations: "reservations",
+  delivered: "delivered",
+  cancelled: "cancelled",
+  received: "received",
+  stockOut: "stockOut",
+  allMovements: "allMovements",
+};
+
 export const reportService = {
-  async getDailyReport(params: Record<string, any> = {}) {
+  async getDailyReport(
+    params: Record<string, any> = {},
+    section: DailyReportSection = "summary",
+  ) {
     const range = {
       ...todayRange(),
       ...params,
     };
     return asData(
-      await apiFetch("/reports/daily", { method: "GET", params: range }),
+      await apiFetch("/reports/daily", {
+        method: "GET",
+        params: range,
+        headers: {
+          "X-Report-Section": SECTION_HEADER[section] || "summary",
+        },
+      }),
     );
+  },
+
+  async getDailyReportSection(
+    section: Exclude<DailyReportSection, "summary">,
+    params: Record<string, any> = {},
+  ) {
+    return this.getDailyReport(params, section);
   },
 
   async getSalesReport(params: Record<string, any> = {}) {

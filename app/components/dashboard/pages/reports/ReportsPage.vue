@@ -71,22 +71,10 @@
       </div>
     </div>
 
-    <div class="rounded-xl border border-white/10 bg-slate-900 p-4">
-      <p class="mb-4 text-center font-bold text-white">طرق الدفع</p>
-      <div class="flex flex-wrap items-center justify-center gap-8">
-        <div
-          class="h-32 w-32 rounded-full"
-          style="background: conic-gradient(#4472C4 0 45%, #70AD47 45% 75%, #ED7D31 75% 95%, #7030A0 95% 100%)"
-        />
-        <div class="space-y-2 text-sm">
-          <p class="text-[#4472C4]">● كاش: 3,940 ج.م — 45%</p>
-          <p class="text-[#70AD47]">● فودافون كاش: 2,625 ج.م — 30%</p>
-          <p class="text-[#ED7D31]">● انستا باي: 1,750 ج.م — 20%</p>
-          <p class="text-[#7030A0]">● محفظة الكترونية: 437 ج.م — 5%</p>
-          <p class="pt-1 font-bold text-white">إجمالي المبيعات: 8,750 ج.م</p>
-        </div>
-      </div>
-    </div>
+    <PaymentMethodsReport
+      :items="paymentMethodItems"
+      total-label="إجمالي المبيعات"
+    />
 
     <div class="rounded-xl border border-white/10 bg-slate-900 p-4">
       <p class="mb-4 font-bold text-white">طلاب وعملاء</p>
@@ -124,12 +112,19 @@ import Select from "primevue/select";
 import Button from "primevue/button";
 import AppDataTable from "~/components/shared/app-data-table/index.vue";
 import CustomersByYearChart from "~/components/shared/customers-by-year-chart/index.vue";
+import PaymentMethodsReport from "~/components/shared/payment-methods-report/index.vue";
 import { productService } from "~/services/productService";
 import { branchService } from "~/services/branchService";
 
 const selectedDate = ref("today");
 const selectedBranch = ref("all");
 const selectedBook = ref("all");
+
+const paymentMethodItems = [
+  { method: "CASH", amount: 3940 },
+  { method: "WALLET", amount: 2625 },
+  { method: "INSTAPAY", amount: 1750 },
+];
 
 const dateOptions = [
   { label: "اليوم", value: "today" },
