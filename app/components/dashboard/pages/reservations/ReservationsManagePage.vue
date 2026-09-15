@@ -220,28 +220,28 @@
         </div>
 
         <div class="grid gap-3 md:grid-cols-2">
-          <div class="rounded-xl border border-rose-200 bg-rose-50/70 p-4 text-sm">
-            <p class="mb-3 text-xs font-semibold uppercase tracking-wide text-rose-600">
+          <div class="rounded-xl border border-white/10 bg-slate-900 p-4 text-sm text-slate-200">
+            <p class="mb-3 text-xs font-semibold text-rose-300">
               المنتج الحالي
             </p>
-            <p class="text-base font-bold text-slate-900">
+            <p class="text-base font-bold text-white">
               {{ selectedReservation.productName }}
             </p>
-            <p class="mt-1 text-xs text-slate-500">
+            <p class="mt-1 text-xs text-slate-400">
               مقدم من أ/ {{ selectedReservation.teacherName || "—" }}
             </p>
-            <div class="mt-3 space-y-1.5 text-slate-700">
+            <div class="mt-3 space-y-1.5">
               <div class="flex items-center justify-between gap-2">
-                <span class="text-slate-500">السعر</span>
-                <span class="font-medium">{{ selectedReservation.sellingPriceLabel }}</span>
+                <span class="text-slate-400">السعر</span>
+                <span class="font-semibold text-slate-100">{{ selectedReservation.sellingPriceLabel }}</span>
               </div>
               <div class="flex items-center justify-between gap-2">
-                <span class="text-slate-500">المدفوع</span>
-                <span class="font-medium">{{ selectedReservation.paidAmountLabel }}</span>
+                <span class="text-slate-400">المدفوع</span>
+                <span class="font-semibold text-slate-100">{{ selectedReservation.paidAmountLabel }}</span>
               </div>
               <div class="flex items-center justify-between gap-2">
-                <span class="text-slate-500">المتبقي</span>
-                <span class="font-medium">{{ selectedReservation.remainingAmountLabel }}</span>
+                <span class="text-slate-400">المتبقي</span>
+                <span class="font-semibold text-slate-100">{{ selectedReservation.remainingAmountLabel }}</span>
               </div>
             </div>
           </div>
@@ -250,47 +250,47 @@
             class="rounded-xl border p-4 text-sm"
             :class="
               selectedNewProduct
-                ? 'border-emerald-200 bg-emerald-50/70'
-                : 'border-dashed border-slate-300 bg-slate-50'
+                ? 'border-white/10 bg-slate-900 text-slate-200'
+                : 'border-dashed border-slate-600 bg-slate-900/70 text-slate-300'
             "
           >
             <p
-              class="mb-3 text-xs font-semibold uppercase tracking-wide"
-              :class="selectedNewProduct ? 'text-emerald-700' : 'text-slate-500'"
+              class="mb-3 text-xs font-semibold"
+              :class="selectedNewProduct ? 'text-emerald-300' : 'text-slate-400'"
             >
               المنتج الجديد
             </p>
             <template v-if="selectedNewProduct">
-              <p class="text-base font-bold text-slate-900">
+              <p class="text-base font-bold text-white">
                 {{ selectedNewProduct.name }}
               </p>
-              <p class="mt-1 text-xs text-slate-500">
+              <p class="mt-1 text-xs text-slate-400">
                 مقدم من أ/ {{ selectedNewProduct.teacherName || "—" }}
               </p>
-              <div class="mt-3 space-y-1.5 text-slate-700">
+              <div class="mt-3 space-y-1.5">
                 <div class="flex items-center justify-between gap-2">
-                  <span class="text-slate-500">التوفر</span>
+                  <span class="text-slate-400">التوفر</span>
                   <span
                     class="rounded-full px-2 py-0.5 text-xs font-semibold"
                     :class="
                       selectedNewProduct.isAvailable
-                        ? 'bg-emerald-500/15 text-emerald-700'
-                        : 'bg-amber-500/15 text-amber-700'
+                        ? 'bg-emerald-500/20 text-emerald-300'
+                        : 'bg-amber-500/20 text-amber-300'
                     "
                   >
                     {{ selectedNewProduct.availabilityLabel }}
                   </span>
                 </div>
                 <div class="flex items-center justify-between gap-2">
-                  <span class="text-slate-500">السعر</span>
-                  <span class="font-medium">
+                  <span class="text-slate-400">السعر</span>
+                  <span class="font-semibold text-slate-100">
                     {{ selectedNewProduct.priceKindLabel }}
                     {{ selectedNewProduct.priceLabel || "—" }}
                   </span>
                 </div>
               </div>
             </template>
-            <p v-else class="text-sm text-slate-500">
+            <p v-else class="text-sm text-slate-400">
               اختر المنتج البديل من قائمة منتجات الفرع المتاحة للحجز
             </p>
           </div>
@@ -425,21 +425,21 @@
           ؟
         </p>
         <div class="grid gap-3 sm:grid-cols-2">
-          <div class="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2">
-            <p class="text-xs text-rose-600">من</p>
-            <p class="mt-1 font-semibold text-slate-900">
+          <div class="rounded-lg border border-white/10 bg-slate-900 px-3 py-2">
+            <p class="text-xs text-rose-300">من</p>
+            <p class="mt-1 font-semibold text-white">
               {{ selectedReservation?.productName }}
             </p>
-            <p class="mt-0.5 text-xs text-slate-500">
+            <p class="mt-0.5 text-xs text-slate-400">
               أ/ {{ selectedReservation?.teacherName || "—" }}
             </p>
           </div>
-          <div class="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2">
-            <p class="text-xs text-emerald-700">إلى</p>
-            <p class="mt-1 font-semibold text-slate-900">
+          <div class="rounded-lg border border-white/10 bg-slate-900 px-3 py-2">
+            <p class="text-xs text-emerald-300">إلى</p>
+            <p class="mt-1 font-semibold text-white">
               {{ selectedNewProduct?.name || "—" }}
             </p>
-            <p class="mt-0.5 text-xs text-slate-500">
+            <p class="mt-0.5 text-xs text-slate-400">
               أ/ {{ selectedNewProduct?.teacherName || "—" }}
               <span v-if="selectedNewProduct?.priceLabel">
                 · {{ selectedNewProduct.priceKindLabel }}
