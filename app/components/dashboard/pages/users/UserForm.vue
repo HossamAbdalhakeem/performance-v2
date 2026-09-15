@@ -117,10 +117,6 @@
       </div>
     </Field>
 
-    <p v-if="feedback.message" class="rounded-xl bg-red-50 px-3 py-2 text-sm text-red-600">
-      {{ feedback.message }}
-    </p>
-
     <div class="flex justify-end gap-2">
       <Button type="button" label="إلغاء" severity="secondary" text @click="$emit('cancel')" />
       <Button type="submit" :label="isEdit ? 'حفظ التعديل' : 'إضافة'" :loading="saving" severity="info" />
@@ -136,6 +132,9 @@ import Select from "primevue/select";
 import { Form, Field, ErrorMessage } from "vee-validate";
 import { userService } from "~/services/userService";
 import { branchService } from "~/services/branchService";
+import { useAppToast } from "~/composables/useAppToast";
+
+const { showError } = useAppToast();
 
 const props = defineProps({
   user: { type: Object, default: null },
@@ -145,7 +144,6 @@ const emit = defineEmits(["saved", "cancel"]);
 
 const saving = ref(false);
 const formKey = ref(0);
-const feedback = reactive({ message: "" });
 const branchOptions = ref([]);
 const isEdit = computed(() => Boolean(props.user?.id));
 
@@ -206,7 +204,6 @@ watch(
     form.branchId = value?.branchId || null;
     form.status = value?.status || "ACTIVE";
     formKey.value += 1;
-    feedback.message = "";
   },
   { immediate: true },
 );
@@ -220,7 +217,6 @@ watch(
 
 const submit = async () => {
   saving.value = true;
-  feedback.message = "";
   try {
     const payload = {
       fullName: form.fullName,
@@ -242,7 +238,7 @@ const submit = async () => {
     }
     emit("saved", result);
   } catch (error) {
-    feedback.message = error?.message || "تعذر حفظ المستخدم.";
+    showError(error?.message || "تعذر حفظ المستخدم.");
   } finally {
     saving.value = false;
   }

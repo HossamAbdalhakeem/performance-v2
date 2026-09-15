@@ -15,6 +15,35 @@
       :empty-message="emptyMessage"
       :skeleton-rows="4"
     >
+      <template #sellingPrice="{ data }">
+        <span
+          class="rounded-md px-2 py-1 text-xs font-bold bg-sky-500/20 text-sky-300"
+        >
+          {{ data.sellingPriceLabel }}
+        </span>
+      </template>
+
+      <template #paidAmount="{ data }">
+        <span
+          class="rounded-md px-2 py-1 text-xs font-bold bg-emerald-500/20 text-emerald-300"
+        >
+          {{ formatMoney(data.paidAmount) }}
+        </span>
+      </template>
+
+      <template #remainingAmount="{ data }">
+        <span
+          class="rounded-md px-2 py-1 text-xs font-bold"
+          :class="
+            data.remainingAmount > 0
+              ? 'bg-orange-500/20 text-orange-300'
+              : 'bg-emerald-500/20 text-emerald-300'
+          "
+        >
+          {{ formatMoney(data.remainingAmount) }}
+        </span>
+      </template>
+
       <template #status="{ data }">
         <span
           class="rounded-md px-2 py-1 text-xs font-bold"
@@ -265,8 +294,9 @@ const tableColumns = [
   { field: "phone", header: "الموبايل", fallback: "-" },
   { field: "productName", header: "المنتج" },
   { field: "teacherName", header: "المدرس" },
-  { field: "paidAmount", header: "المبلغ المدفوع", format: formatMoney },
-  { field: "remainingAmount", header: "المبلغ المتبقي", format: formatMoney },
+  { field: "sellingPriceLabel", header: "سعر البيع", slot: "sellingPrice" },
+  { field: "paidAmount", header: "المقدم", slot: "paidAmount" },
+  { field: "remainingAmount", header: "المتبقي", slot: "remainingAmount" },
   { field: "statusLabel", header: "الحالة", slot: "status" },
   { field: "actions", header: "إجراء", slot: "actions", style: "width: 7rem" },
 ];
@@ -324,6 +354,14 @@ const normalizeReservation = (item) => {
   const meta = STATUS_META[status] || { label: status || "-" };
   const paidAmount = Number(item.paidAmount ?? item.paid_amount ?? 0);
   const totalAmount = Number(item.totalAmount ?? item.total_amount ?? 0);
+  const sellingPrice = Number(
+    item.product?.sellingPrice ??
+      item.product?.selling_price ??
+      item.reservationPrice ??
+      item.reservation_price ??
+      totalAmount ??
+      0,
+  );
 
   return {
     ...item,
@@ -341,6 +379,8 @@ const normalizeReservation = (item) => {
     totalAmount,
     paidAmount,
     remainingAmount,
+    sellingPrice,
+    sellingPriceLabel: sellingPrice > 0 ? formatMoney(sellingPrice) : "—",
     hasRemaining: remainingAmount > 0,
     status,
     statusLabel:

@@ -4,7 +4,7 @@
       <div>
         <h2 class="text-xl font-bold text-white">تقرير اليوم</h2>
         <p class="mt-1 text-sm text-slate-400">
-          كل ما حدث في الفرع خلال اليوم
+          اضغط على أي بطاقة لعرض التفاصيل
         </p>
       </div>
       <div class="flex flex-wrap items-center gap-2">
@@ -23,86 +23,66 @@
       </div>
     </div>
 
-    <p
-      v-if="errorMessage"
-      class="rounded-xl bg-red-500/10 px-3 py-2 text-sm text-red-300"
-    >
-      {{ errorMessage }}
-    </p>
-
     <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-      <div
+      <button
         v-for="card in summaryCards"
-        :key="card.label"
-        class="rounded-xl border border-white/10 bg-slate-900 p-4"
+        :key="card.key"
+        type="button"
+        class="rounded-xl border border-white/10 bg-slate-900 p-4 text-right transition"
+        :class="
+          card.clickable
+            ? 'cursor-pointer hover:border-sky-400/50 hover:bg-slate-800/80'
+            : 'cursor-default opacity-95'
+        "
+        :disabled="!card.clickable"
+        @click="card.clickable && openDetail(card.key)"
       >
-        <p class="text-sm text-slate-300">{{ card.label }}</p>
+        <div class="flex items-start justify-between gap-2">
+          <p class="text-sm text-slate-300">{{ card.label }}</p>
+          <i
+            v-if="card.clickable"
+            class="pi pi-external-link text-xs text-slate-500"
+          />
+        </div>
         <p class="mt-2 text-2xl font-bold text-white">{{ card.value }}</p>
-      </div>
+      </button>
     </div>
 
-    <section class="rounded-xl border border-white/10 bg-slate-900 p-4">
-      <h3 class="mb-3 font-bold text-white">المنتجات المستلمة (وارد)</h3>
+    <Dialog
+      v-model:visible="detailVisible"
+      modal
+      dir="rtl"
+      :header="activeDetail?.title || 'التفاصيل'"
+      :style="{ width: '920px', maxWidth: '96vw' }"
+      :pt="{
+        header: { class: 'text-right' },
+        content: { class: 'text-right' },
+      }"
+      @hide="closeDetail"
+    >
       <AppDataTable
-        :value="receivedRows"
-        :columns="movementColumns"
-        empty-message="لا توجد عمليات استلام اليوم."
+        v-if="activeDetail"
+        :value="activeDetail.rows"
+        :columns="activeDetail.columns"
+        :loading="loading"
+        paginator
+        :rows="10"
+        :empty-message="activeDetail.emptyMessage"
       />
-    </section>
-
-    <section class="rounded-xl border border-white/10 bg-slate-900 p-4">
-      <h3 class="mb-3 font-bold text-white">المنتجات المسحوبة / الخارجة</h3>
-      <AppDataTable
-        :value="takenRows"
-        :columns="movementColumns"
-        empty-message="لا توجد عمليات سحب اليوم."
-      />
-    </section>
-
-    <section class="rounded-xl border border-white/10 bg-slate-900 p-4">
-      <h3 class="mb-3 font-bold text-white">المبيعات</h3>
-      <AppDataTable
-        :value="saleRows"
-        :columns="saleColumns"
-        empty-message="لا توجد مبيعات اليوم."
-      />
-    </section>
-
-    <section class="rounded-xl border border-white/10 bg-slate-900 p-4">
-      <h3 class="mb-3 font-bold text-white">الحجوزات الجديدة</h3>
-      <AppDataTable
-        :value="reservationRows"
-        :columns="reservationColumns"
-        empty-message="لا توجد حجوزات جديدة اليوم."
-      />
-    </section>
-
-    <section class="rounded-xl border border-white/10 bg-slate-900 p-4">
-      <h3 class="mb-3 font-bold text-white">الحجوزات المسلّمة</h3>
-      <AppDataTable
-        :value="deliveredRows"
-        :columns="deliveredColumns"
-        empty-message="لا توجد حجوزات مسلّمة اليوم."
-      />
-    </section>
-
-    <section class="rounded-xl border border-white/10 bg-slate-900 p-4">
-      <h3 class="mb-3 font-bold text-white">كل حركات المخزن</h3>
-      <AppDataTable
-        :value="allMovementRows"
-        :columns="movementColumns"
-        empty-message="لا توجد حركات مخزن اليوم."
-      />
-    </section>
+    </Dialog>
   </div>
 </template>
 
 <script setup>
 import Button from "primevue/button";
+import Dialog from "primevue/dialog";
 import AppDataTable from "~/components/shared/app-data-table/index.vue";
 import { reportService } from "~/services/reportService";
+import { useAppToast } from "~/composables/useAppToast";
 
 defineOptions({ name: "BranchDailyReportPage" });
+
+const { showError } = useAppToast();
 
 const MOVEMENT_LABELS = {
   STOCK_IN: "استلام",
@@ -124,8 +104,9 @@ const STATUS_LABELS = {
 };
 
 const loading = ref(false);
-const errorMessage = ref("");
 const report = ref(null);
+const detailVisible = ref(false);
+const activeDetailKey = ref(null);
 
 const todayInputValue = () => {
   const now = new Date();
@@ -158,20 +139,6 @@ const dateRangeParams = () => {
     to: to.toISOString(),
   };
 };
-
-const summaryCards = computed(() => {
-  const s = report.value?.summary || {};
-  return [
-    { label: "المبيعات", value: s.sales ?? 0 },
-    { label: "الحجوزات الجديدة", value: s.reservations ?? 0 },
-    { label: "الحجوزات المسلّمة", value: s.deliveredReservations ?? 0 },
-    { label: "إجمالي المدفوعات", value: formatMoney(s.paymentsTotal) },
-    { label: "كمية مستلمة", value: s.receivedQty ?? 0 },
-    { label: "كمية مسحوبة/خارجة", value: s.takenQty ?? 0 },
-    { label: "مرتجعات", value: s.returns ?? 0 },
-    { label: "استبدالات", value: s.exchanges ?? 0 },
-  ];
-});
 
 const mapMovement = (item) => ({
   time: formatTime(item.createdAt),
@@ -224,8 +191,8 @@ const deliveredColumns = [
 const receivedRows = computed(() =>
   (report.value?.receivedProducts || []).map(mapMovement),
 );
-const takenRows = computed(() =>
-  (report.value?.takenProducts || []).map(mapMovement),
+const stockOutRows = computed(() =>
+  (report.value?.stockOutProducts || []).map(mapMovement),
 );
 const allMovementRows = computed(() =>
   (report.value?.stockMovements || []).map(mapMovement),
@@ -269,14 +236,128 @@ const deliveredRows = computed(() =>
   })),
 );
 
+const detailSections = computed(() => ({
+  sales: {
+    title: "المبيعات",
+    rows: saleRows.value,
+    columns: saleColumns,
+    emptyMessage: "لا توجد مبيعات في هذا اليوم.",
+  },
+  reservations: {
+    title: "الحجوزات الجديدة",
+    rows: reservationRows.value,
+    columns: reservationColumns,
+    emptyMessage: "لا توجد حجوزات جديدة في هذا اليوم.",
+  },
+  delivered: {
+    title: "الحجوزات المسلّمة",
+    rows: deliveredRows.value,
+    columns: deliveredColumns,
+    emptyMessage: "لا توجد حجوزات مسلّمة في هذا اليوم.",
+  },
+  received: {
+    title: "المنتجات المستلمة (وارد)",
+    rows: receivedRows.value,
+    columns: movementColumns,
+    emptyMessage: "لا توجد عمليات استلام في هذا اليوم.",
+  },
+  stockOut: {
+    title: "المنتجات المسحوبة",
+    rows: stockOutRows.value,
+    columns: movementColumns,
+    emptyMessage: "لا توجد عمليات سحب مخزون في هذا اليوم.",
+  },
+  allMovements: {
+    title: "كل حركات المخزن",
+    rows: allMovementRows.value,
+    columns: movementColumns,
+    emptyMessage: "لا توجد حركات مخزن في هذا اليوم.",
+  },
+}));
+
+const summaryCards = computed(() => {
+  const s = report.value?.summary || {};
+  return [
+    {
+      key: "sales",
+      label: "المبيعات",
+      value: s.sales ?? 0,
+      clickable: true,
+    },
+    {
+      key: "reservations",
+      label: "الحجوزات الجديدة",
+      value: s.reservations ?? 0,
+      clickable: true,
+    },
+    {
+      key: "delivered",
+      label: "الحجوزات المسلّمة",
+      value: s.deliveredReservations ?? 0,
+      clickable: true,
+    },
+    {
+      key: "payments",
+      label: "إجمالي المدفوعات",
+      value: formatMoney(s.paymentsTotal),
+      clickable: false,
+    },
+    {
+      key: "received",
+      label: "المنتجات المستلمة",
+      value: s.receivedQty ?? 0,
+      clickable: true,
+    },
+    {
+      key: "stockOut",
+      label: "المنتجات المسحوبة",
+      value: s.stockOutQty ?? 0,
+      clickable: true,
+    },
+    {
+      key: "returns",
+      label: "المرتجعات",
+      value: s.returns ?? 0,
+      clickable: false,
+    },
+    {
+      key: "exchanges",
+      label: "الاستبدالات",
+      value: s.exchanges ?? 0,
+      clickable: false,
+    },
+    {
+      key: "allMovements",
+      label: "حركات المخزن",
+      value: s.stockMovements ?? 0,
+      clickable: true,
+    },
+  ];
+});
+
+const activeDetail = computed(() => {
+  if (!activeDetailKey.value) return null;
+  return detailSections.value[activeDetailKey.value] || null;
+});
+
+const openDetail = (key) => {
+  if (!detailSections.value[key]) return;
+  activeDetailKey.value = key;
+  detailVisible.value = true;
+};
+
+const closeDetail = () => {
+  detailVisible.value = false;
+  activeDetailKey.value = null;
+};
+
 const loadReport = async () => {
   loading.value = true;
-  errorMessage.value = "";
   try {
     report.value = await reportService.getDailyReport(dateRangeParams());
   } catch (error) {
     report.value = null;
-    errorMessage.value = error?.message || "تعذر تحميل تقرير اليوم.";
+    showError(error?.message || "تعذر تحميل تقرير اليوم.");
   } finally {
     loading.value = false;
   }

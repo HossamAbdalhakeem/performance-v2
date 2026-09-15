@@ -14,14 +14,6 @@
       </template>
 
       <template #content>
-        <p
-          v-if="feedback.message"
-          class="mb-4 rounded-xl px-3 py-2 text-sm"
-          :class="feedback.type === 'error' ? 'bg-red-50 text-red-600' : 'bg-emerald-50 text-emerald-700'"
-        >
-          {{ feedback.message }}
-        </p>
-
         <div class="mb-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
           <div class="flex flex-col gap-2 text-right">
             <label class="text-sm font-medium text-slate-700">بحث</label>
@@ -109,15 +101,15 @@ import { productService } from "~/services/productService";
 import { teacherService } from "~/services/teacherService";
 import { studyYearService } from "~/services/studyYearService";
 import { useThrottledCallback } from "~/composables/useThrottledCallback";
+import { useAppToast } from "~/composables/useAppToast";
 
+const { showError, showSuccess } = useAppToast();
 const loading = ref(true);
 const drawerVisible = ref(false);
 const editingProduct = ref(null);
 const products = ref([]);
 const teacherOptions = ref([]);
 const studyYearOptions = ref([]);
-const feedback = reactive({ type: "success", message: "" });
-
 const filters = reactive({
   searchInput: "",
   search: "",
@@ -150,11 +142,6 @@ const normalizeProduct = (product) => ({
   reservationLabel: product.reservationAllowed ? "مفعل" : "غير مفعل",
 });
 
-const setFeedback = (type, message) => {
-  feedback.type = type;
-  feedback.message = message;
-};
-
 const buildQuery = () => {
   const params = {};
   if (filters.search?.trim()) params.search = filters.search.trim();
@@ -171,7 +158,7 @@ const loadProducts = async () => {
     const list = Array.isArray(items) ? items : items?.data || [];
     products.value = list.map(normalizeProduct);
   } catch (error) {
-    setFeedback("error", error?.message || "تعذر تحميل المنتجات.");
+    showError(error?.message || "تعذر تحميل المنتجات.");
     products.value = [];
   } finally {
     loading.value = false;
@@ -235,7 +222,7 @@ watch(drawerVisible, (visible) => {
 });
 
 const handleSaved = async () => {
-  setFeedback("success", "تم حفظ المنتج بنجاح.");
+  showSuccess("تم حفظ المنتج بنجاح.");
   await loadProducts();
 };
 

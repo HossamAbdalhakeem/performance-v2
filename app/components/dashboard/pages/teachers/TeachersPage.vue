@@ -14,14 +14,6 @@
       </template>
 
       <template #content>
-        <p
-          v-if="feedback.message"
-          class="mb-4 rounded-xl px-3 py-2 text-sm"
-          :class="feedback.type === 'error' ? 'bg-red-50 text-red-600' : 'bg-emerald-50 text-emerald-700'"
-        >
-          {{ feedback.message }}
-        </p>
-
         <div class="mb-5 grid gap-3 md:grid-cols-2">
           <div class="flex flex-col gap-2 text-right">
             <label class="text-sm font-medium text-slate-700">بحث</label>
@@ -88,13 +80,13 @@ import TeachersTable from "~/components/dashboard/pages/teachers/TeachersTable.v
 import TeacherForm from "~/components/dashboard/pages/teachers/TeacherForm.vue";
 import { teacherService } from "~/services/teacherService";
 import { useThrottledCallback } from "~/composables/useThrottledCallback";
+import { useAppToast } from "~/composables/useAppToast";
 
+const { showError, showSuccess } = useAppToast();
 const loading = ref(true);
 const drawerVisible = ref(false);
 const editingTeacher = ref(null);
 const teachers = ref([]);
-const feedback = reactive({ type: "success", message: "" });
-
 const filters = reactive({
   searchInput: "",
   search: "",
@@ -109,11 +101,6 @@ const statusOptions = [
 const drawerTitle = computed(() =>
   editingTeacher.value?.id ? "تعديل المدرس" : "إضافة مدرس جديد",
 );
-
-const setFeedback = (type, message) => {
-  feedback.type = type;
-  feedback.message = message;
-};
 
 const normalizeTeacher = (teacher) => ({
   ...teacher,
@@ -136,7 +123,7 @@ const loadTeachers = async () => {
     const list = Array.isArray(items) ? items : items?.data || [];
     teachers.value = list.map(normalizeTeacher);
   } catch (error) {
-    setFeedback("error", error?.message || "تعذر تحميل المدرسين.");
+    showError(error?.message || "تعذر تحميل المدرسين.");
     teachers.value = [];
   } finally {
     loading.value = false;
@@ -172,7 +159,7 @@ const closeDrawer = () => {
 
 const handleSaved = async () => {
   closeDrawer();
-  setFeedback("success", "تم حفظ المدرس بنجاح.");
+  showSuccess("تم حفظ المدرس بنجاح.");
   await loadTeachers();
 };
 

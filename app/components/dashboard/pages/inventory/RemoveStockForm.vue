@@ -72,10 +72,6 @@
       <strong class="text-slate-900">{{ availableQty }}</strong>
     </div>
 
-    <p v-if="errorMessage" class="rounded-xl bg-red-50 px-3 py-2 text-sm text-red-600">
-      {{ errorMessage }}
-    </p>
-
     <div class="flex justify-end gap-2">
       <Button
         v-if="showCancel"
@@ -96,6 +92,7 @@ import Select from "primevue/select";
 import AppInputNumber from "~/components/dashboard/AppInputNumber.vue";
 import { inventoryService } from "~/services/inventoryService";
 import { branchService } from "~/services/branchService";
+import { useAppToast } from "~/composables/useAppToast";
 
 const props = defineProps({
   lockedBranchId: { type: String, default: "" },
@@ -104,10 +101,10 @@ const props = defineProps({
 });
 
 const emit = defineEmits(["saved", "cancel"]);
+const { showError } = useAppToast();
 
 const saving = ref(false);
 const loadingProducts = ref(false);
-const errorMessage = ref("");
 const branchOptions = ref([]);
 const productOptions = ref([]);
 const errors = reactive({
@@ -192,7 +189,7 @@ const loadBranches = async () => {
     }));
   } catch (error) {
     console.error("Failed to load branches", error);
-    errorMessage.value = error?.message || "تعذر تحميل الفروع.";
+    showError(error?.message || "تعذر تحميل الفروع.");
   }
 };
 
@@ -203,7 +200,6 @@ const loadBranchProducts = async () => {
   if (!branchId) return;
 
   loadingProducts.value = true;
-  errorMessage.value = "";
   try {
     const items = await inventoryService.getBranchInventory(branchId, {
       availableOnly: true,
@@ -235,14 +231,13 @@ const loadBranchProducts = async () => {
       .filter(Boolean);
   } catch (error) {
     console.error("Failed to load branch inventory products", error);
-    errorMessage.value = error?.message || "تعذر تحميل منتجات مخزن الفرع.";
+    showError(error?.message || "تعذر تحميل منتجات مخزن الفرع.");
   } finally {
     loadingProducts.value = false;
   }
 };
 
 const submitRemove = async () => {
-  errorMessage.value = "";
   if (!validate()) return;
 
   saving.value = true;
@@ -259,7 +254,7 @@ const submitRemove = async () => {
     productOptions.value = [];
     emit("saved");
   } catch (error) {
-    errorMessage.value = error?.message || "تعذر سحب المنتج من الفرع.";
+    showError(error?.message || "تعذر سحب المنتج من الفرع.");
   } finally {
     saving.value = false;
   }

@@ -7,6 +7,35 @@
     :rows="10"
     empty-message="لا توجد حجوزات."
   >
+    <template #sellingPriceLabel="{ data }">
+      <span
+        class="rounded-md px-2 py-1 text-xs font-bold bg-sky-500/20 text-sky-300"
+      >
+        {{ data.sellingPriceLabel }}
+      </span>
+    </template>
+
+    <template #paidAmountLabel="{ data }">
+      <span
+        class="rounded-md px-2 py-1 text-xs font-bold bg-emerald-500/20 text-emerald-300"
+      >
+        {{ data.paidAmountLabel }}
+      </span>
+    </template>
+
+    <template #remainingAmountLabel="{ data }">
+      <span
+        class="rounded-md px-2 py-1 text-xs font-bold"
+        :class="
+          data.remainingAmount > 0
+            ? 'bg-orange-500/20 text-orange-300'
+            : 'bg-emerald-500/20 text-emerald-300'
+        "
+      >
+        {{ data.remainingAmountLabel }}
+      </span>
+    </template>
+
     <template #status="{ data }">
       <Tag :value="data.statusLabel" :severity="data.statusSeverity" />
     </template>
@@ -51,10 +80,11 @@ const columns = [
   { field: "reservationNumber", header: "رقم الحجز" },
   { field: "studentName", header: "الطالب" },
   { field: "productName", header: "المنتج" },
-  { field: "sellingPriceLabel", header: "سعر البيع" },
+  { field: "sellingPriceLabel", header: "سعر البيع", slot: "sellingPriceLabel" },
   { field: "branchName", header: "الفرع" },
   { field: "quantity", header: "الكمية" },
-  { field: "paidAmountLabel", header: "المدفوع" },
+  { field: "paidAmountLabel", header: "المقدم", slot: "paidAmountLabel" },
+  { field: "remainingAmountLabel", header: "المتبقي", slot: "remainingAmountLabel" },
   { field: "statusLabel", header: "الحالة", slot: "status" },
   { field: "actions", header: "إجراء", slot: "actions", style: "width: 14rem" },
 ];

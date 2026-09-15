@@ -8,14 +8,6 @@
         </div>
       </template>
       <template #content>
-        <p
-          v-if="feedback.message"
-          class="mb-4 rounded-xl px-3 py-2 text-sm"
-          :class="feedback.type === 'error' ? 'bg-red-50 text-red-600' : 'bg-emerald-50 text-emerald-700'"
-        >
-          {{ feedback.message }}
-        </p>
-
         <div class="mb-5 grid gap-3 md:grid-cols-2">
           <div class="flex flex-col gap-2 text-right">
             <label class="text-sm font-medium text-slate-700">بحث</label>
@@ -65,6 +57,9 @@ import UsersTable from "~/components/dashboard/pages/users/UsersTable.vue";
 import UserForm from "~/components/dashboard/pages/users/UserForm.vue";
 import { userService } from "~/services/userService";
 import { branchService } from "~/services/branchService";
+import { useAppToast } from "~/composables/useAppToast";
+
+const { showError, showSuccess } = useAppToast();
 
 const ROLE_LABELS = {
   ADMIN: "مدير",
@@ -77,8 +72,6 @@ const drawerVisible = ref(false);
 const editingItem = ref(null);
 const users = ref([]);
 const filters = reactive({ search: "", role: null });
-const feedback = reactive({ type: "success", message: "" });
-
 const roleOptions = [
   { label: "مدير", value: "ADMIN" },
   { label: "خدمة العملاء", value: "CUSTOMER_SERVICE" },
@@ -132,8 +125,7 @@ const loadData = async () => {
       };
     });
   } catch (error) {
-    feedback.type = "error";
-    feedback.message = error?.message || "تعذر تحميل المستخدمين.";
+    showError(error?.message || "تعذر تحميل المستخدمين.");
     users.value = [];
   } finally {
     loading.value = false;
@@ -153,8 +145,7 @@ const openEdit = (item) => {
 const handleSaved = async () => {
   drawerVisible.value = false;
   editingItem.value = null;
-  feedback.type = "success";
-  feedback.message = "تم حفظ المستخدم بنجاح.";
+  showSuccess("تم حفظ المستخدم بنجاح.");
   await loadData();
 };
 

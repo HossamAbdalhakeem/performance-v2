@@ -86,10 +86,6 @@
       </div>
     </Field>
 
-    <p v-if="feedback.message" class="rounded-xl bg-red-50 px-3 py-2 text-sm text-red-600">
-      {{ feedback.message }}
-    </p>
-
     <div class="flex justify-end gap-2">
       <Button type="button" label="إلغاء" severity="secondary" text @click="$emit('cancel')" />
       <Button type="submit" :label="isEdit ? 'حفظ التعديل' : 'إضافة'" :loading="saving" severity="info" />
@@ -126,6 +122,9 @@ import AppInputNumber from "~/components/dashboard/AppInputNumber.vue";
 import { Form, Field, ErrorMessage } from "vee-validate";
 import { expenseService } from "~/services/expenseService";
 import { branchService } from "~/services/branchService";
+import { useAppToast } from "~/composables/useAppToast";
+
+const { showError } = useAppToast();
 
 const props = defineProps({
   expense: { type: Object, default: null },
@@ -139,7 +138,6 @@ const formKey = ref(0);
 const showCategoryDialog = ref(false);
 const newCategoryName = ref("");
 const categoryError = ref("");
-const feedback = reactive({ message: "" });
 const categoryOptions = ref([]);
 const branchOptions = ref([]);
 const isEdit = computed(() => Boolean(props.expense?.id));
@@ -224,14 +222,12 @@ watch(
     form.expenseDate = toDate(value?.expenseDate);
     form.description = value?.description || "";
     formKey.value += 1;
-    feedback.message = "";
   },
   { immediate: true },
 );
 
 const submit = async () => {
   saving.value = true;
-  feedback.message = "";
   try {
     const payload = {
       categoryId: form.categoryId,
@@ -245,7 +241,7 @@ const submit = async () => {
       : await expenseService.createExpense(payload);
     emit("saved", result);
   } catch (error) {
-    feedback.message = error?.message || "تعذر حفظ المصروف.";
+    showError(error?.message || "تعذر حفظ المصروف.");
   } finally {
     saving.value = false;
   }

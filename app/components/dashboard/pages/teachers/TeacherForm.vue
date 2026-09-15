@@ -1,13 +1,5 @@
 <template>
   <div class="space-y-4" dir="rtl">
-    <p
-      v-if="feedback.message"
-      class="rounded-xl px-3 py-2 text-sm"
-      :class="feedback.type === 'error' ? 'bg-red-50 text-red-600' : 'bg-emerald-50 text-emerald-700'"
-    >
-      {{ feedback.message }}
-    </p>
-
     <Form
       v-slot="{ errors: fieldErrors }"
       :key="formKey"
@@ -60,6 +52,9 @@ import InputText from "primevue/inputtext";
 import ToggleSwitch from "primevue/toggleswitch";
 import { Form, Field, ErrorMessage } from "vee-validate";
 import { teacherService } from "~/services/teacherService";
+import { useAppToast } from "~/composables/useAppToast";
+
+const { showError } = useAppToast();
 
 const props = defineProps({
   teacher: { type: Object, default: null },
@@ -69,8 +64,6 @@ const emit = defineEmits(["saved", "cancel"]);
 
 const saving = ref(false);
 const formKey = ref(0);
-const feedback = reactive({ type: "success", message: "" });
-
 const emptyForm = () => ({
   name: "",
   isActive: true,
@@ -80,11 +73,6 @@ const form = reactive(emptyForm());
 const initialValues = reactive(emptyForm());
 
 const isEdit = computed(() => Boolean(props.teacher?.id));
-
-const setFeedback = (type, message) => {
-  feedback.type = type;
-  feedback.message = message;
-};
 
 const applyTeacher = (teacher) => {
   const next = {
@@ -107,7 +95,6 @@ watch(
 
 const submit = async () => {
   saving.value = true;
-  setFeedback("success", "");
 
   try {
     const name = form.name.trim();
@@ -128,7 +115,7 @@ const submit = async () => {
 
     emit("saved", result);
   } catch (error) {
-    setFeedback("error", error?.message || "تعذر حفظ المدرس.");
+    showError(error?.message || "تعذر حفظ المدرس.");
   } finally {
     saving.value = false;
   }

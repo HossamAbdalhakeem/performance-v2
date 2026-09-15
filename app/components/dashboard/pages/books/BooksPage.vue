@@ -29,13 +29,6 @@
           >
         </div>
 
-        <p
-          v-if="errorMessage"
-          class="mb-3 rounded-xl bg-red-500/15 px-3 py-2 text-sm text-red-300"
-        >
-          {{ errorMessage }}
-        </p>
-
         <AppDataTable
           :value="books"
           :columns="bookColumns"
@@ -66,12 +59,13 @@ import InputText from "primevue/inputtext";
 import AppDataTable from "~/components/shared/app-data-table/index.vue";
 import { productService } from "~/services/productService";
 import { useThrottledCallback } from "~/composables/useThrottledCallback";
+import { useAppToast } from "~/composables/useAppToast";
 
+const { showError } = useAppToast();
 const pending = ref(false);
 const search = ref("");
 const selectedId = ref("");
 const books = ref([]);
-const errorMessage = ref("");
 
 const STATUS_META = {
   AVAILABLE: { label: "متاح", className: "bg-green-700 text-white" },
@@ -135,7 +129,6 @@ const normalizeBook = (item) => {
 const searchBooks = async (term = "") => {
   const query = String(term || "").trim();
   pending.value = true;
-  errorMessage.value = "";
 
   try {
     const params = {};
@@ -153,7 +146,7 @@ const searchBooks = async (term = "") => {
     }
   } catch (error) {
     books.value = [];
-    errorMessage.value = error?.message || "تعذر البحث في الكتب.";
+    showError(error?.message || "تعذر البحث في الكتب.");
   } finally {
     pending.value = false;
   }

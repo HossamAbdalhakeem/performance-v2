@@ -89,14 +89,24 @@ const statusOptions = Object.entries(STATUS_META).map(([value, meta]) => ({
 
 const formatMoney = (value) => `${Number(value || 0).toFixed(2)} ج.م`;
 
+const roundMoney = (value) => Math.round(Number(value || 0) * 100) / 100;
+
+const getRemainingAmount = (item) => {
+  const total = Number(item.totalAmount ?? item.total_amount ?? 0);
+  const paid = Number(item.paidAmount ?? item.paid_amount ?? 0);
+  return roundMoney(Math.max(total - paid, 0));
+};
+
 const normalizeReservation = (item) => {
   const meta = STATUS_META[item.status] || { label: item.status || "-", severity: "secondary" };
   const sellingPrice = Number(
     item.product?.sellingPrice ??
       item.product?.selling_price ??
       item.reservationPrice ??
+      item.reservation_price ??
       0,
   );
+  const remainingAmount = getRemainingAmount(item);
   return {
     ...item,
     studentName: item.student?.name || "-",
@@ -104,6 +114,8 @@ const normalizeReservation = (item) => {
     branchName: item.branch?.name || "-",
     sellingPriceLabel: sellingPrice > 0 ? formatMoney(sellingPrice) : "—",
     paidAmountLabel: formatMoney(item.paidAmount),
+    remainingAmount,
+    remainingAmountLabel: formatMoney(remainingAmount),
     statusLabel: meta.label,
     statusSeverity: meta.severity,
   };

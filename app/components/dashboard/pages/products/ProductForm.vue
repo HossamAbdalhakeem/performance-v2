@@ -1,13 +1,5 @@
 <template>
   <div class="space-y-4" dir="rtl">
-    <p
-      v-if="feedback.message"
-      class="rounded-xl px-3 py-2 text-sm"
-      :class="feedback.type === 'error' ? 'bg-red-50 text-red-600' : 'bg-emerald-50 text-emerald-700'"
-    >
-      {{ feedback.message }}
-    </p>
-
     <Form
       v-slot="{ errors: fieldErrors }"
       :key="formKey"
@@ -227,6 +219,9 @@ import { Form, Field, ErrorMessage } from "vee-validate";
 import { productService } from "~/services/productService";
 import { teacherService } from "~/services/teacherService";
 import { studyYearService } from "~/services/studyYearService";
+import { useAppToast } from "~/composables/useAppToast";
+
+const { showError } = useAppToast();
 
 const props = defineProps({
   product: { type: Object, default: null },
@@ -242,8 +237,6 @@ const teacherName = ref("");
 const teacherError = ref("");
 const teacherOptions = ref([]);
 const studyYearOptions = ref([]);
-const feedback = reactive({ type: "success", message: "" });
-
 const typeOptions = [
   { label: "كتاب", value: "BOOK" },
   { label: "كارت", value: "CARD" },
@@ -318,11 +311,6 @@ watch(
   },
 );
 
-const setFeedback = (type, message) => {
-  feedback.type = type;
-  feedback.message = message;
-};
-
 const loadTeachers = async () => {
   const teachers = await teacherService.getTeachers();
   const list = Array.isArray(teachers) ? teachers : teachers?.data || [];
@@ -348,7 +336,7 @@ const loadLookups = async () => {
   try {
     await Promise.all([loadTeachers(), loadStudyYears()]);
   } catch (error) {
-    setFeedback("error", error?.message || "تعذر تحميل بيانات النموذج.");
+    showError(error?.message || "تعذر تحميل بيانات النموذج.");
   } finally {
     loadingLookups.value = false;
   }
@@ -410,7 +398,6 @@ const buildPayload = () => {
 
 const submit = async () => {
   saving.value = true;
-  setFeedback("success", "");
 
   try {
     if (isBook.value && !form.studyYearId) {
@@ -424,7 +411,7 @@ const submit = async () => {
 
     emit("saved", result);
   } catch (error) {
-    setFeedback("error", error?.message || "تعذر حفظ المنتج.");
+    showError(error?.message || "تعذر حفظ المنتج.");
   } finally {
     saving.value = false;
   }

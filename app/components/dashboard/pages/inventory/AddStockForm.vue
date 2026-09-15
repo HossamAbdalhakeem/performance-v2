@@ -66,10 +66,6 @@
       </table>
     </div>
 
-    <p v-if="errorMessage" class="rounded-xl bg-red-50 px-3 py-2 text-sm text-red-600">
-      {{ errorMessage }}
-    </p>
-
     <div class="flex justify-end gap-2">
       <Button
         v-if="showCancel"
@@ -91,6 +87,7 @@ import AppInputNumber from "~/components/dashboard/AppInputNumber.vue";
 import { inventoryService } from "~/services/inventoryService";
 import { branchService } from "~/services/branchService";
 import { productService } from "~/services/productService";
+import { useAppToast } from "~/composables/useAppToast";
 
 const props = defineProps({
   lockedBranchId: { type: String, default: "" },
@@ -99,9 +96,9 @@ const props = defineProps({
 });
 
 const emit = defineEmits(["saved", "cancel"]);
+const { showError } = useAppToast();
 
 const saving = ref(false);
-const errorMessage = ref("");
 const branchOptions = ref([]);
 const productOptions = ref([]);
 const errors = reactive({
@@ -169,14 +166,12 @@ const loadOptions = async () => {
       }));
   } catch (error) {
     console.error("Failed to load add-stock options", error);
-    errorMessage.value = error?.message || "تعذر تحميل المنتجات.";
+    showError(error?.message || "تعذر تحميل المنتجات.");
   }
 };
 
 const submitStock = async () => {
-  errorMessage.value = "";
   if (!validate()) return;
-console.log('form',form);
 
   saving.value = true;
   try {
@@ -191,7 +186,7 @@ console.log('form',form);
     if (!props.lockedBranchId) form.branchId = null;
     emit("saved");
   } catch (error) {
-    errorMessage.value = error?.message || "تعذر إضافة المنتج للفرع.";
+    showError(error?.message || "تعذر إضافة المنتج للفرع.");
   } finally {
     saving.value = false;
   }

@@ -8,14 +8,6 @@
         </div>
       </template>
       <template #content>
-        <p
-          v-if="feedback.message"
-          class="mb-4 rounded-xl px-3 py-2 text-sm"
-          :class="feedback.type === 'error' ? 'bg-red-50 text-red-600' : 'bg-emerald-50 text-emerald-700'"
-        >
-          {{ feedback.message }}
-        </p>
-
         <div class="mb-5">
           <div class="flex flex-col gap-2 text-right md:max-w-sm">
             <label class="text-sm font-medium text-slate-700">بحث</label>
@@ -56,14 +48,14 @@ import EntityDrawer from "~/components/dashboard/EntityDrawer.vue";
 import StudentsTable from "~/components/dashboard/pages/students/StudentsTable.vue";
 import StudentForm from "~/components/dashboard/pages/students/StudentForm.vue";
 import { studentService } from "~/services/studentService";
+import { useAppToast } from "~/composables/useAppToast";
 
+const { showError, showSuccess } = useAppToast();
 const loading = ref(true);
 const drawerVisible = ref(false);
 const editingItem = ref(null);
 const students = ref([]);
 const searchInput = ref("");
-const feedback = reactive({ type: "success", message: "" });
-
 const drawerTitle = computed(() =>
   editingItem.value?.id ? "تعديل الطالب" : "إضافة طالب",
 );
@@ -92,8 +84,7 @@ const loadData = async () => {
     const list = await studentService.getStudents();
     students.value = list.map(normalizeStudent);
   } catch (error) {
-    feedback.type = "error";
-    feedback.message = error?.message || "تعذر تحميل الطلاب.";
+    showError(error?.message || "تعذر تحميل الطلاب.");
     students.value = [];
   } finally {
     loading.value = false;
@@ -113,8 +104,7 @@ const openEdit = (item) => {
 const handleSaved = async () => {
   drawerVisible.value = false;
   editingItem.value = null;
-  feedback.type = "success";
-  feedback.message = "تم حفظ الطالب بنجاح.";
+  showSuccess("تم حفظ الطالب بنجاح.");
   await loadData();
 };
 
@@ -122,12 +112,10 @@ const handleDeactivate = async (item) => {
   if (!item?.id) return;
   try {
     await studentService.deleteStudent(item.id);
-    feedback.type = "success";
-    feedback.message = "تم تعطيل الطالب بنجاح.";
+    showSuccess("تم تعطيل الطالب بنجاح.");
     await loadData();
   } catch (error) {
-    feedback.type = "error";
-    feedback.message = error?.message || "تعذر تعطيل الطالب.";
+    showError(error?.message || "تعذر تعطيل الطالب.");
   }
 };
 

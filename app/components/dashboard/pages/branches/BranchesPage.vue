@@ -6,14 +6,6 @@
       </template>
 
       <template #content>
-        <p
-          v-if="feedback.message"
-          class="mb-4 rounded-xl px-3 py-2 text-sm"
-          :class="feedback.type === 'error' ? 'bg-red-50 text-red-600' : 'bg-emerald-50 text-emerald-700'"
-        >
-          {{ feedback.message }}
-        </p>
-
         <BranchesTable
           :branches="branches"
           :loading="loading"
@@ -85,13 +77,14 @@ import AddStockForm from "~/components/dashboard/pages/inventory/AddStockForm.vu
 import RemoveStockForm from "~/components/dashboard/pages/inventory/RemoveStockForm.vue";
 import { branchService } from "~/services/branchService";
 import { inventoryService } from "~/services/inventoryService";
+import { useAppToast } from "~/composables/useAppToast";
 
+const { showError, showSuccess } = useAppToast();
 const loading = ref(true);
 const branches = ref([]);
 const selectedBranch = ref(null);
 const addDrawerVisible = ref(false);
 const removeDrawerVisible = ref(false);
-const feedback = reactive({ type: "success", message: "" });
 
 const statusMeta = (status) => {
   if (status === "INACTIVE") {
@@ -129,11 +122,6 @@ const buildBranchRows = (branchList, inventoryList) => {
   });
 };
 
-const setFeedback = (type, message) => {
-  feedback.type = type;
-  feedback.message = message;
-};
-
 const loadData = async () => {
   loading.value = true;
   try {
@@ -147,7 +135,7 @@ const loadData = async () => {
 
     branches.value = buildBranchRows(branchList, inventoryList);
   } catch (error) {
-    setFeedback("error", error?.message || "تعذر تحميل الفروع.");
+    showError(error?.message || "تعذر تحميل الفروع.");
     branches.value = [];
   } finally {
     loading.value = false;
@@ -169,14 +157,14 @@ const openRemoveStock = (branch) => {
 const handleAddSaved = async () => {
   addDrawerVisible.value = false;
   selectedBranch.value = null;
-  setFeedback("success", "تم إضافة المنتج للفرع بنجاح.");
+  showSuccess("تم إضافة المنتج للفرع بنجاح.");
   await loadData();
 };
 
 const handleRemoveSaved = async () => {
   removeDrawerVisible.value = false;
   selectedBranch.value = null;
-  setFeedback("success", "تم سحب المنتج من الفرع بنجاح.");
+  showSuccess("تم سحب المنتج من الفرع بنجاح.");
   await loadData();
 };
 

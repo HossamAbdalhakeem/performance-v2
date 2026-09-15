@@ -26,10 +26,6 @@
       </div>
     </Field>
 
-    <p v-if="feedback.message" class="rounded-xl bg-red-50 px-3 py-2 text-sm text-red-600">
-      {{ feedback.message }}
-    </p>
-
     <div class="flex justify-end gap-2">
       <Button type="button" label="إلغاء" severity="secondary" text @click="$emit('cancel')" />
       <Button type="submit" :label="isEdit ? 'حفظ التعديل' : 'إضافة'" :loading="saving" severity="info" />
@@ -42,6 +38,9 @@ import Button from "primevue/button";
 import InputText from "primevue/inputtext";
 import { Form, Field, ErrorMessage } from "vee-validate";
 import { studentService } from "~/services/studentService";
+import { useAppToast } from "~/composables/useAppToast";
+
+const { showError } = useAppToast();
 
 const props = defineProps({
   student: { type: Object, default: null },
@@ -51,7 +50,6 @@ const emit = defineEmits(["saved", "cancel"]);
 
 const saving = ref(false);
 const formKey = ref(0);
-const feedback = reactive({ message: "" });
 const isEdit = computed(() => Boolean(props.student?.id));
 
 const form = reactive({ name: "", phone: "" });
@@ -66,14 +64,12 @@ watch(
     form.name = value?.name || "";
     form.phone = value?.phone || "";
     formKey.value += 1;
-    feedback.message = "";
   },
   { immediate: true },
 );
 
 const submit = async () => {
   saving.value = true;
-  feedback.message = "";
   try {
     const payload = { name: form.name, phone: form.phone || undefined };
     const result = isEdit.value
@@ -81,7 +77,7 @@ const submit = async () => {
       : await studentService.createStudent(payload);
     emit("saved", result);
   } catch (error) {
-    feedback.message = error?.message || "تعذر حفظ الطالب.";
+    showError(error?.message || "تعذر حفظ الطالب.");
   } finally {
     saving.value = false;
   }
