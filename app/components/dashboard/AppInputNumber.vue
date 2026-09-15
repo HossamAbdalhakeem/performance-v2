@@ -15,7 +15,7 @@
     class="w-full"
     input-class="w-full"
     fluid
-    dir="ltr"
+    dir="rtl"
     @update:model-value="emitValue"
     @input="onInput"
   />
