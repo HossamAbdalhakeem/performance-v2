@@ -4,7 +4,7 @@
 
     <div
       class="rounded-xl border border-dashed px-4 py-4 transition"
-      :class="invalid || errorMessage ? 'border-red-400 bg-red-50' : 'border-slate-300 bg-slate-50'"
+      :class="invalid || errorMessage ? 'border-red-400 bg-red' : 'border-slate-300 bg-slate-50'"
     >
       <input
         ref="inputRef"
