@@ -1,5 +1,5 @@
 <template>
-  <Toast position="top-center" />
+  <Toast position="top-right" />
   <NuxtRouteAnnouncer />
   <NuxtLayout :name="layoutName">
     <NuxtPage />
