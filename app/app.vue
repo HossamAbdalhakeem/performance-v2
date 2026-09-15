@@ -14,7 +14,8 @@ const route = useRoute();
 const authStore = useAuthStore();
 
 const layoutName = computed(() => {
-  if (!authStore.isLoggedIn) return "login";
+  // Only switch to login layout on the login route (avoids remount mid-logout)
+  if (route.path === "/login" ) return "login";
 
   const role = authStore.user?.role || "admin";
   if (role === "branch") return "branch";
@@ -22,4 +23,3 @@ const layoutName = computed(() => {
   return "admin";
 });
 </script>
-

@@ -82,8 +82,14 @@ export const useAuthStore = defineStore("authStore", {
         console.error("Logout request failed", error);
       }
 
-      this.removeUser();
+      // Clear token first, keep user until after navigation so the layout
+      // does not remount the current page and re-fire its APIs.
+      this.token = null;
+      this.loggedIn = false;
+      useCookie("token").value = null;
+
       await navigateTo("/login");
+      this.removeUser();
     },
     hydrateFromStorage() {
       const dashboardRole = useCookie("dashboard_role");
