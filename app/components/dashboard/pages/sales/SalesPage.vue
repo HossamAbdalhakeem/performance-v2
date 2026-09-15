@@ -569,6 +569,12 @@ const { run: runPhoneSearch } = useThrottledCallback(async (term) => {
   phoneSuggestions.value = await searchStudents(term);
 }, 350);
 
+const preloadStudents = async () => {
+  const students = await searchStudents("");
+  nameSuggestions.value = students;
+  phoneSuggestions.value = students;
+};
+
 const onNameComplete = (event) => {
   runNameSearch(event.query || "");
 };
@@ -794,7 +800,7 @@ watch(
 
 onMounted(async () => {
   try {
-    await loadProducts();
+    await Promise.all([loadProducts(), preloadStudents()]);
   } catch (error) {
     showError(error?.message || "تعذر تحميل بيانات المبيعات.");
   }

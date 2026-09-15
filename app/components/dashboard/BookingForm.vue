@@ -701,6 +701,12 @@ const { run: runPhoneSearch } = useThrottledCallback(async (term) => {
   phoneSuggestions.value = await searchStudents(term);
 }, 350);
 
+const preloadStudents = async () => {
+  const students = await searchStudents("");
+  nameSuggestions.value = students;
+  phoneSuggestions.value = students;
+};
+
 const onNameComplete = (event) => {
   runNameSearch(event.query || "");
 };
@@ -950,8 +956,7 @@ watch(isCustomerService, async (value) => {
 
 onMounted(async () => {
   try {
-    await loadBranches();
-    await loadProducts();
+    await Promise.all([loadBranches(), loadProducts(), preloadStudents()]);
     if (props.initialProduct) form.productId = props.initialProduct;
     if (isCustomerService.value && form.paymentMethod === "CASH") {
       form.paymentMethod = defaultPaymentMethod.value;
