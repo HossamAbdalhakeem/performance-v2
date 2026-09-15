@@ -66,10 +66,17 @@ const loadProducts = async () => {
     const list = Array.isArray(items) ? items : items?.data || [];
     productOptions.value = list
       .filter((product) => product.reservationAllowed !== false)
-      .map((product) => ({
-        label: product.name,
-        value: product.id,
-      }));
+      .map((product) => {
+        const sellingPrice = Number(
+          product.sellingPrice ?? product.selling_price ?? 0,
+        );
+        const priceLabel =
+          sellingPrice > 0 ? ` · سعر البيع ${sellingPrice.toFixed(2)}ج.م` : "";
+        return {
+          label: `${product.name || "-"}${priceLabel}`,
+          value: product.id,
+        };
+      });
   } catch (error) {
     showError(error?.message || "تعذر تحميل المنتجات.");
   }

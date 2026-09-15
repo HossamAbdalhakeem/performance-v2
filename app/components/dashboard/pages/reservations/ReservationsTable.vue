@@ -51,6 +51,7 @@ const columns = [
   { field: "reservationNumber", header: "رقم الحجز" },
   { field: "studentName", header: "الطالب" },
   { field: "productName", header: "المنتج" },
+  { field: "sellingPriceLabel", header: "سعر البيع" },
   { field: "branchName", header: "الفرع" },
   { field: "quantity", header: "الكمية" },
   { field: "paidAmountLabel", header: "المدفوع" },

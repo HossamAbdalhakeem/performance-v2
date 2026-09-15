@@ -1,7 +1,7 @@
 <template>
   <div
     class="grid gap-4"
-    :class="showImage ? 'md:grid-cols-2' : ''"
+    :class="showImage ? 'md:grid-cols-1' : ''"
     dir="rtl"
   >
     <PaymentMethods
@@ -29,9 +29,9 @@
       <p v-if="uploading" class="text-xs text-sky-600">جاري رفع صورة الإثبات...</p>
       <p v-if="imageError" class="text-xs text-red-500">{{ imageError }}</p>
       <p
-        v-else-if="imageDataUrl && !uploading"
+        v-else-if="imageKey && !uploading"
         class="truncate text-xs text-emerald-600"
-        :title="imageDataUrl"
+        :title="imageKey"
       >
         تم رفع الصورة بنجاح
       </p>
@@ -49,20 +49,23 @@ defineOptions({ name: "PaymentFields" });
 const props = defineProps({
   method: { type: String, default: "CASH" },
   image: { type: [Object, File, null], default: null },
-  /** Uploaded storage URL returned by Nest (used as proofReference) */
+  /**
+   * Permanent storage object key (Payment.proofReference).
+   * Kept as imageDataUrl prop name for backward-compatible v-model binding.
+   */
   imageDataUrl: { type: String, default: "" },
+  /** Temporary signed URL for immediate preview (optional) */
+  imagePreviewUrl: { type: String, default: "" },
   methodLabel: { type: String, default: "طريقة الدفع" },
   imageLabel: { type: String, default: "صورة إثبات الدفع" },
   imagePlaceholder: { type: String, default: "ارفع صورة المحفظة / إنستاباي" },
   options: { type: Array, default: null },
   exclude: { type: Array, default: () => [] },
-  /** When to show image upload: non-cash | always | never */
   showImageWhen: {
     type: String,
     default: "non-cash",
     validator: (value) => ["non-cash", "always", "never"].includes(value),
   },
-  /** When image is required: non-cash | always | never */
   requireImageWhen: {
     type: String,
     default: "non-cash",
@@ -81,6 +84,7 @@ const emit = defineEmits([
   "update:method",
   "update:image",
   "update:imageDataUrl",
+  "update:imagePreviewUrl",
   "change",
 ]);
 
@@ -91,6 +95,9 @@ const maxSizeBytes = computed(() =>
 
 const internalImageError = ref("");
 const uploading = ref(false);
+
+/** Permanent object key stored on the payment */
+const imageKey = computed(() => props.imageDataUrl);
 
 const normalizedMethod = computed(() =>
   String(props.method || "CASH").trim().toUpperCase(),
@@ -128,6 +135,11 @@ const emitChange = (next = {}) => {
     image: next.image === undefined ? props.image : next.image,
     imageDataUrl:
       next.imageDataUrl === undefined ? props.imageDataUrl : next.imageDataUrl,
+    imagePreviewUrl:
+      next.imagePreviewUrl === undefined
+        ? props.imagePreviewUrl
+        : next.imagePreviewUrl,
+    key: next.imageDataUrl === undefined ? props.imageDataUrl : next.imageDataUrl,
   });
 };
 
@@ -136,7 +148,8 @@ const clearImage = () => {
   uploading.value = false;
   emit("update:image", null);
   emit("update:imageDataUrl", "");
-  emitChange({ image: null, imageDataUrl: "" });
+  emit("update:imagePreviewUrl", "");
+  emitChange({ image: null, imageDataUrl: "", imagePreviewUrl: "" });
 };
 
 const onMethodChange = (value) => {
@@ -151,7 +164,13 @@ const onMethodChange = (value) => {
   if (!keepsImage && (props.image || props.imageDataUrl)) {
     emit("update:image", null);
     emit("update:imageDataUrl", "");
-    emitChange({ method, image: null, imageDataUrl: "" });
+    emit("update:imagePreviewUrl", "");
+    emitChange({
+      method,
+      image: null,
+      imageDataUrl: "",
+      imagePreviewUrl: "",
+    });
     return;
   }
 
@@ -162,7 +181,8 @@ const onImageFileChange = (file) => {
   emit("update:image", file);
   if (!file) {
     emit("update:imageDataUrl", "");
-    emitChange({ image: null, imageDataUrl: "" });
+    emit("update:imagePreviewUrl", "");
+    emitChange({ image: null, imageDataUrl: "", imagePreviewUrl: "" });
   }
 };
 
@@ -170,18 +190,26 @@ const onImageSelect = async (file) => {
   internalImageError.value = "";
   emit("update:image", file);
   emit("update:imageDataUrl", "");
+  emit("update:imagePreviewUrl", "");
   uploading.value = true;
 
   try {
     const uploaded = await paymentService.uploadPaymentProof(file);
-    emit("update:imageDataUrl", uploaded.file_url);
-    emitChange({ image: file, imageDataUrl: uploaded.file_url });
+    // Store permanent key on imageDataUrl (used as proofReference)
+    emit("update:imageDataUrl", uploaded.key);
+    emit("update:imagePreviewUrl", uploaded.file_url);
+    emitChange({
+      image: file,
+      imageDataUrl: uploaded.key,
+      imagePreviewUrl: uploaded.file_url,
+    });
   } catch (error) {
     internalImageError.value =
       error?.message || "تعذر رفع صورة الإثبات. حاول مرة أخرى.";
     emit("update:image", null);
     emit("update:imageDataUrl", "");
-    emitChange({ image: null, imageDataUrl: "" });
+    emit("update:imagePreviewUrl", "");
+    emitChange({ image: null, imageDataUrl: "", imagePreviewUrl: "" });
   } finally {
     uploading.value = false;
   }
@@ -195,7 +223,6 @@ const onImageError = (message) => {
   internalImageError.value = message || "تعذر رفع صورة الإثبات.";
 };
 
-/** Returns false when a required proof image is missing or still uploading. */
 const validate = () => {
   if (!imageRequired.value) return true;
   if (uploading.value) {
@@ -212,6 +239,7 @@ const reset = () => {
   uploading.value = false;
   emit("update:image", null);
   emit("update:imageDataUrl", "");
+  emit("update:imagePreviewUrl", "");
 };
 
 defineExpose({ validate, reset, showImage, imageRequired, uploading });

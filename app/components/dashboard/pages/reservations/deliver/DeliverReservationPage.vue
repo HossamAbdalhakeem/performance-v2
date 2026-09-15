@@ -40,7 +40,7 @@
       modal
       dir="rtl"
       :header="dialogTitle"
-      :style="{ width: '420px', maxWidth: '95vw' }"
+      :style="{ width: '560px', maxWidth: '95vw' }"
       :pt="{
         root: { class: 'deliver-dialog' },
         header: { class: 'text-right' },
@@ -49,7 +49,7 @@
       @hide="closeDeliverDialog"
     >
       <div v-if="selectedReservation" class="flex flex-col gap-4">
-        <div class="rounded-xl border border-slate-700 bg-slate-900/60 px-3 py-2 text-sm text-slate-300">
+        <div class="rounded-xl border border-slate-700 bg-slate-900/60 px-3 py-3 text-sm text-slate-300">
           <p>
             <span class="text-slate-400">رقم الحجز:</span>
             {{ selectedReservation.reservationNumber }}
@@ -62,39 +62,57 @@
             <span class="text-slate-400">المنتج:</span>
             {{ selectedReservation.productName }}
           </p>
-          <p class="mt-1">
-            <span class="text-slate-400">المدفوع:</span>
-            {{ formatMoney(selectedReservation.paidAmount) }}
-          </p>
-          <p v-if="needsRemainingPayment" class="mt-1 text-orange-300">
-            <span class="text-slate-400">المتبقي:</span>
-            {{ formatMoney(selectedReservation.remainingAmount) }}
-          </p>
+          <div class="mt-3 grid gap-2 rounded-lg border border-slate-700/80 bg-slate-950/40 p-3 text-sm">
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-slate-400">إجمالي المبلغ</span>
+              <span class="font-semibold text-slate-100">
+                {{ formatMoney(selectedReservation.totalAmount) }}
+              </span>
+            </div>
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-slate-400">المدفوع مسبقاً</span>
+              <span class="font-semibold text-emerald-300">
+                {{ formatMoney(selectedReservation.paidAmount) }}
+              </span>
+            </div>
+            <div class="flex items-center justify-between gap-2 border-t border-slate-700 pt-3">
+              <span class="text-base font-bold text-slate-200">المتبقي</span>
+              <span
+                class="text-2xl font-extrabold tracking-tight"
+                :class="
+                  needsRemainingPayment ? 'text-orange-300' : 'text-emerald-300'
+                "
+              >
+                {{ formatMoney(selectedReservation.remainingAmount) }}
+              </span>
+            </div>
+          </div>
         </div>
 
-        <div class="flex flex-col gap-2 text-right">
-          <label class="text-xs text-slate-300">
-            طريقة الدفع
-            <span v-if="needsRemainingPayment" class="text-orange-300">(مطلوبة للمبلغ المتبقي)</span>
-          </label>
-          <Select
-            v-model="paymentMethod"
-            :options="paymentOptions"
-            optionLabel="label"
-            optionValue="value"
-            placeholder="اختر طريقة الدفع"
-            class="w-full"
-          />
+        <div
+          v-if="!needsRemainingPayment"
+          class="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-200"
+        >
+          تم سداد المبلغ بالكامل. يمكن إتمام التسليم مباشرة.
         </div>
 
-        <div class="flex flex-col gap-2 text-right">
-          <label class="text-xs text-slate-300">مرجع الإثبات (اختياري)</label>
-          <InputText
-            v-model="proofReference"
-            placeholder="رقم العملية / مرجع التحويل"
-            class="w-full rounded-xl border border-slate-700 bg-slate-900 text-right text-slate-100 placeholder:text-slate-400"
+        <template v-else>
+
+          <PaymentFields
+            ref="paymentFieldsRef"
+            v-model:method="paymentMethod"
+            v-model:image="proofFile"
+            v-model:image-data-url="proofKey"
+            v-model:image-preview-url="proofPreviewUrl"
+            method-label="طريقة دفع المبلغ المتبقي"
+            image-label="صورة إثبات دفع المتبقي"
+            :method-invalid="!!methodError"
+            :method-error="methodError"
+            :image-invalid="proofRequiredError"
+            show-image-when="non-cash"
+            require-image-when="non-cash"
           />
-        </div>
+        </template>
 
         <p v-if="dialogError" class="text-sm text-red-300">{{ dialogError }}</p>
       </div>
@@ -104,15 +122,82 @@
           <Button
             label="تأكيد التسليم"
             class="rounded-xl bg-[#f59e0b] px-5 py-2 font-bold text-white"
-            :disabled="!canConfirmDeliver"
+            :disabled="!canConfirmDeliver || delivering"
             :loading="delivering"
-            @click="deliverReservation"
+            @click="requestDeliverConfirmation"
           />
           <Button
             label="إلغاء"
             text
             severity="secondary"
             @click="closeDeliverDialog"
+          />
+        </div>
+      </template>
+    </Dialog>
+
+    <Dialog
+      v-model:visible="confirmVisible"
+      modal
+      dir="rtl"
+      header="تأكيد التسليم"
+      :closable="!delivering"
+      :dismissableMask="!delivering"
+      :closeOnEscape="!delivering"
+      :style="{ width: '420px', maxWidth: '95vw' }"
+      :pt="{
+        header: { class: 'text-right' },
+        content: { class: 'text-right' },
+      }"
+    >
+      <div class="space-y-3 text-right text-slate-200">
+        <p class="text-sm">
+          هل أنت متأكد من تسليم الحجز
+          <span class="font-bold text-white">
+            {{ selectedReservation?.reservationNumber }}
+          </span>
+          ؟
+        </p>
+
+        <div
+          v-if="needsRemainingPayment"
+          class="rounded-xl border border-orange-500/40 bg-orange-500/10 px-4 py-3 text-center"
+        >
+          <p class="text-sm font-medium text-orange-200">
+            تأكد من تحصيل المبلغ المتبقي من الطالب قبل التسليم
+          </p>
+          <p class="mt-2 text-3xl font-extrabold text-orange-300">
+            {{ formatMoney(selectedReservation?.remainingAmount) }}
+          </p>
+          <p class="mt-2 text-xs text-slate-300">
+            طريقة الدفع: {{ methodLabel }}
+          </p>
+        </div>
+
+        <p v-else class="text-sm text-emerald-300">
+          لا يوجد مبلغ متبقي. سيتم التسليم مباشرة.
+        </p>
+      </div>
+
+      <template #footer>
+        <div class="flex w-full justify-start gap-2">
+          <Button
+            :label="
+              needsRemainingPayment
+                ? 'نعم، تم التحصيل والتسليم'
+                : 'نعم، تأكيد التسليم'
+            "
+            class="rounded-xl bg-[#f59e0b] px-5 py-2 font-bold text-white"
+            :loading="delivering"
+            :disabled="delivering"
+            @click="deliverReservation"
+          />
+          <Button
+            label="رجوع"
+            text
+            severity="secondary"
+            :disabled="delivering"
+            @click="confirmVisible = false"
           />
         </div>
       </template>
@@ -124,8 +209,8 @@
 import Button from "primevue/button";
 import Dialog from "primevue/dialog";
 import InputText from "primevue/inputtext";
-import Select from "primevue/select";
 import AppDataTable from "~/components/shared/app-data-table/index.vue";
+import PaymentFields from "~/components/shared/payment-fields/index.vue";
 import { reservationService } from "~/services/reservationService";
 import { useAppToast } from "~/composables/useAppToast";
 
@@ -137,24 +222,36 @@ const STATUS_META = {
   CANCELLED: { label: "ملغي", class: "bg-red-500/20 text-red-300" },
 };
 
-const paymentOptions = [
-  { label: "كاش", value: "CASH" },
-  { label: "انستا باي", value: "INSTAPAY" },
-  { label: "محفظة إلكترونية", value: "WALLET" },
-];
+const METHOD_LABELS = {
+  CASH: "كاش",
+  INSTAPAY: "انستا باي",
+  WALLET: "محفظة إلكترونية",
+};
 
 const { showError, showSuccess } = useAppToast();
 const loading = ref(false);
 const delivering = ref(false);
 const search = ref("");
 const paymentMethod = ref("CASH");
-const proofReference = ref("");
+const proofFile = ref(null);
+const proofKey = ref("");
+const proofPreviewUrl = ref("");
+const proofRequiredError = ref(false);
+const paymentFieldsRef = ref(null);
+const methodError = ref("");
 const dialogVisible = ref(false);
+const confirmVisible = ref(false);
 const dialogError = ref("");
 const selectedReservation = ref(null);
 const reservations = ref([]);
 
 const formatMoney = (value) => `${Number(value || 0).toFixed(2)} ج.م`;
+
+const roundMoney = (value) => Math.round(Number(value || 0) * 100) / 100;
+
+const methodLabel = computed(
+  () => METHOD_LABELS[paymentMethod.value] || paymentMethod.value || "-",
+);
 
 const emptyMessage = computed(() =>
   search.value.trim()
@@ -188,6 +285,11 @@ const canConfirmDeliver = computed(() => {
   if (!selectedReservation.value || !isDeliverable(selectedReservation.value)) {
     return false;
   }
+
+  if (!needsRemainingPayment.value) {
+    return true;
+  }
+
   return Boolean(paymentMethod.value);
 });
 
@@ -213,7 +315,7 @@ const statusClass = (item) =>
 const getRemainingAmount = (item) => {
   const total = Number(item.totalAmount ?? item.total_amount ?? 0);
   const paid = Number(item.paidAmount ?? item.paid_amount ?? 0);
-  return Math.max(total - paid, 0);
+  return roundMoney(Math.max(total - paid, 0));
 };
 
 const normalizeReservation = (item) => {
@@ -221,6 +323,7 @@ const normalizeReservation = (item) => {
   const status = String(item.status || "").toUpperCase();
   const meta = STATUS_META[status] || { label: status || "-" };
   const paidAmount = Number(item.paidAmount ?? item.paid_amount ?? 0);
+  const totalAmount = Number(item.totalAmount ?? item.total_amount ?? 0);
 
   return {
     ...item,
@@ -235,6 +338,7 @@ const normalizeReservation = (item) => {
       item.teacher_name ||
       "-",
     productName: item.product?.name || item.product_name || "-",
+    totalAmount,
     paidAmount,
     remainingAmount,
     hasRemaining: remainingAmount > 0,
@@ -246,22 +350,72 @@ const normalizeReservation = (item) => {
   };
 };
 
+const resetPaymentFields = () => {
+  paymentMethod.value = "CASH";
+  proofFile.value = null;
+  proofKey.value = "";
+  proofPreviewUrl.value = "";
+  proofRequiredError.value = false;
+  methodError.value = "";
+  paymentFieldsRef.value?.reset?.();
+};
+
 const openDeliverDialog = (item) => {
   if (!isDeliverable(item)) return;
 
   selectedReservation.value = item;
-  paymentMethod.value = "CASH";
-  proofReference.value = "";
+  resetPaymentFields();
   dialogError.value = "";
   dialogVisible.value = true;
 };
 
 const closeDeliverDialog = () => {
   dialogVisible.value = false;
+  confirmVisible.value = false;
   selectedReservation.value = null;
-  paymentMethod.value = "CASH";
-  proofReference.value = "";
+  resetPaymentFields();
   dialogError.value = "";
+};
+
+const validateRemainingPayment = () => {
+  methodError.value = "";
+  proofRequiredError.value = false;
+
+  if (!needsRemainingPayment.value) {
+    return true;
+  }
+
+  if (!paymentMethod.value) {
+    methodError.value = "اختر طريقة دفع المبلغ المتبقي.";
+    return false;
+  }
+
+  if (paymentFieldsRef.value && !paymentFieldsRef.value.validate()) {
+    proofRequiredError.value = true;
+    return false;
+  }
+
+  const needsProof =
+    paymentMethod.value === "WALLET" || paymentMethod.value === "INSTAPAY";
+  if (needsProof && !proofKey.value) {
+    proofRequiredError.value = true;
+    return false;
+  }
+
+  return true;
+};
+
+const requestDeliverConfirmation = () => {
+  if (!selectedReservation.value || !isDeliverable(selectedReservation.value)) {
+    return;
+  }
+
+  if (!validateRemainingPayment()) {
+    return;
+  }
+
+  dialogError.value = "";
+  confirmVisible.value = true;
 };
 
 const loadReservations = async () => {
@@ -282,29 +436,57 @@ const loadReservations = async () => {
 };
 
 const deliverReservation = async () => {
-  if (!canConfirmDeliver.value || !selectedReservation.value) return;
+  if (!selectedReservation.value || !isDeliverable(selectedReservation.value)) {
+    return;
+  }
+
+  if (!validateRemainingPayment()) {
+    confirmVisible.value = false;
+    return;
+  }
 
   delivering.value = true;
   dialogError.value = "";
 
   try {
-    await reservationService.deliverReservation(selectedReservation.value.id, {
-      method: paymentMethod.value,
-      proofReference: proofReference.value.trim() || undefined,
-    });
+    const payload = {};
+
+    if (needsRemainingPayment.value) {
+      const needsProof =
+        paymentMethod.value === "WALLET" || paymentMethod.value === "INSTAPAY";
+
+      payload.method = paymentMethod.value;
+      payload.proofReference = needsProof
+        ? proofKey.value || undefined
+        : undefined;
+    }
+
+    await reservationService.deliverReservation(
+      selectedReservation.value.id,
+      payload,
+    );
 
     const deliveredId = selectedReservation.value.id;
+    confirmVisible.value = false;
     closeDeliverDialog();
-    reservations.value = reservations.value.filter((item) => item.id !== deliveredId);
-    showSuccess("تم تسليم الحجز بنجاح وتم خصم الكمية من المخزون.");
+    reservations.value = reservations.value.filter(
+      (item) => item.id !== deliveredId,
+    );
+    showSuccess("تم تسليم الحجز بنجاح وتحصيل المبلغ المتبقي وخصم الكمية من المخزون.");
   } catch (error) {
     const message = error?.message || "تعذر تسليم الحجز.";
+    confirmVisible.value = false;
     dialogError.value = message;
     showError(message);
   } finally {
     delivering.value = false;
   }
 };
+
+watch(paymentMethod, () => {
+  if (methodError.value) methodError.value = "";
+  proofRequiredError.value = false;
+});
 
 onMounted(loadReservations);
 </script>

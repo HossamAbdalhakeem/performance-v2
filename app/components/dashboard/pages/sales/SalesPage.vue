@@ -230,7 +230,8 @@
                 ref="paymentFieldsRef"
                 v-model:method="form.method"
                 v-model:image="proofFile"
-                v-model:image-data-url="proofDataUrl"
+                v-model:image-data-url="proofKey"
+                v-model:image-preview-url="proofPreviewUrl"
                 :method-invalid="!!(errorMessage || fieldErrors.method)"
                 :method-error="errorMessage || ''"
                 :image-invalid="proofRequiredError"
@@ -321,6 +322,18 @@
             <span class="text-sm font-medium text-slate-800">{{ saleSummary.methodLabel }}</span>
           </div>
 
+          <div
+            v-if="saleSummary.proofImage"
+            class="border-t border-slate-200 pt-3"
+          >
+            <p class="mb-2 text-xs text-slate-500">صورة إثبات الدفع</p>
+            <img
+              :src="saleSummary.proofImage"
+              alt="إثبات الدفع"
+              class="mx-auto max-h-48 w-auto max-w-full rounded-xl border border-slate-200 object-contain"
+            />
+          </div>
+
           <div class="flex items-center justify-between gap-3 border-t border-emerald-200 pt-3">
             <span class="text-sm font-semibold text-emerald-700">الإجمالي</span>
             <span class="text-lg font-extrabold text-emerald-700">
@@ -372,7 +385,8 @@ const saving = ref(false);
 const searchingStudents = ref(false);
 const formKey = ref(0);
 const proofFile = ref(null);
-const proofDataUrl = ref("");
+const proofKey = ref("");
+const proofPreviewUrl = ref("");
 const proofRequiredError = ref(false);
 const paymentFieldsRef = ref(null);
 const quantityError = ref("");
@@ -669,11 +683,12 @@ const ensureStudent = async () => {
   return created.id;
 };
 
-const onPaymentChange = ({ method, image, imageDataUrl }) => {
+const onPaymentChange = ({ method, image, imageDataUrl, imagePreviewUrl }) => {
   proofRequiredError.value = false;
   form.method = method;
   proofFile.value = image;
-  proofDataUrl.value = imageDataUrl || "";
+  proofKey.value = imageDataUrl || "";
+  proofPreviewUrl.value = imagePreviewUrl || "";
 };
 
 const closeSuccessDialog = () => {
@@ -693,7 +708,8 @@ const resetForm = () => {
   nameSuggestions.value = [];
   phoneSuggestions.value = [];
   proofFile.value = null;
-  proofDataUrl.value = "";
+  proofKey.value = "";
+  proofPreviewUrl.value = "";
   proofRequiredError.value = false;
   quantityError.value = "";
   paymentFieldsRef.value?.reset?.();
@@ -730,7 +746,7 @@ const submitSale = async () => {
       productId: form.productId,
       quantity,
       method,
-      proofReference: needsProof ? proofDataUrl.value || undefined : undefined,
+      proofReference: needsProof ? proofKey.value || undefined : undefined,
     });
 
     const payment = Array.isArray(sale?.payments) ? sale.payments[0] : null;
@@ -754,6 +770,7 @@ const submitSale = async () => {
       unitPrice: lineUnitPrice,
       totalAmount: Number(sale?.totalAmount ?? totalAmount),
       methodLabel: METHOD_LABELS[method] || method,
+      proofImage: needsProof ? proofPreviewUrl.value || "" : "",
     };
     successDialogVisible.value = true;
 

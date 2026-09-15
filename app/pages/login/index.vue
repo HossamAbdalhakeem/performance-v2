@@ -75,8 +75,6 @@
                 <button type="button" class="text-sky-700 hover:underline">نسيت كلمة المرور؟</button>
               </div>
 
-              <p v-if="loginError" class="rounded-xl bg-red-50 px-3 py-2 text-sm text-red-600">{{ loginError }}</p>
-
               <Button type="submit" class="w-full justify-center" :loading="authStore.loading" severity="info" size="large">
                 {{ authStore.loading ? "جاري تسجيل الدخول..." : "تسجيل الدخول" }}
               </Button>
@@ -104,10 +102,11 @@ import Password from "primevue/password";
 import Checkbox from "primevue/checkbox";
 import Button from "primevue/button";
 import { useAuthStore } from "~/store/auth.js";
+import { useAppToast } from "~/composables/useAppToast";
 
 const authStore = useAuthStore();
+const { showError } = useAppToast();
 const rememberMe = ref(false);
-const loginError = ref("");
 const form = reactive({
   email: "admin@library.local",
   password: "Password123!",
@@ -124,8 +123,6 @@ definePageMeta({
 });
 
 const submitLogin = async () => {
-  loginError.value = "";
-
   try {
     await authStore.login({
       email: form.email,
@@ -133,7 +130,7 @@ const submitLogin = async () => {
       remember: rememberMe.value,
     });
   } catch (error) {
-    loginError.value = error?.message || "تعذر تسجيل الدخول.";
+    showError(error?.message || "تعذر تسجيل الدخول.");
   }
 };
 </script>

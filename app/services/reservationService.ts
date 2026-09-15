@@ -43,10 +43,13 @@ export const reservationService = {
   },
 
   async deliverReservation(id: string, payload: Record<string, any> = {}) {
-    const method = String(payload.method || payload.payment_method || "CASH").toUpperCase();
-    const body: Record<string, any> = {
-      method: PAYMENT_METHODS.has(method) ? method : "CASH",
-    };
+    const body: Record<string, any> = {};
+
+    const methodRaw = payload.method ?? payload.payment_method;
+    if (methodRaw != null && String(methodRaw).trim() !== "") {
+      const method = String(methodRaw).toUpperCase();
+      body.method = PAYMENT_METHODS.has(method) ? method : "CASH";
+    }
 
     const proofReference =
       payload.proofReference || payload.proof_reference || payload.note;

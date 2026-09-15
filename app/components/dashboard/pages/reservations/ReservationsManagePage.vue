@@ -91,11 +91,18 @@ const formatMoney = (value) => `${Number(value || 0).toFixed(2)} ج.م`;
 
 const normalizeReservation = (item) => {
   const meta = STATUS_META[item.status] || { label: item.status || "-", severity: "secondary" };
+  const sellingPrice = Number(
+    item.product?.sellingPrice ??
+      item.product?.selling_price ??
+      item.reservationPrice ??
+      0,
+  );
   return {
     ...item,
     studentName: item.student?.name || "-",
     productName: item.product?.name || "-",
     branchName: item.branch?.name || "-",
+    sellingPriceLabel: sellingPrice > 0 ? formatMoney(sellingPrice) : "—",
     paidAmountLabel: formatMoney(item.paidAmount),
     statusLabel: meta.label,
     statusSeverity: meta.severity,
