@@ -9,17 +9,7 @@
       </template>
       <template #content>
         <div class="mb-5 grid gap-3 md:grid-cols-2">
-          <div class="flex flex-col gap-2 text-right">
-            <label class="text-sm font-medium text-slate-700">بحث</label>
-            <IconField>
-              <InputIcon class="pi pi-search" />
-              <InputText
-                v-model="filters.searchInput"
-                class="w-full"
-                placeholder="تصنيف / وصف / فرع"
-              />
-            </IconField>
-          </div>
+          <SearchInput placeholder="تصنيف / وصف / فرع" @search="onSearch" />
           <div class="flex flex-col gap-2 text-right">
             <label class="text-sm font-medium text-slate-700">الفرع</label>
             <Select
@@ -31,12 +21,20 @@
               showClear
               filter
               class="w-full"
-              @update:modelValue="loadData"
+              @update:modelValue="onBranchChange"
             />
           </div>
         </div>
 
-        <ExpensesTable :expenses="expenses" :loading="loading" @edit="openEdit" />
+        <ExpensesTable
+          :expenses="expenses"
+          :loading="loading"
+          :rows="pagination.perPage"
+          :first="pagination.first"
+          :total-records="pagination.total"
+          @edit="openEdit"
+          @page="onPage"
+        />
       </template>
     </Card>
 
@@ -54,16 +52,13 @@
 <script setup>
 import Card from "primevue/card";
 import Button from "primevue/button";
-import InputText from "primevue/inputtext";
 import Select from "primevue/select";
-import IconField from "primevue/iconfield";
-import InputIcon from "primevue/inputicon";
 import EntityDrawer from "~/components/dashboard/EntityDrawer.vue";
+import SearchInput from "~/components/shared/search-input/index.vue";
 import ExpensesTable from "~/components/dashboard/pages/expenses/ExpensesTable.vue";
 import ExpenseForm from "~/components/dashboard/pages/expenses/ExpenseForm.vue";
 import { expenseService } from "~/services/expenseService";
 import { branchService } from "~/services/branchService";
-import { useThrottledCallback } from "~/composables/useThrottledCallback";
 import { useAppToast } from "~/composables/useAppToast";
 
 const { showError, showSuccess } = useAppToast();
@@ -73,9 +68,14 @@ const editingItem = ref(null);
 const expenses = ref([]);
 const branchOptions = ref([]);
 const filters = reactive({
-  searchInput: "",
   search: "",
   branchId: null,
+});
+const pagination = reactive({
+  page: 1,
+  perPage: 20,
+  total: 0,
+  first: 0,
 });
 const drawerTitle = computed(() =>
   editingItem.value?.id ? "تعديل المصروف" : "إضافة مصروف",
@@ -100,10 +100,25 @@ const normalizeExpense = (expense) => ({
 });
 
 const buildQuery = () => {
-  const params = {};
+  const params = {
+    page: pagination.page,
+    per_page: pagination.perPage,
+  };
   if (filters.search?.trim()) params.search = filters.search.trim();
   if (filters.branchId) params.branchId = filters.branchId;
   return params;
+};
+
+const resetPagination = () => {
+  pagination.page = 1;
+  pagination.first = 0;
+};
+
+const onPage = (event) => {
+  pagination.page = event.page + 1;
+  pagination.perPage = event.rows;
+  pagination.first = event.first;
+  loadData();
 };
 
 const loadBranches = async () => {
@@ -118,27 +133,28 @@ const loadBranches = async () => {
 const loadData = async () => {
   loading.value = true;
   try {
-    const items = await expenseService.getExpenses(buildQuery());
-    expenses.value = (items || []).map(normalizeExpense);
+    const result = await expenseService.getExpenses(buildQuery());
+    expenses.value = result.data.map(normalizeExpense);
+    pagination.total = result.pagination.total;
   } catch (error) {
     showError(error?.message || "تعذر تحميل المصروفات.");
     expenses.value = [];
+    pagination.total = 0;
   } finally {
     loading.value = false;
   }
 };
 
-const { run: runThrottledSearch } = useThrottledCallback(() => {
-  filters.search = filters.searchInput;
+const onSearch = (value) => {
+  filters.search = value;
+  resetPagination();
   loadData();
-}, 400);
+};
 
-watch(
-  () => filters.searchInput,
-  () => {
-    runThrottledSearch();
-  },
-);
+const onBranchChange = () => {
+  resetPagination();
+  loadData();
+};
 
 const openCreate = () => {
   editingItem.value = null;

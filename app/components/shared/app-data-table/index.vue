@@ -16,11 +16,15 @@
       :value="value"
       :paginator="paginator"
       :rows="rows"
+      :lazy="lazy"
+      :first="first"
+      :total-records="totalRecords"
       :row-class="rowClass"
       :table-style="tableStyle"
       class="app-data-table"
       size="small"
       striped-rows
+      @page="onPage"
     >
       <template #empty>
         <div class="app-data-table-empty">
@@ -81,11 +85,20 @@ const props = defineProps({
   loading: { type: Boolean, default: false },
   emptyMessage: { type: String, default: "لا توجد بيانات." },
   paginator: { type: Boolean, default: false },
-  rows: { type: Number, default: 10 },
+  rows: { type: Number, default: 20 },
+  lazy: { type: Boolean, default: false },
+  first: { type: Number, default: 0 },
+  totalRecords: { type: Number, default: 0 },
   tableStyle: { type: String, default: "min-width: 100%" },
   rowClass: { type: [Function, String, Object], default: undefined },
   skeletonRows: { type: Number, default: 5 },
 });
+
+const emit = defineEmits(["page"]);
+
+const onPage = (event) => {
+  emit("page", event);
+};
 
 const attrs = useAttrs();
 const slots = useSlots();

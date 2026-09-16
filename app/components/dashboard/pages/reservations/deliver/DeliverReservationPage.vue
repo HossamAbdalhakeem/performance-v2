@@ -1,10 +1,11 @@
 <template>
   <div class="space-y-4 bg-[#0f172a] p-4 text-right text-slate-100" dir="rtl">
     <div class="relative w-full max-w-xl">
-      <InputText
-        v-model="search"
-        placeholder="🔍 ابحث باسم الطالب أو رقم الموبايل أو رقم الحجز"
-        class="w-full rounded-xl border border-slate-700 bg-slate-900 text-right text-slate-100 placeholder:text-slate-400"
+      <SearchInput
+        label=""
+        variant="dark"
+        placeholder="ابحث باسم الطالب أو رقم الموبايل أو رقم الحجز"
+        @search="search = $event"
       />
     </div>
 
@@ -237,8 +238,8 @@
 <script setup>
 import Button from "primevue/button";
 import Dialog from "primevue/dialog";
-import InputText from "primevue/inputtext";
 import AppDataTable from "~/components/shared/app-data-table/index.vue";
+import SearchInput from "~/components/shared/search-input/index.vue";
 import PaymentFields from "~/components/shared/payment-fields/index.vue";
 import { reservationService } from "~/services/reservationService";
 import { useAppToast } from "~/composables/useAppToast";
@@ -462,8 +463,8 @@ const loadReservations = async () => {
   loading.value = true;
 
   try {
-    const items = await reservationService.getReservations();
-    const list = Array.isArray(items) ? items : items?.data || [];
+    const result = await reservationService.getReservations({ per_page: 200 });
+    const list = result.data || [];
     reservations.value = list
       .map(normalizeReservation)
       .filter((item) => item.status !== "DELIVERED" && item.status !== "CANCELLED");

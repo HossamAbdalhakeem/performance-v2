@@ -15,17 +15,7 @@
 
       <template #content>
         <div class="mb-5 grid gap-3 md:grid-cols-2">
-          <div class="flex flex-col gap-2 text-right">
-            <label class="text-sm font-medium text-slate-700">بحث</label>
-            <IconField>
-              <InputIcon class="pi pi-search" />
-              <InputText
-                v-model="filters.searchInput"
-                class="w-full"
-                placeholder="ابحث باسم المدرس"
-              />
-            </IconField>
-          </div>
+          <SearchInput placeholder="ابحث باسم المدرس" @search="onSearch" />
 
           <div class="flex flex-col gap-2 text-right">
             <label class="text-sm font-medium text-slate-700">الحالة</label>
@@ -72,14 +62,11 @@
 import Card from "primevue/card";
 import Button from "primevue/button";
 import Drawer from "primevue/drawer";
-import InputText from "primevue/inputtext";
 import Select from "primevue/select";
-import IconField from "primevue/iconfield";
-import InputIcon from "primevue/inputicon";
+import SearchInput from "~/components/shared/search-input/index.vue";
 import TeachersTable from "~/components/dashboard/pages/teachers/TeachersTable.vue";
 import TeacherForm from "~/components/dashboard/pages/teachers/TeacherForm.vue";
 import { teacherService } from "~/services/teacherService";
-import { useThrottledCallback } from "~/composables/useThrottledCallback";
 import { useAppToast } from "~/composables/useAppToast";
 
 const { showError, showSuccess } = useAppToast();
@@ -88,7 +75,6 @@ const drawerVisible = ref(false);
 const editingTeacher = ref(null);
 const teachers = ref([]);
 const filters = reactive({
-  searchInput: "",
   search: "",
   status: null,
 });
@@ -130,17 +116,10 @@ const loadTeachers = async () => {
   }
 };
 
-const { run: runThrottledSearch } = useThrottledCallback(() => {
-  filters.search = filters.searchInput;
+const onSearch = (value) => {
+  filters.search = value;
   loadTeachers();
-}, 400);
-
-watch(
-  () => filters.searchInput,
-  () => {
-    runThrottledSearch();
-  },
-);
+};
 
 const openCreate = () => {
   editingTeacher.value = null;

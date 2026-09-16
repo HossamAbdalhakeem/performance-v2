@@ -6,17 +6,7 @@
       </template>
       <template #content>
         <div class="mb-5 grid gap-3 md:grid-cols-2">
-          <div class="flex flex-col gap-2 text-right">
-            <label class="text-sm font-medium text-slate-700">بحث</label>
-            <IconField>
-              <InputIcon class="pi pi-search" />
-              <InputText
-                v-model="filters.searchInput"
-                class="w-full"
-                placeholder="رقم الحجز / طالب / منتج"
-              />
-            </IconField>
-          </div>
+          <SearchInput placeholder="رقم الحجز / طالب / منتج" @search="onSearch" />
           <div class="flex flex-col gap-2 text-right">
             <label class="text-sm font-medium text-slate-700">الحالة</label>
             <Select
@@ -27,7 +17,7 @@
               placeholder="كل الحالات"
               show-clear
               class="w-full"
-              @update:modelValue="loadData"
+              @update:modelValue="onStatusChange"
             />
           </div>
         </div>
@@ -35,8 +25,12 @@
         <ReservationsTable
           :reservations="reservations"
           :loading="loading"
+          :rows="pagination.perPage"
+          :first="pagination.first"
+          :total-records="pagination.total"
           @change-product="openExchangeDialog"
           @cancel="openCancelDialog"
+          @page="onPage"
         />
       </template>
     </Card>
@@ -529,15 +523,12 @@
 import Button from "primevue/button";
 import Card from "primevue/card";
 import Dialog from "primevue/dialog";
-import InputText from "primevue/inputtext";
 import Select from "primevue/select";
-import IconField from "primevue/iconfield";
-import InputIcon from "primevue/inputicon";
 import ReservationsTable from "~/components/dashboard/pages/reservations/ReservationsTable.vue";
 import PaymentFields from "~/components/shared/payment-fields/index.vue";
+import SearchInput from "~/components/shared/search-input/index.vue";
 import { inventoryService } from "~/services/inventoryService";
 import { reservationService } from "~/services/reservationService";
-import { useThrottledCallback } from "~/composables/useThrottledCallback";
 import { useAppToast } from "~/composables/useAppToast";
 
 defineOptions({ name: "ReservationsManagePage" });
@@ -565,9 +556,14 @@ const exchangeRefundMethod = ref("CASH");
 const exchangeImage = ref(null);
 const exchangeProofKey = ref("");
 const filters = reactive({
-  searchInput: "",
   search: "",
   status: null,
+});
+const pagination = reactive({
+  page: 1,
+  perPage: 20,
+  total: 0,
+  first: 0,
 });
 
 const cancelDetailVisible = ref(false);
@@ -729,36 +725,52 @@ const mapInventoryProductOption = (item) => {
 };
 
 const buildQuery = () => {
-  const params = {};
+  const params = {
+    page: pagination.page,
+    per_page: pagination.perPage,
+  };
   if (filters.search?.trim()) params.search = filters.search.trim();
   if (filters.status) params.status = filters.status;
   return params;
 };
 
+const resetPagination = () => {
+  pagination.page = 1;
+  pagination.first = 0;
+};
+
 const loadData = async () => {
   loading.value = true;
   try {
-    const items = await reservationService.getReservations(buildQuery());
-    reservations.value = (items || []).map(normalizeReservation);
+    const result = await reservationService.getReservations(buildQuery());
+    reservations.value = result.data.map(normalizeReservation);
+    pagination.total = result.pagination.total;
   } catch (error) {
     showError(error?.message || "تعذر تحميل الحجوزات.");
     reservations.value = [];
+    pagination.total = 0;
   } finally {
     loading.value = false;
   }
 };
 
-const { run: runThrottledSearch } = useThrottledCallback(() => {
-  filters.search = filters.searchInput;
+const onPage = (event) => {
+  pagination.page = event.page + 1;
+  pagination.perPage = event.rows;
+  pagination.first = event.first;
   loadData();
-}, 400);
+};
 
-watch(
-  () => filters.searchInput,
-  () => {
-    runThrottledSearch();
-  },
-);
+const onSearch = (value) => {
+  filters.search = value;
+  resetPagination();
+  loadData();
+};
+
+const onStatusChange = () => {
+  resetPagination();
+  loadData();
+};
 
 const loadProducts = async () => {
   loadingProducts.value = true;

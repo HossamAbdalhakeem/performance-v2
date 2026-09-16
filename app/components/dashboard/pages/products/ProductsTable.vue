@@ -4,8 +4,12 @@
     :columns="columns"
     :loading="loading"
     paginator
-    :rows="10"
+    lazy
+    :rows="rows"
+    :first="first"
+    :total-records="totalRecords"
     empty-message="لا توجد منتجات."
+    @page="$emit('page', $event)"
   >
     <template #actions="{ data }">
       <Button
@@ -27,9 +31,12 @@ import AppDataTable from "~/components/shared/app-data-table/index.vue";
 defineProps({
   products: { type: Array, default: () => [] },
   loading: { type: Boolean, default: false },
+  rows: { type: Number, default: 20 },
+  first: { type: Number, default: 0 },
+  totalRecords: { type: Number, default: 0 },
 });
 
-defineEmits(["edit"]);
+defineEmits(["edit", "page"]);
 
 const columns = [
   { field: "name", header: "اسم المنتج" },

@@ -1,4 +1,11 @@
-import { apiFetch, firstRow, asList } from "~/utils/apiFetch";
+import {
+  apiFetch,
+  firstRow,
+  asList,
+  asData,
+  asPaginated,
+  type PaginatedResponse,
+} from "~/utils/apiFetch";
 
 const studentBody = (payload: Record<string, any>) => {
   const body: Record<string, any> = {
@@ -9,21 +16,44 @@ const studentBody = (payload: Record<string, any>) => {
     body.phone = payload.phone;
   }
 
+  if (payload.studyYearId ?? payload.study_year_id) {
+    body.studyYearId = payload.studyYearId ?? payload.study_year_id;
+  }
+
   return body;
 };
 
 export const studentService = {
-  async getStudents(params: Record<string, any> = {}) {
-    return asList(await apiFetch("/students", { method: "GET", params }));
+  async getStudents(
+    params: Record<string, any> = {},
+  ): Promise<PaginatedResponse> {
+    return asPaginated(await apiFetch("/students", { method: "GET", params }));
   },
 
-  async searchStudents(search = "") {
+  async searchStudents(search = "", params: Record<string, any> = {}) {
     const term = String(search || "").trim();
-    return this.getStudents(term ? { search: term } : {});
+    const result = await this.getStudents({
+      per_page: term ? 50 : 100,
+      ...params,
+      ...(term ? { search: term } : {}),
+    });
+    return result.data;
   },
 
   async getStudent(id: string) {
     return firstRow(await apiFetch(`/students/${id}`, { method: "GET" }));
+  },
+
+  async getStudentTransactions(
+    id: string,
+    params: Record<string, any> = {},
+  ) {
+    return asData(
+      await apiFetch(`/students/${id}/transactions`, {
+        method: "GET",
+        params,
+      }),
+    );
   },
 
   async createStudent(payload: Record<string, any>) {

@@ -9,24 +9,23 @@
       </template>
       <template #content>
         <div class="mb-5">
-          <div class="flex flex-col gap-2 text-right md:max-w-sm">
-            <label class="text-sm font-medium text-slate-700">بحث</label>
-            <IconField>
-              <InputIcon class="pi pi-search" />
-              <InputText
-                v-model="filters.searchInput"
-                class="w-full"
-                placeholder="اسم / هاتف"
-              />
-            </IconField>
-          </div>
+          <SearchInput
+            placeholder="اسم / هاتف"
+            wrapper-class="md:max-w-sm"
+            @search="onSearch"
+          />
         </div>
 
         <StudentsTable
           :students="students"
           :loading="loading"
+          :rows="pagination.perPage"
+          :first="pagination.first"
+          :total-records="pagination.total"
           @edit="openEdit"
           @deactivate="handleDeactivate"
+          @transactions="openTransactions"
+          @page="onPage"
         />
       </template>
     </Card>
@@ -39,30 +38,41 @@
         @cancel="drawerVisible = false"
       />
     </EntityDrawer>
+
+    <StudentTransactionsDialog
+      v-model:visible="transactionsVisible"
+      :student="transactionsStudent"
+      @hide="transactionsStudent = null"
+    />
   </div>
 </template>
 
 <script setup>
 import Card from "primevue/card";
 import Button from "primevue/button";
-import InputText from "primevue/inputtext";
-import IconField from "primevue/iconfield";
-import InputIcon from "primevue/inputicon";
 import EntityDrawer from "~/components/dashboard/EntityDrawer.vue";
+import SearchInput from "~/components/shared/search-input/index.vue";
 import StudentsTable from "~/components/dashboard/pages/students/StudentsTable.vue";
 import StudentForm from "~/components/dashboard/pages/students/StudentForm.vue";
+import StudentTransactionsDialog from "~/components/dashboard/pages/students/StudentTransactionsDialog.vue";
 import { studentService } from "~/services/studentService";
-import { useThrottledCallback } from "~/composables/useThrottledCallback";
 import { useAppToast } from "~/composables/useAppToast";
 
 const { showError, showSuccess } = useAppToast();
 const loading = ref(true);
 const drawerVisible = ref(false);
+const transactionsVisible = ref(false);
 const editingItem = ref(null);
+const transactionsStudent = ref(null);
 const students = ref([]);
 const filters = reactive({
-  searchInput: "",
   search: "",
+});
+const pagination = reactive({
+  page: 1,
+  perPage: 20,
+  total: 0,
+  first: 0,
 });
 const drawerTitle = computed(() =>
   editingItem.value?.id ? "تعديل الطالب" : "إضافة طالب",
@@ -72,6 +82,7 @@ const normalizeStudent = (student) => ({
   ...student,
   name: student.name || "-",
   phone: student.phone || "-",
+  studyYearName: student.studyYear?.name || "-",
   statusLabel: student.status === "INACTIVE" ? "غير نشط" : "نشط",
   statusSeverity: student.status === "INACTIVE" ? "danger" : "success",
 });
@@ -79,27 +90,39 @@ const normalizeStudent = (student) => ({
 const loadData = async () => {
   loading.value = true;
   try {
-    const list = await studentService.searchStudents(filters.search);
-    students.value = list.map(normalizeStudent);
+    const result = await studentService.getStudents({
+      ...(filters.search?.trim() ? { search: filters.search.trim() } : {}),
+      page: pagination.page,
+      per_page: pagination.perPage,
+    });
+    students.value = result.data.map(normalizeStudent);
+    pagination.total = result.pagination.total;
   } catch (error) {
     showError(error?.message || "تعذر تحميل الطلاب.");
     students.value = [];
+    pagination.total = 0;
   } finally {
     loading.value = false;
   }
 };
 
-const { run: runThrottledSearch } = useThrottledCallback(() => {
-  filters.search = filters.searchInput;
-  loadData();
-}, 400);
+const resetPagination = () => {
+  pagination.page = 1;
+  pagination.first = 0;
+};
 
-watch(
-  () => filters.searchInput,
-  () => {
-    runThrottledSearch();
-  },
-);
+const onPage = (event) => {
+  pagination.page = event.page + 1;
+  pagination.perPage = event.rows;
+  pagination.first = event.first;
+  loadData();
+};
+
+const onSearch = (value) => {
+  filters.search = value;
+  resetPagination();
+  loadData();
+};
 
 const openCreate = () => {
   editingItem.value = null;
@@ -109,6 +132,11 @@ const openCreate = () => {
 const openEdit = (item) => {
   editingItem.value = item;
   drawerVisible.value = true;
+};
+
+const openTransactions = (item) => {
+  transactionsStudent.value = item;
+  transactionsVisible.value = true;
 };
 
 const handleSaved = async () => {

@@ -416,6 +416,7 @@ import PaymentFields from "~/components/shared/payment-fields/index.vue";
 import { Form, Field, ErrorMessage } from "vee-validate";
 import { inventoryService } from "~/services/inventoryService";
 import { studentService } from "~/services/studentService";
+import { studyYearService } from "~/services/studyYearService";
 import { branchService } from "~/services/branchService";
 import { useAuthStore } from "~/store/auth";
 import { useThrottledCallback } from "~/composables/useThrottledCallback";
@@ -570,6 +571,11 @@ const productOptions = computed(() =>
         ? `${name} · ${availabilityLabel} · ${priceKindLabel} ${priceLabel}`
         : `${name} · ${availabilityLabel}`,
       value: product.id || item.productId,
+      studyYearId:
+        product.studyYearId ||
+        product.study_year_id ||
+        product.studyYear?.id ||
+        null,
       sellingPrice: displayPrice,
     };
   }),
@@ -789,7 +795,15 @@ const ensureStudent = async () => {
     return existing.id;
   }
 
-  const created = await studentService.createStudent({ name, phone });
+  const studyYearId =
+    selectedProductOption.value?.studyYearId ||
+    (await studyYearService.getStudyYears())?.[0]?.id;
+
+  if (!studyYearId) {
+    throw new Error("تعذر تحديد السنة الدراسية للطالب الجديد.");
+  }
+
+  const created = await studentService.createStudent({ name, phone, studyYearId });
   if (!created?.id) {
     throw new Error("تعذر إضافة الطالب الجديد.");
   }

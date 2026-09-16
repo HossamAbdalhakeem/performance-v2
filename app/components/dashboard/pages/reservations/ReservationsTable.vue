@@ -4,8 +4,12 @@
     :columns="columns"
     :loading="loading"
     paginator
-    :rows="10"
+    lazy
+    :rows="rows"
+    :first="first"
+    :total-records="totalRecords"
     empty-message="لا توجد حجوزات."
+    @page="$emit('page', $event)"
   >
     <template #sellingPriceLabel="{ data }">
       <span
@@ -72,9 +76,12 @@ import AppDataTable from "~/components/shared/app-data-table/index.vue";
 defineProps({
   reservations: { type: Array, default: () => [] },
   loading: { type: Boolean, default: false },
+  rows: { type: Number, default: 20 },
+  first: { type: Number, default: 0 },
+  totalRecords: { type: Number, default: 0 },
 });
 
-defineEmits(["change-product", "cancel"]);
+defineEmits(["change-product", "cancel", "page"]);
 
 const columns = [
   { field: "reservationNumber", header: "رقم الحجز" },

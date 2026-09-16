@@ -1,4 +1,4 @@
-import { apiFetch, firstRow } from "~/utils/apiFetch";
+import { apiFetch, firstRow, asPaginated, type PaginatedResponse } from "~/utils/apiFetch";
 
 const productBody = (payload: Record<string, any>) => {
   const purchasePrice = Number(payload.purchasePrice ?? payload.wholesale_price);
@@ -62,8 +62,8 @@ const statusBody = (payload: Record<string, any>) => {
 };
 
 export const productService = {
-  async getProducts(params: Record<string, any> = {}) {
-    return await apiFetch("/products", { method: "GET", params });
+  async getProducts(params: Record<string, any> = {}): Promise<PaginatedResponse> {
+    return asPaginated(await apiFetch("/products", { method: "GET", params }));
   },
 
   async getProduct(id: string) {

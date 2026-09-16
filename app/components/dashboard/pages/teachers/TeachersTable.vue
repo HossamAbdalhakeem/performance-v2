@@ -4,7 +4,7 @@
     :columns="columns"
     :loading="loading"
     paginator
-    :rows="10"
+    :rows="20"
     empty-message="لا يوجد مدرسون."
   >
     <template #status="{ data }">

@@ -9,13 +9,11 @@
       </template>
       <template #content>
         <div class="mb-5">
-          <div class="flex flex-col gap-2 text-right md:max-w-sm">
-            <label class="text-sm font-medium text-slate-700">بحث</label>
-            <IconField>
-              <InputIcon class="pi pi-search" />
-              <InputText v-model="searchInput" class="w-full" placeholder="ابحث بالاسم" />
-            </IconField>
-          </div>
+          <SearchInput
+            placeholder="ابحث بالاسم"
+            wrapper-class="md:max-w-sm"
+            @search="search = $event"
+          />
         </div>
 
         <StudyYearsTable :study-years="filteredYears" :loading="loading" @edit="openEdit" />
@@ -39,10 +37,8 @@
 <script setup>
 import Card from "primevue/card";
 import Button from "primevue/button";
-import InputText from "primevue/inputtext";
-import IconField from "primevue/iconfield";
-import InputIcon from "primevue/inputicon";
 import EntityDrawer from "~/components/dashboard/EntityDrawer.vue";
+import SearchInput from "~/components/shared/search-input/index.vue";
 import StudyYearsTable from "~/components/dashboard/pages/study-years/StudyYearsTable.vue";
 import StudyYearForm from "~/components/dashboard/pages/study-years/StudyYearForm.vue";
 import { studyYearService } from "~/services/studyYearService";
@@ -53,13 +49,13 @@ const loading = ref(true);
 const drawerVisible = ref(false);
 const editingItem = ref(null);
 const studyYears = ref([]);
-const searchInput = ref("");
+const search = ref("");
 const drawerTitle = computed(() =>
   editingItem.value?.id ? "تعديل السنة الدراسية" : "إضافة سنة دراسية",
 );
 
 const filteredYears = computed(() => {
-  const q = searchInput.value.trim().toLowerCase();
+  const q = search.value.trim().toLowerCase();
   if (!q) return studyYears.value;
   return studyYears.value.filter((item) => String(item.name || "").toLowerCase().includes(q));
 });

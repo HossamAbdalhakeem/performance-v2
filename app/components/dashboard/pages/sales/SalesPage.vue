@@ -369,6 +369,7 @@ import { Form, Field, ErrorMessage } from "vee-validate";
 import { saleService } from "~/services/saleService";
 import { inventoryService } from "~/services/inventoryService";
 import { studentService } from "~/services/studentService";
+import { studyYearService } from "~/services/studyYearService";
 import { useAuthStore } from "~/store/auth";
 import { useThrottledCallback } from "~/composables/useThrottledCallback";
 import { useAppToast } from "~/composables/useAppToast";
@@ -454,6 +455,11 @@ const productOptions = computed(() =>
       availableQuantity,
       label: `${name} · متاح ${availableQuantity} · سعره ${priceLabel}`,
       value: product.id || item.productId,
+      studyYearId:
+        product.studyYearId ||
+        product.study_year_id ||
+        product.studyYear?.id ||
+        null,
       sellingPrice: Number(product.sellingPrice || 0),
     };
   })
@@ -680,7 +686,15 @@ const ensureStudent = async () => {
     return existing.id;
   }
 
-  const created = await studentService.createStudent({ name, phone });
+  const studyYearId =
+    selectedProductOption.value?.studyYearId ||
+    (await studyYearService.getStudyYears())?.[0]?.id;
+
+  if (!studyYearId) {
+    throw new Error("تعذر تحديد السنة الدراسية للطالب الجديد.");
+  }
+
+  const created = await studentService.createStudent({ name, phone, studyYearId });
   if (!created?.id) {
     throw new Error("تعذر إضافة الطالب الجديد.");
   }

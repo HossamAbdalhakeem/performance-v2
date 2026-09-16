@@ -62,8 +62,8 @@ const initialValues = { newProductId: null };
 
 const loadProducts = async () => {
   try {
-    const items = await productService.getProducts();
-    const list = Array.isArray(items) ? items : items?.data || [];
+    const result = await productService.getProducts({ per_page: 200 });
+    const list = result.data || [];
     productOptions.value = list
       .filter((product) => product.reservationAllowed !== false)
       .map((product) => {

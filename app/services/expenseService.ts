@@ -1,4 +1,10 @@
-import { apiFetch, firstRow, asList } from "~/utils/apiFetch";
+import {
+  apiFetch,
+  firstRow,
+  asList,
+  asPaginated,
+  type PaginatedResponse,
+} from "~/utils/apiFetch";
 
 const expenseBody = (payload: Record<string, any>) => {
   const body: Record<string, any> = {
@@ -44,8 +50,8 @@ export const expenseService = {
     );
   },
 
-  async getExpenses(params: Record<string, any> = {}) {
-    return asList(await apiFetch("/expenses", { method: "GET", params }));
+  async getExpenses(params: Record<string, any> = {}): Promise<PaginatedResponse> {
+    return asPaginated(await apiFetch("/expenses", { method: "GET", params }));
   },
 
   async getExpense(id: string) {

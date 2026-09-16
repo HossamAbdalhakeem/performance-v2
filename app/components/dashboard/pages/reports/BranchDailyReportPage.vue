@@ -376,7 +376,7 @@
         :columns="activeDetail.columns"
         :loading="detailLoading"
         paginator
-        :rows="10"
+        :rows="20"
         :empty-message="activeDetail.emptyMessage"
       />
     </Dialog>

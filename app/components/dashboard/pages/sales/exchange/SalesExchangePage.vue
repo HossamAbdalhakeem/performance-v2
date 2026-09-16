@@ -6,17 +6,10 @@
       </template>
       <template #content>
         <div class="mb-5 grid gap-3 md:grid-cols-2">
-          <div class="flex flex-col gap-2 text-right">
-            <label class="text-sm font-medium text-slate-700">بحث</label>
-            <IconField>
-              <InputIcon class="pi pi-search" />
-              <InputText
-                v-model="filters.searchInput"
-                class="w-full"
-                placeholder="رقم العملية / طالب / منتج / موبايل"
-              />
-            </IconField>
-          </div>
+          <SearchInput
+            placeholder="رقم العملية / طالب / منتج / موبايل"
+            @search="onSearch"
+          />
           <div class="flex flex-col gap-2 text-right">
             <label class="text-sm font-medium text-slate-700">الحالة</label>
             <Select
@@ -516,17 +509,14 @@
 import Button from "primevue/button";
 import Card from "primevue/card";
 import Dialog from "primevue/dialog";
-import InputText from "primevue/inputtext";
 import Select from "primevue/select";
-import IconField from "primevue/iconfield";
-import InputIcon from "primevue/inputicon";
 import SalesExchangeTable from "~/components/dashboard/pages/sales/exchange/SalesExchangeTable.vue";
 import PaymentFields from "~/components/shared/payment-fields/index.vue";
+import SearchInput from "~/components/shared/search-input/index.vue";
 import { exchangeService } from "~/services/exchangeService";
 import { inventoryService } from "~/services/inventoryService";
 import { returnService } from "~/services/returnService";
 import { saleService } from "~/services/saleService";
-import { useThrottledCallback } from "~/composables/useThrottledCallback";
 import { useAppToast } from "~/composables/useAppToast";
 
 defineOptions({ name: "SalesExchangePage" });
@@ -556,7 +546,6 @@ const exchangeError = ref("");
 const exchangePaymentError = ref("");
 const refundError = ref("");
 const filters = reactive({
-  searchInput: "",
   search: "",
   status: null,
 });
@@ -769,17 +758,10 @@ const loadData = async () => {
   }
 };
 
-const { run: runThrottledSearch } = useThrottledCallback(() => {
-  filters.search = filters.searchInput;
+const onSearch = (value) => {
+  filters.search = value;
   loadData();
-}, 400);
-
-watch(
-  () => filters.searchInput,
-  () => {
-    runThrottledSearch();
-  },
-);
+};
 
 const loadProducts = async () => {
   loadingProducts.value = true;

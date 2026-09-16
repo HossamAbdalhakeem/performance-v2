@@ -58,11 +58,35 @@ export const asData = <T = any>(response: any): T => {
   return response as T;
 };
 
+export type PaginationMeta = {
+  total: number;
+  current_page: number;
+  to: number;
+  per_page: number;
+};
+
+export type PaginatedResponse<T = any> = {
+  data: T[];
+  pagination: PaginationMeta;
+};
+
 export const asList = <T = any>(response: any): T[] => {
   if (Array.isArray(response)) return response;
   if (Array.isArray(response?.data)) return response.data;
   return [];
 };
+
+export const asPaginated = <T = any>(
+  response: any,
+): PaginatedResponse<T> => ({
+  data: asList<T>(response),
+  pagination: response?.pagination || {
+    total: asList(response).length,
+    current_page: 1,
+    to: asList(response).length,
+    per_page: asList(response).length || 20,
+  },
+});
 
 export const firstRow = <T = any>(response: any): T | null => {
   const list = asList<T>(response);

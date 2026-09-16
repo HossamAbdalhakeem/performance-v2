@@ -142,10 +142,7 @@
               formatNumber(salesBreakdown.netProfit)
             }}</strong>
           </p>
-          <p class="pt-1 text-xs text-slate-500">
-            صافي المدفوعات بعد الاسترداد:
-            {{ formatMoney(summary.paymentsTotal) }}
-          </p>
+         
         </div>
       </div>
 
@@ -300,11 +297,11 @@ const loadFilters = async () => {
   try {
     const [branches, products] = await Promise.all([
       branchService.getBranches(),
-      productService.getProducts(),
+      productService.getProducts({ per_page: 200 }),
     ]);
 
     const branchList = Array.isArray(branches) ? branches : branches?.data || [];
-    const productList = Array.isArray(products) ? products : products?.data || [];
+    const productList = products.data || [];
 
     branchOptions.value = [
       { label: "كل الفروع", value: "all" },

@@ -18,14 +18,17 @@
         <div
           class="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between"
         >
-          <InputText
+          <SearchInput
             v-model="search"
-            placeholder="🔍 بحث عن كتاب أو أستاذ…"
-            class="w-[80%] rounded-xl border border-slate-700 bg-slate-900  text-right text-slate-100 placeholder:text-slate-400"
-            @update:modelValue="onSearchInput"
+            label=""
+            variant="dark"
+            placeholder="بحث عن كتاب أو أستاذ…"
+            input-class="w-[80%]"
+            :throttle-ms="350"
+            @search="(term) => searchBooks(term, true)"
           />
           <span class="text-sm text-slate-300 min-w-[110px]"
-            >إجمالي الكتب: {{ books.length }}</span
+            >إجمالي الكتب: {{ pagination.total }}</span
           >
         </div>
 
@@ -33,10 +36,16 @@
           :value="books"
           :columns="bookColumns"
           :loading="pending"
+          paginator
+          lazy
+          :rows="pagination.perPage"
+          :first="pagination.first"
+          :total-records="pagination.total"
           :row-class="getBookRowClass"
           :empty-message="emptyMessage"
           :skeleton-rows="4"
           @row-click="onBookRowClick"
+          @page="onPage"
         >
           <template #status="{ data }">
             <span
@@ -55,10 +64,9 @@
 <script setup>
 import Card from "primevue/card";
 import Button from "primevue/button";
-import InputText from "primevue/inputtext";
 import AppDataTable from "~/components/shared/app-data-table/index.vue";
+import SearchInput from "~/components/shared/search-input/index.vue";
 import { productService } from "~/services/productService";
-import { useThrottledCallback } from "~/composables/useThrottledCallback";
 import { useAppToast } from "~/composables/useAppToast";
 
 const { showError } = useAppToast();
@@ -66,6 +74,12 @@ const pending = ref(false);
 const search = ref("");
 const selectedId = ref("");
 const books = ref([]);
+const pagination = reactive({
+  page: 1,
+  perPage: 20,
+  total: 0,
+  first: 0,
+});
 
 const STATUS_META = {
   AVAILABLE: { label: "متاح", className: "bg-green-700 text-white" },
@@ -126,17 +140,24 @@ const normalizeBook = (item) => {
   };
 };
 
-const searchBooks = async (term = "") => {
+const searchBooks = async (term = search.value, resetPage = false) => {
   const query = String(term || "").trim();
+  if (resetPage) {
+    pagination.page = 1;
+    pagination.first = 0;
+  }
   pending.value = true;
 
   try {
-    const params = {};
+    const params = {
+      page: pagination.page,
+      per_page: pagination.perPage,
+    };
     if (query) params.search = query;
 
-    const items = await productService.getProducts(params);
-    const list = Array.isArray(items) ? items : items?.data || [];
-    books.value = list.map(normalizeBook);
+    const result = await productService.getProducts(params);
+    books.value = result.data.map(normalizeBook);
+    pagination.total = result.pagination.total;
 
     if (
       selectedId.value &&
@@ -146,21 +167,21 @@ const searchBooks = async (term = "") => {
     }
   } catch (error) {
     books.value = [];
+    pagination.total = 0;
     showError(error?.message || "تعذر البحث في الكتب.");
   } finally {
     pending.value = false;
   }
 };
 
-const { run: runSearch } = useThrottledCallback((term) => {
-  searchBooks(term);
-}, 350);
-
-const onSearchInput = (value) => {
-  runSearch(value || "");
+const onPage = (event) => {
+  pagination.page = event.page + 1;
+  pagination.perPage = event.rows;
+  pagination.first = event.first;
+  searchBooks(search.value);
 };
 
 onMounted(() => {
-  searchBooks("");
+  searchBooks("", true);
 });
 </script>

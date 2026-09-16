@@ -11,10 +11,11 @@
           class="space-y-5"
           @submit="submitSwap"
         >
-          <div>
-            <label class="mb-2 block text-right text-sm font-medium">بحث: رقم الحجز / رقم الموبايل</label>
-            <InputText v-model="reservationSearch" placeholder="🔍 رقم الحجز / رقم الموبايل" class="w-full" />
-          </div>
+          <SearchInput
+            label="بحث: رقم الحجز / رقم الموبايل"
+            placeholder="رقم الحجز / رقم الموبايل"
+            @search="reservationSearch = $event"
+          />
 
           <div v-if="loadingOptions" class="grid gap-3">
             <Skeleton width="100%" height="3.5rem" border-radius="12px" />
@@ -71,8 +72,8 @@
 <script setup>
 import Card from "primevue/card";
 import Button from "primevue/button";
-import InputText from "primevue/inputtext";
 import Select from "primevue/select";
+import SearchInput from "~/components/shared/search-input/index.vue";
 import Skeleton from "primevue/skeleton";
 import { Form, Field, ErrorMessage } from "vee-validate";
 import { reservationService } from "~/services/reservationService";
@@ -104,11 +105,11 @@ const selectedReservation = computed(() =>
 const loadOptions = async () => {
   try {
     const [reservations, teachers] = await Promise.all([
-      reservationService.getReservations(),
+      reservationService.getReservations({ per_page: 200 }),
       teacherService.getTeachers(),
     ]);
 
-    const reservationList = Array.isArray(reservations) ? reservations : reservations?.data || [];
+    const reservationList = reservations.data || [];
     const teacherList = Array.isArray(teachers) ? teachers : teachers?.data || [];
 
     reservationOptions.value = reservationList.map((item) => ({

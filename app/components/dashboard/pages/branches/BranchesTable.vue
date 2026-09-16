@@ -6,7 +6,7 @@
     :loading="loading"
     data-key="id"
     paginator
-    :rows="10"
+    :rows="20"
     empty-message="لا توجد فروع مسجلة."
   >
     <template #status="{ data }">

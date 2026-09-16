@@ -1,4 +1,10 @@
-import { apiFetch, firstRow, asList } from "~/utils/apiFetch";
+import {
+  apiFetch,
+  firstRow,
+  asList,
+  asPaginated,
+  type PaginatedResponse,
+} from "~/utils/apiFetch";
 
 const PAYMENT_METHODS = new Set(["CASH", "WALLET", "INSTAPAY"]);
 
@@ -25,8 +31,12 @@ const reservationBody = (payload: Record<string, any>) => {
 };
 
 export const reservationService = {
-  async getReservations(params: Record<string, any> = {}) {
-    return asList(await apiFetch("/reservations", { method: "GET", params }));
+  async getReservations(
+    params: Record<string, any> = {},
+  ): Promise<PaginatedResponse> {
+    return asPaginated(
+      await apiFetch("/reservations", { method: "GET", params }),
+    );
   },
 
   async getReservation(id: string) {

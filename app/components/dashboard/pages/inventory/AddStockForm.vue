@@ -147,11 +147,11 @@ const loadOptions = async () => {
   try {
     const [branches, products] = await Promise.all([
       props.lockedBranchId ? Promise.resolve([]) : branchService.getBranches(),
-      productService.getProducts(),
+      productService.getProducts({ per_page: 200 }),
     ]);
 
     const branchList = Array.isArray(branches) ? branches : branches?.data || [];
-    const productList = Array.isArray(products) ? products : products?.data || [];
+    const productList = products.data || [];
 
     branchOptions.value = branchList.map((branch) => ({
       label: branch.name || branch.id,

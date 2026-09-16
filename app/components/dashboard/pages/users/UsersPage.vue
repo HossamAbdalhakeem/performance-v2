@@ -9,17 +9,7 @@
       </template>
       <template #content>
         <div class="mb-5 grid gap-3 md:grid-cols-2">
-          <div class="flex flex-col gap-2 text-right">
-            <label class="text-sm font-medium text-slate-700">بحث</label>
-            <IconField>
-              <InputIcon class="pi pi-search" />
-              <InputText
-                v-model="filters.searchInput"
-                class="w-full"
-                placeholder="اسم / بريد"
-              />
-            </IconField>
-          </div>
+          <SearchInput placeholder="اسم / بريد" @search="onSearch" />
           <div class="flex flex-col gap-2 text-right">
             <label class="text-sm font-medium text-slate-700">الدور</label>
             <Select
@@ -53,16 +43,13 @@
 <script setup>
 import Card from "primevue/card";
 import Button from "primevue/button";
-import InputText from "primevue/inputtext";
 import Select from "primevue/select";
-import IconField from "primevue/iconfield";
-import InputIcon from "primevue/inputicon";
 import EntityDrawer from "~/components/dashboard/EntityDrawer.vue";
+import SearchInput from "~/components/shared/search-input/index.vue";
 import UsersTable from "~/components/dashboard/pages/users/UsersTable.vue";
 import UserForm from "~/components/dashboard/pages/users/UserForm.vue";
 import { userService } from "~/services/userService";
 import { branchService } from "~/services/branchService";
-import { useThrottledCallback } from "~/composables/useThrottledCallback";
 import { useAppToast } from "~/composables/useAppToast";
 
 const { showError, showSuccess } = useAppToast();
@@ -78,7 +65,6 @@ const drawerVisible = ref(false);
 const editingItem = ref(null);
 const users = ref([]);
 const filters = reactive({
-  searchInput: "",
   search: "",
   role: null,
 });
@@ -137,17 +123,10 @@ const loadData = async () => {
   }
 };
 
-const { run: runThrottledSearch } = useThrottledCallback(() => {
-  filters.search = filters.searchInput;
+const onSearch = (value) => {
+  filters.search = value;
   loadData();
-}, 400);
-
-watch(
-  () => filters.searchInput,
-  () => {
-    runThrottledSearch();
-  },
-);
+};
 
 const openCreate = () => {
   editingItem.value = null;

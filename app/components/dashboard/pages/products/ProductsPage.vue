@@ -15,17 +15,7 @@
 
       <template #content>
         <div class="mb-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-          <div class="flex flex-col gap-2 text-right">
-            <label class="text-sm font-medium text-slate-700">بحث</label>
-            <IconField>
-              <InputIcon class="pi pi-search" />
-              <InputText
-                v-model="filters.searchInput"
-                class="w-full"
-                placeholder="اسم المنتج / مدرس / نوع / سنة"
-              />
-            </IconField>
-          </div>
+          <SearchInput placeholder="اسم المنتج / مدرس / نوع / سنة" @search="onSearch" />
 
           <div class="flex flex-col gap-2 text-right">
             <label class="text-sm font-medium text-slate-700">المدرس</label>
@@ -74,7 +64,11 @@
         <ProductsTable
           :products="products"
           :loading="loading"
+          :rows="pagination.perPage"
+          :first="pagination.first"
+          :total-records="pagination.total"
           @edit="openEdit"
+          @page="onPage"
         />
       </template>
     </Card>
@@ -91,16 +85,13 @@
 <script setup>
 import Card from "primevue/card";
 import Button from "primevue/button";
-import InputText from "primevue/inputtext";
 import Select from "primevue/select";
-import IconField from "primevue/iconfield";
-import InputIcon from "primevue/inputicon";
+import SearchInput from "~/components/shared/search-input/index.vue";
 import ProductsTable from "~/components/dashboard/pages/products/ProductsTable.vue";
 import ProductDrawer from "~/components/dashboard/pages/products/ProductDrawer.vue";
 import { productService } from "~/services/productService";
 import { teacherService } from "~/services/teacherService";
 import { studyYearService } from "~/services/studyYearService";
-import { useThrottledCallback } from "~/composables/useThrottledCallback";
 import { useAppToast } from "~/composables/useAppToast";
 
 const { showError, showSuccess } = useAppToast();
@@ -111,11 +102,16 @@ const products = ref([]);
 const teacherOptions = ref([]);
 const studyYearOptions = ref([]);
 const filters = reactive({
-  searchInput: "",
   search: "",
   teacherId: null,
   type: null,
   studyYearId: null,
+});
+const pagination = reactive({
+  page: 1,
+  perPage: 20,
+  total: 0,
+  first: 0,
 });
 
 const typeOptions = [
@@ -143,7 +139,10 @@ const normalizeProduct = (product) => ({
 });
 
 const buildQuery = () => {
-  const params = {};
+  const params = {
+    page: pagination.page,
+    per_page: pagination.perPage,
+  };
   if (filters.search?.trim()) params.search = filters.search.trim();
   if (filters.teacherId) params.teacherId = filters.teacherId;
   if (filters.type) params.type = filters.type;
@@ -154,18 +153,32 @@ const buildQuery = () => {
 const loadProducts = async () => {
   loading.value = true;
   try {
-    const items = await productService.getProducts(buildQuery());
-    const list = Array.isArray(items) ? items : items?.data || [];
-    products.value = list.map(normalizeProduct);
+    const result = await productService.getProducts(buildQuery());
+    products.value = result.data.map(normalizeProduct);
+    pagination.total = result.pagination.total;
   } catch (error) {
     showError(error?.message || "تعذر تحميل المنتجات.");
     products.value = [];
+    pagination.total = 0;
   } finally {
     loading.value = false;
   }
 };
 
+const resetPagination = () => {
+  pagination.page = 1;
+  pagination.first = 0;
+};
+
+const onPage = (event) => {
+  pagination.page = event.page + 1;
+  pagination.perPage = event.rows;
+  pagination.first = event.first;
+  loadProducts();
+};
+
 const reloadProducts = () => {
+  resetPagination();
   loadProducts();
 };
 
@@ -195,17 +208,11 @@ const loadFilterOptions = async () => {
   }
 };
 
-const { run: runThrottledSearch } = useThrottledCallback(() => {
-  filters.search = filters.searchInput;
+const onSearch = (value) => {
+  filters.search = value;
+  resetPagination();
   loadProducts();
-}, 400);
-
-watch(
-  () => filters.searchInput,
-  () => {
-    runThrottledSearch();
-  },
-);
+};
 
 const openCreate = () => {
   editingProduct.value = null;
