@@ -11,7 +11,11 @@
         </div>
       </div>
 
-      <nav class="flex-1 space-y-2 overflow-y-auto px-4 py-5 pb-28" aria-label="القائمة الرئيسية">
+      <nav
+        class="flex-1 space-y-2 overflow-y-auto px-4 py-5"
+        :class="normalizedRole === 'admin' ? 'pb-44' : 'pb-28'"
+        aria-label="القائمة الرئيسية"
+      >
         <div
           v-for="section in navigation"
           :key="section.id"
@@ -61,7 +65,8 @@
         </div>
       </nav>
 
-      <div class="absolute bottom-0 left-0 right-0 border-t border-white/10 bg-[#0b1220] p-4">
+      <div class="absolute bottom-0 left-0 right-0 space-y-3 border-t border-white/10 bg-[#0b1220] p-4">
+        <AcademicYearSwitcher v-if="normalizedRole === 'admin'" />
         <button
           type="button"
           class="flex w-full items-center justify-between rounded-xl bg-red-500/10 px-3 py-3 text-sm font-medium text-red-200 hover:bg-red-500/20"
@@ -152,6 +157,7 @@
 import Dialog from "primevue/dialog";
 import Button from "primevue/button";
 import NotificationBell from "~/components/dashboard/NotificationBell.vue";
+import AcademicYearSwitcher from "~/components/dashboard/AcademicYearSwitcher.vue";
 import { useAuthStore } from "~/store/auth.js";
 
 const props = defineProps({

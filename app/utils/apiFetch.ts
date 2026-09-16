@@ -106,6 +106,36 @@ const cleanParams = (params: Record<string, any> = {}) => {
   return out;
 };
 
+const shouldAttachAcademicYear = (path: string) => {
+  const normalized = String(path || "").split("?")[0];
+  if (!normalized) return false;
+  if (normalized.startsWith("/auth")) return false;
+  if (normalized.startsWith("/academic-years")) return false;
+  if (normalized.startsWith("/uploads")) return false;
+  return true;
+};
+
+const getAcademicYearId = () => {
+  try {
+    return useCookie("academicYearId").value || null;
+  } catch {
+    return null;
+  }
+};
+
+const withAcademicYearParams = (
+  path: string,
+  params: Record<string, any> = {},
+) => {
+  const next = { ...params };
+  if (!shouldAttachAcademicYear(path)) return next;
+  if (next.academicYearId != null && next.academicYearId !== "") return next;
+
+  const academicYearId = getAcademicYearId();
+  if (academicYearId) next.academicYearId = academicYearId;
+  return next;
+};
+
 const request = async <T = any>(
   baseURL: string,
   path: string,
@@ -118,7 +148,12 @@ const request = async <T = any>(
   try {
     return await $fetch<T>(path, {
       ...options,
-      params: cleanParams((options.params || {}) as Record<string, any>),
+      params: cleanParams(
+        withAcademicYearParams(
+          path,
+          (options.params || {}) as Record<string, any>,
+        ),
+      ),
       baseURL,
       headers: getAuthHeaders({
         ...((options.headers || {}) as Record<string, string>),
