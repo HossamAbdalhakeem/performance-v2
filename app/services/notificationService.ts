@@ -17,6 +17,10 @@ const normalizeNotification = (item: Record<string, any> = {}) => {
     createdAt,
     productId: item.productId || item.product_id || item.product?.id || null,
     productName: item.productName || item.product_name || item.product?.name || "",
+    branchId: item.branchId || item.branch_id || item.branch?.id || null,
+    branchName: item.branchName || item.branch_name || item.branch?.name || "",
+    availableQuantity: item.availableQuantity ?? item.available_quantity ?? null,
+    threshold: item.threshold ?? item.lowStockThreshold ?? null,
   };
 };
 

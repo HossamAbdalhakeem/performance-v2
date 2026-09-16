@@ -5,24 +5,11 @@
         <span class="text-lg font-bold text-slate-900">استبدال واسترداد المبيعات</span>
       </template>
       <template #content>
-        <div class="mb-5 grid gap-3 md:grid-cols-2">
+        <div class="mb-5">
           <SearchInput
             placeholder="رقم العملية / طالب / منتج / موبايل"
             @search="onSearch"
           />
-          <div class="flex flex-col gap-2 text-right">
-            <label class="text-sm font-medium text-slate-700">الحالة</label>
-            <Select
-              v-model="filters.status"
-              :options="statusOptions"
-              option-label="label"
-              option-value="value"
-              placeholder="كل الحالات"
-              show-clear
-              class="w-full"
-              @update:modelValue="loadData"
-            />
-          </div>
         </div>
 
         <SalesExchangeTable
@@ -210,7 +197,6 @@
 import Button from "primevue/button";
 import Card from "primevue/card";
 import Dialog from "primevue/dialog";
-import Select from "primevue/select";
 import SalesExchangeTable from "~/components/dashboard/pages/sales/exchange/SalesExchangeTable.vue";
 import SearchInput from "~/components/shared/search-input/index.vue";
 import { exchangeService } from "~/services/exchangeService";
@@ -259,7 +245,6 @@ const exchangePaymentError = ref("");
 const refundError = ref("");
 const filters = reactive({
   search: "",
-  status: null,
 });
 
 const refundMethod = ref(PaymentMethod.CASH);
@@ -275,11 +260,6 @@ const refundDetailVisible = ref(false);
 const refundConfirmVisible = ref(false);
 const exchangeDetailVisible = ref(false);
 const exchangeConfirmVisible = ref(false);
-
-const statusOptions = Object.entries(STATUS_META).map(([value, meta]) => ({
-  label: meta.label,
-  value,
-}));
 
 const refundMethodLabel = computed(
   () => PAYMENT_METHOD_LABELS[refundMethod.value] || refundMethod.value || "-",
@@ -418,7 +398,6 @@ const onExchangeProductsLoaded = (options) => {
 const buildQuery = () => {
   const params = {};
   if (filters.search?.trim()) params.search = filters.search.trim();
-  if (filters.status) params.status = filters.status;
   return params;
 };
 

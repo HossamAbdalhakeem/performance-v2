@@ -8,24 +8,19 @@
       @submit="submit"
     >
       <Field v-slot="{ field, errorMessage }" name="type" rules="required">
-        <div class="flex flex-col gap-2 text-right">
-          <label class="text-sm font-medium">نوع المنتج</label>
-          <Select
-            :model-value="form.type"
-            :options="typeOptions"
-            optionLabel="label"
-            optionValue="value"
-            placeholder="اختر النوع ▾"
-            :class="{ 'p-invalid': errorMessage || fieldErrors.type }"
-            @update:model-value="
-              (value) => {
-                form.type = value;
-                field.onChange(value);
-              }
-            "
-          />
-          <ErrorMessage name="type" class="text-xs text-red-400" />
-        </div>
+        <AppGlobalSelectProductType
+          :model-value="form.type"
+          label="نوع المنتج"
+          placeholder="اختر النوع ▾"
+          :invalid="!!(errorMessage || fieldErrors.type)"
+          @update:model-value="
+            (value) => {
+              form.type = value;
+              field.onChange(value);
+            }
+          "
+        />
+        <ErrorMessage name="type" class="text-xs text-red-400" />
       </Field>
 
       <Field
@@ -35,19 +30,34 @@
         name="studyYearId"
         rules="required"
       >
-        <AppGlobalSelectStudyYear
-          :model-value="form.studyYearId || null"
-          label="السنة الدراسية"
-          placeholder="اختر السنة الدراسية ▾"
-          :invalid="!!(errorMessage || fieldErrors.studyYearId)"
-          @update:model-value="
-            (value) => {
-              form.studyYearId = value || '';
-              handleChange(value || '');
-            }
-          "
-        />
-        <ErrorMessage name="studyYearId" class="text-xs text-red-400" />
+        <div class="flex flex-col gap-2 text-right">
+          <div class="flex items-end gap-2">
+            <AppGlobalSelectStudyYear
+              ref="studyYearSelectRef"
+              :model-value="form.studyYearId || null"
+              label="السنة الدراسية"
+              placeholder="اختر السنة الدراسية ▾"
+              wrapper-class="min-w-0 flex-1"
+              :invalid="!!(errorMessage || fieldErrors.studyYearId)"
+              @update:model-value="
+                (value) => {
+                  form.studyYearId = value || '';
+                  handleChange(value || '');
+                }
+              "
+            />
+            <Button
+              type="button"
+              icon="pi pi-plus"
+              severity="info"
+              outlined
+              class="mb-0.5"
+              aria-label="إضافة سنة دراسية"
+              @click="openStudyYearDrawer"
+            />
+          </div>
+          <ErrorMessage name="studyYearId" class="text-xs text-red-400" />
+        </div>
       </Field>
 
       <Field
@@ -219,6 +229,22 @@
         @cancel="showTeacherDrawer = false"
       />
     </Drawer>
+
+    <Drawer
+      v-model:visible="showStudyYearDrawer"
+      header="إضافة سنة دراسية"
+      position="right"
+      class="!w-[400px] max-w-[400px]"
+      :style="{ width: '400px' }"
+      :block-scroll="true"
+      dir="rtl"
+    >
+      <StudyYearForm
+        v-if="showStudyYearDrawer"
+        @saved="onStudyYearSaved"
+        @cancel="showStudyYearDrawer = false"
+      />
+    </Drawer>
   </div>
 </template>
 
@@ -227,15 +253,24 @@ import Button from "primevue/button";
 import FormSubmitButton from "~/components/shared/form-submit-button/index.vue";
 import AppGlobalSelectTeacher from "~/components/shared/app-global-select-teacher/index.vue";
 import AppGlobalSelectStudyYear from "~/components/shared/app-global-select-study-year/index.vue";
+import AppGlobalSelectProductType from "~/components/shared/app-global-select-product-type/index.vue";
 import TeacherForm from "~/components/dashboard/pages/teachers/TeacherForm.vue";
+import StudyYearForm from "~/components/dashboard/pages/study-years/StudyYearForm.vue";
 import InputText from "primevue/inputtext";
-import Select from "primevue/select";
 import Drawer from "primevue/drawer";
 import ToggleSwitch from "primevue/toggleswitch";
 import AppInputNumber from "~/components/dashboard/AppInputNumber.vue";
 import { Form, Field, ErrorMessage } from "vee-validate";
 import { productService } from "~/services/productService";
 import { useAppToast } from "~/composables/useAppToast";
+import {
+  ProductType,
+  isBookProduct,
+  isCardProduct,
+  isProductType,
+  normalizeProductType,
+  productTypeRequiresStudyYear,
+} from "~/enums/productType";
 
 const { showError } = useAppToast();
 
@@ -247,14 +282,12 @@ const emit = defineEmits(["saved", "cancel"]);
 
 const saving = ref(false);
 const showTeacherDrawer = ref(false);
+const showStudyYearDrawer = ref(false);
 const teacherSelectRef = ref(null);
-const typeOptions = [
-  { label: "كتاب", value: "BOOK" },
-  { label: "كارت", value: "CARD" },
-];
+const studyYearSelectRef = ref(null);
 
 const emptyForm = () => ({
-  type: "BOOK",
+  type: ProductType.BOOK,
   teacherId: "",
   studyYearId: "",
   name: "",
@@ -270,9 +303,7 @@ const initialValues = reactive(emptyForm());
 const formKey = ref(0);
 
 const isEdit = computed(() => Boolean(props.product?.id));
-const isBook = computed(() => form.type === "BOOK");
-const isCard = computed(() => form.type === "CARD");
-const requiresStudyYear = computed(() => isBook.value || isCard.value);
+const requiresStudyYear = computed(() => productTypeRequiresStudyYear(form.type));
 
 const profitPercentage = computed(() => {
   const purchase = Number(form.purchasePrice || 0);
@@ -288,7 +319,7 @@ const toNumber = (value) => {
 
 const applyProduct = (product) => {
   const next = {
-    type: product?.type || "BOOK",
+    type: normalizeProductType(product?.type),
     teacherId: product?.teacherId || product?.teacher?.id || "",
     studyYearId: product?.studyYearId || product?.studyYear?.id || "",
     name: product?.name || "",
@@ -317,7 +348,7 @@ watch(
 watch(
   () => form.type,
   (type) => {
-    if (type !== "BOOK" && type !== "CARD") form.studyYearId = "";
+    if (!isProductType(type)) form.studyYearId = "";
   },
 );
 
@@ -329,7 +360,13 @@ watch(
 );
 
 const openTeacherDialog = () => {
+  showStudyYearDrawer.value = false;
   showTeacherDrawer.value = true;
+};
+
+const openStudyYearDrawer = () => {
+  showTeacherDrawer.value = false;
+  showStudyYearDrawer.value = true;
 };
 
 const onTeacherSaved = (created) => {
@@ -346,6 +383,20 @@ const onTeacherSaved = (created) => {
   showTeacherDrawer.value = false;
 };
 
+const onStudyYearSaved = (created) => {
+  if (!created?.id) {
+    showError("تعذر إنشاء السنة الدراسية.");
+    return;
+  }
+
+  studyYearSelectRef.value?.prependOption?.({
+    label: created.name || "-",
+    value: created.id,
+  });
+  form.studyYearId = created.id;
+  showStudyYearDrawer.value = false;
+};
+
 const buildPayload = () => {
   const payload = {
     type: form.type,
@@ -360,7 +411,7 @@ const buildPayload = () => {
   };
 
   // CARD always requires study year on create/update; BOOK keeps it when set.
-  if (form.type === "CARD" || form.studyYearId) {
+  if (isCardProduct(form.type) || form.studyYearId) {
     payload.studyYearId = form.studyYearId || null;
   } else if (isEdit.value) {
     payload.studyYearId = null;
@@ -379,17 +430,17 @@ const submit = async () => {
   saving.value = true;
 
   try {
-    if (form.type === "CARD" && !form.studyYearId) {
+    if (isCardProduct(form.type) && !form.studyYearId) {
       throw new Error("السنة الدراسية مطلوبة عند إنشاء كارت.");
     }
 
-    if (form.type === "BOOK" && !form.studyYearId) {
+    if (isBookProduct(form.type) && !form.studyYearId) {
       throw new Error("السنة الدراسية مطلوبة للكتب.");
     }
 
     const payload = buildPayload();
 
-    if (form.type === "CARD" && !payload.studyYearId) {
+    if (isCardProduct(form.type) && !payload.studyYearId) {
       throw new Error("السنة الدراسية مطلوبة عند إنشاء كارت.");
     }
 

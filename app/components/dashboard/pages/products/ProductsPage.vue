@@ -25,19 +25,13 @@
             @change="reloadProducts"
           />
 
-          <div class="flex flex-col gap-2 text-right">
-            <label class="text-sm font-medium text-slate-700">النوع</label>
-            <Select
-              v-model="filters.type"
-              :options="typeOptions"
-              optionLabel="label"
-              optionValue="value"
-              placeholder="كل الأنواع"
-              showClear
-              class="w-full"
-              @update:modelValue="reloadProducts"
-            />
-          </div>
+          <AppGlobalSelectProductType
+            v-model="filters.type"
+            label="النوع"
+            placeholder="كل الأنواع"
+            show-clear
+            @change="reloadProducts"
+          />
 
           <AppGlobalSelectStudyYear
             v-model="filters.studyYearId"
@@ -73,14 +67,15 @@
 <script setup>
 import Card from "primevue/card";
 import Button from "primevue/button";
-import Select from "primevue/select";
 import SearchInput from "~/components/shared/search-input/index.vue";
 import AppGlobalSelectTeacher from "~/components/shared/app-global-select-teacher/index.vue";
 import AppGlobalSelectStudyYear from "~/components/shared/app-global-select-study-year/index.vue";
+import AppGlobalSelectProductType from "~/components/shared/app-global-select-product-type/index.vue";
 import ProductsTable from "~/components/dashboard/pages/products/ProductsTable.vue";
 import { productService } from "~/services/productService";
 import { useAppToast } from "~/composables/useAppToast";
 import { formatMoney } from "~/utils/format";
+import { getProductTypeLabel } from "~/enums/productType";
 
 const ProductDrawer = defineAsyncComponent(() =>
   import("~/components/dashboard/pages/products/ProductDrawer.vue"),
@@ -104,11 +99,6 @@ const pagination = reactive({
   first: 0,
 });
 
-const typeOptions = [
-  { label: "كتاب", value: "BOOK" },
-  { label: "كارت", value: "CARD" },
-];
-
 const drawerTitle = computed(() =>
   editingProduct.value?.id ? "تعديل المنتج" : "إضافة منتج جديد",
 );
@@ -119,7 +109,7 @@ const normalizeProduct = (product) => ({
   teacherName: product.teacher?.name || "-",
   studyYearName: product.studyYear?.name || "-",
   sellingPriceLabel: formatMoney(product.sellingPrice),
-  typeLabel: product.type === "CARD" ? "كارت" : "كتاب",
+  typeLabel: getProductTypeLabel(product.type),
   reservationLabel: product.reservationAllowed ? "مفعل" : "غير مفعل",
 });
 

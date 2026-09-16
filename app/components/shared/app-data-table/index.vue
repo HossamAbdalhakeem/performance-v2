@@ -10,63 +10,64 @@
       />
     </div>
 
-    <DataTable
-      v-else
-      v-bind="tableAttrs"
-      :value="value"
-      :paginator="paginator"
-      :rows="rows"
-      :lazy="lazy"
-      :first="first"
-      :total-records="totalRecords"
-      :row-class="rowClass"
-      :table-style="tableStyle"
-      class="app-data-table"
-      size="small"
-      striped-rows
-      @page="onPage"
-      @row-expand="onRowExpand"
-    >
-      <template #empty>
-        <div class="app-data-table-empty">
-          {{ emptyMessage }}
-        </div>
-      </template>
+    <div v-else class="app-data-table-scroll">
+      <DataTable
+        v-bind="tableAttrs"
+        :value="value"
+        :paginator="paginator"
+        :rows="rows"
+        :lazy="lazy"
+        :first="first"
+        :total-records="totalRecords"
+        :row-class="rowClass"
+        :table-style="resolvedTableStyle"
+        class="app-data-table"
+        size="small"
+        striped-rows
+        @page="onPage"
+        @row-expand="onRowExpand"
+      >
+        <template #empty>
+          <div class="app-data-table-empty">
+            {{ emptyMessage }}
+          </div>
+        </template>
 
-      <template v-if="$slots.expansion" #expansion="slotProps">
-        <slot name="expansion" v-bind="slotProps" />
-      </template>
+        <template v-if="$slots.expansion" #expansion="slotProps">
+          <slot name="expansion" v-bind="slotProps" />
+        </template>
 
-      <slot>
-        <Column
-          v-for="col in resolvedColumns"
-          :key="col.key || col.field || col.header"
-          :field="col.field"
-          :header="col.header"
-          :sortable="col.sortable"
-          :style="col.style"
-          :header-style="col.headerStyle || col.style"
-          :body-style="col.bodyStyle || col.style"
-          :class="col.class"
-          :header-class="col.headerClass"
-          :body-class="col.bodyClass"
-          :expander="col.expander"
-        >
-          <template v-if="hasCustomBody(col)" #body="slotProps">
-            <slot
-              v-if="col.slot || (col.field && $slots[col.field])"
-              :name="col.slot || col.field"
-              v-bind="slotProps"
-            >
-              {{ resolveCell(slotProps.data, col) }}
-            </slot>
-            <template v-else>
-              {{ resolveCell(slotProps.data, col) }}
+        <slot>
+          <Column
+            v-for="col in resolvedColumns"
+            :key="col.key || col.field || col.header"
+            :field="col.field"
+            :header="col.header"
+            :sortable="col.sortable"
+            :style="col.style"
+            :header-style="col.headerStyle || col.style"
+            :body-style="col.bodyStyle || col.style"
+            :class="col.class"
+            :header-class="col.headerClass"
+            :body-class="col.bodyClass"
+            :expander="col.expander"
+          >
+            <template v-if="hasCustomBody(col)" #body="slotProps">
+              <slot
+                v-if="col.slot || (col.field && $slots[col.field])"
+                :name="col.slot || col.field"
+                v-bind="slotProps"
+              >
+                {{ resolveCell(slotProps.data, col) }}
+              </slot>
+              <template v-else>
+                {{ resolveCell(slotProps.data, col) }}
+              </template>
             </template>
-          </template>
-        </Column>
-      </slot>
-    </DataTable>
+          </Column>
+        </slot>
+      </DataTable>
+    </div>
   </div>
 </template>
 
@@ -90,7 +91,8 @@ const props = defineProps({
   lazy: { type: Boolean, default: false },
   first: { type: Number, default: 0 },
   totalRecords: { type: Number, default: 0 },
-  tableStyle: { type: String, default: "min-width: 100%" },
+  tableStyle: { type: String, default: "" },
+  minColumnWidth: { type: String, default: "8.5rem" },
   rowClass: { type: [Function, String, Object], default: undefined },
   skeletonRows: { type: Number, default: 5 },
 });
@@ -115,12 +117,24 @@ const tableAttrs = computed(() => {
 
 const resolvedColumns = computed(() => {
   const cols = props.columns || [];
-  const autoWidth = cols.length ? `${(100 / cols.length).toFixed(4)}%` : undefined;
 
-  return cols.map((col) => ({
-    ...col,
-    style: col.style || (autoWidth ? `width: ${autoWidth}` : undefined),
-  }));
+  return cols.map((col) => {
+    if (col.style || col.headerStyle || col.bodyStyle) {
+      return { ...col };
+    }
+
+    return {
+      ...col,
+      style: `min-width: ${col.minWidth || props.minColumnWidth}`,
+    };
+  });
+});
+
+const resolvedTableStyle = computed(() => {
+  if (props.tableStyle) return props.tableStyle;
+  const colCount = Math.max(resolvedColumns.value.length, 1);
+  // Grow beyond the container when there are many columns so horizontal scroll appears.
+  return `min-width: max(100%, calc(${colCount} * ${props.minColumnWidth}))`;
 });
 
 const hasCustomBody = (col) =>
@@ -139,17 +153,42 @@ const resolveCell = (row, col) => {
   background: transparent;
 }
 
+.app-data-table-scroll {
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+.app-data-table-scroll::-webkit-scrollbar {
+  height: 8px;
+}
+
+.app-data-table-scroll::-webkit-scrollbar-track {
+  background: #0f172a;
+}
+
+.app-data-table-scroll::-webkit-scrollbar-thumb {
+  background: #475569;
+  border-radius: 999px;
+}
+
+.app-data-table-scroll::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
+}
+
 .app-data-table-wrap :deep(.p-datatable-table-container),
 .app-data-table-wrap :deep(.p-datatable-wrapper),
 .app-data-table-wrap :deep(.p-datatable-table) {
   background: #0f172a !important;
   border: none !important;
   border-collapse: collapse !important;
-  width: 100% !important;
 }
 
 .app-data-table-wrap :deep(.p-datatable-table) {
-  table-layout: fixed !important;
+  table-layout: auto !important;
+  width: max-content !important;
+  min-width: 100% !important;
 }
 
 .app-data-table-wrap :deep(.p-datatable-thead > tr > th),
@@ -163,6 +202,7 @@ const resolveCell = (row, col) => {
   vertical-align: middle !important;
   font-size: 0.875rem !important;
   box-shadow: none !important;
+  white-space: nowrap;
 }
 
 .app-data-table-wrap :deep(.p-datatable-thead > tr > th) {
@@ -204,6 +244,7 @@ const resolveCell = (row, col) => {
   border-top: none !important;
   background: #0f172a !important;
   box-shadow: none !important;
+  white-space: normal;
 }
 
 .app-data-table-empty {
@@ -220,6 +261,9 @@ const resolveCell = (row, col) => {
   color: #e2e8f0 !important;
   padding: 0.75rem !important;
   justify-content: center;
+  position: sticky;
+  left: 0;
+  min-width: 100%;
 }
 
 .app-data-table-wrap :deep(.p-paginator .p-paginator-page),

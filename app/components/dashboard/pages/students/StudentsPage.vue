@@ -2,17 +2,22 @@
   <div class="space-y-6">
     <Card>
       <template #title>
-        <span class="text-lg font-bold text-slate-900">الطلاب</span>
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <span class="text-lg font-bold text-slate-900">الطلاب</span>
+          <Button
+            label="إضافة طالب جديد"
+            icon="pi pi-user-plus"
+            severity="info"
+            @click="openCreate"
+          />
+        </div>
       </template>
       <template #content>
-        <div class="mb-5">
-          <StudentSearchField
-            mode="filter"
+        <div class="mb-5 md:max-w-xl">
+          <SearchInput
             label="بحث"
             placeholder="ابحث بالاسم أو رقم الهاتف"
-            wrapper-class="md:max-w-xl"
             @search="onSearch"
-            @created="handleCreated"
           />
         </div>
 
@@ -49,9 +54,10 @@
 </template>
 
 <script setup>
+import Button from "primevue/button";
 import Card from "primevue/card";
 import EntityDrawer from "~/components/dashboard/EntityDrawer.vue";
-import StudentSearchField from "~/components/shared/student-search-field/index.vue";
+import SearchInput from "~/components/shared/search-input/index.vue";
 import StudentsTable from "~/components/dashboard/pages/students/StudentsTable.vue";
 import { studentService } from "~/services/studentService";
 import { useAppToast } from "~/composables/useAppToast";
@@ -129,10 +135,9 @@ const onSearch = (value) => {
   loadData();
 };
 
-const handleCreated = async () => {
-  showSuccess("تم إضافة الطالب بنجاح.");
-  resetPagination();
-  await loadData();
+const openCreate = () => {
+  editingItem.value = null;
+  drawerVisible.value = true;
 };
 
 const openEdit = (item) => {
@@ -146,9 +151,11 @@ const openTransactions = (item) => {
 };
 
 const handleSaved = async () => {
+  const wasCreate = !editingItem.value?.id;
   drawerVisible.value = false;
   editingItem.value = null;
-  showSuccess("تم حفظ الطالب بنجاح.");
+  showSuccess(wasCreate ? "تم إضافة الطالب بنجاح." : "تم حفظ الطالب بنجاح.");
+  if (wasCreate) resetPagination();
   await loadData();
 };
 

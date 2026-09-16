@@ -107,7 +107,9 @@ const submit = async () => {
 
       const nextStatus = form.isActive ? "ACTIVE" : "INACTIVE";
       if (props.teacher.status !== nextStatus) {
-        result = await teacherService.updateTeacherStatus(props.teacher.id, nextStatus);
+        result = await teacherService.updateTeacherStatus(props.teacher.id, {
+          status: nextStatus,
+        });
       }
     } else {
       result = await teacherService.createTeacher({ name });

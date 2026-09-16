@@ -9,13 +9,14 @@
       option-value="value"
       :placeholder="placeholder"
       filter
-      :filter-fields="filterFields"
+      :filter-fields="activeFilterFields"
       :loading="isLoading"
       :disabled="disabled || isLoading || !canSelect"
       :show-clear="showClear"
       :invalid="invalid"
       class="w-full product-select"
       :class="{ 'p-invalid': invalid }"
+      @filter="onFilter"
       @update:model-value="onUpdate"
     >
       <template v-if="variant === 'rich'" #value="{ placeholder: valuePlaceholder }">
@@ -95,6 +96,7 @@ import {
   mapInventoryProductOptions,
 } from "~/utils/productOptions";
 import { useAppToast } from "~/composables/useAppToast";
+import { useThrottledCallback } from "~/composables/useThrottledCallback";
 
 const props = defineProps({
   modelValue: { type: [String, Number], default: null },
@@ -126,6 +128,8 @@ const props = defineProps({
     type: Array,
     default: () => ["name", "teacherName", "label"],
   },
+  throttleMs: { type: Number, default: 400 },
+  perPage: { type: Number, default: 20 },
   wrapperClass: { type: String, default: "" },
   labelClass: { type: String, default: "text-slate-700" },
 });
@@ -136,18 +140,33 @@ const emit = defineEmits([
   "change",
   "loaded",
   "loading",
+  "search",
 ]);
 
 const { showError } = useAppToast();
 
 const internalOptions = ref([]);
 const internalLoading = ref(false);
+const searchTerm = ref("");
+const selectedOptionCache = ref(null);
+const requestId = ref(0);
 
 const isLoading = computed(() => props.loading || internalLoading.value);
+
+const usesRemoteSearch = computed(
+  () => props.source === "catalog" || props.source === "inventory",
+);
 
 const canSelect = computed(() => {
   if (props.source === "inventory") return Boolean(props.branchId);
   return true;
+});
+
+const activeFilterFields = computed(() => {
+  // Remote results are already filtered by BE; avoid local re-filtering that
+  // can hide valid matches (e.g. teacher/study-year hits).
+  if (usesRemoteSearch.value && searchTerm.value) return ["_remoteMatch"];
+  return props.filterFields;
 });
 
 const resolvedOptions = computed(() => {
@@ -157,88 +176,171 @@ const resolvedOptions = computed(() => {
   return internalOptions.value;
 });
 
-const selectedOption = computed(
-  () =>
+const selectedOption = computed(() => {
+  const fromList =
     resolvedOptions.value.find((option) => option.value === props.modelValue) ||
-    null,
-);
+    null;
+  if (fromList) return fromList;
+  if (
+    selectedOptionCache.value &&
+    selectedOptionCache.value.value === props.modelValue
+  ) {
+    return selectedOptionCache.value;
+  }
+  return null;
+});
+
+const markRemoteMatch = (options, term) => {
+  const q = String(term || "").trim();
+  if (!q) return options;
+  return options.map((option) => ({
+    ...option,
+    _remoteMatch: q,
+  }));
+};
+
+const withSelectedOption = (options) => {
+  const list = Array.isArray(options) ? [...options] : [];
+  const selected = selectedOption.value;
+  if (!selected?.value) return list;
+  if (list.some((item) => item.value === selected.value)) return list;
+  return [selected, ...list];
+};
 
 const onUpdate = (value) => {
   emit("update:modelValue", value);
   const option =
-    resolvedOptions.value.find((item) => item.value === value) || null;
+    resolvedOptions.value.find((item) => item.value === value) ||
+    (selectedOptionCache.value?.value === value
+      ? selectedOptionCache.value
+      : null);
+  if (option) selectedOptionCache.value = option;
   emit("select", option);
   emit("change", value, option);
 };
 
-const loadInventoryOptions = async () => {
+const loadInventoryOptions = async (term = searchTerm.value) => {
   if (!props.branchId) {
     internalOptions.value = [];
     emit("loaded", []);
     return;
   }
 
+  const currentRequest = ++requestId.value;
   internalLoading.value = true;
   emit("loading", true);
   try {
-    const items = await inventoryService.getBranchInventory(
-      props.branchId,
-      props.inventoryQuery || {},
-    );
-    const mapped = mapInventoryProductOptions(items, {
-      excludeProductId: props.excludeProductId,
-      minAvailableQuantity: props.minAvailableQuantity,
+    const query = String(term || "").trim();
+    const items = await inventoryService.getBranchInventory(props.branchId, {
+      ...(props.inventoryQuery || {}),
+      ...(query ? { search: query } : {}),
     });
-    internalOptions.value = mapped;
-    emit("loaded", mapped);
+    if (currentRequest !== requestId.value) return;
+
+    const mapped = markRemoteMatch(
+      mapInventoryProductOptions(items, {
+        excludeProductId: props.excludeProductId,
+        minAvailableQuantity: props.minAvailableQuantity,
+      }),
+      query,
+    );
+    const next = withSelectedOption(mapped);
+    internalOptions.value = next;
+    emit("loaded", next);
   } catch (error) {
-    internalOptions.value = [];
+    if (currentRequest !== requestId.value) return;
+    internalOptions.value = withSelectedOption([]);
     emit("loaded", []);
     showError(error?.message || "تعذر تحميل المنتجات.");
   } finally {
-    internalLoading.value = false;
-    emit("loading", false);
+    if (currentRequest === requestId.value) {
+      internalLoading.value = false;
+      emit("loading", false);
+    }
   }
 };
 
-const loadCatalogOptions = async () => {
+const loadCatalogOptions = async (term = searchTerm.value) => {
+  const currentRequest = ++requestId.value;
   internalLoading.value = true;
   emit("loading", true);
   try {
-    const result = await productService.getProducts({ per_page: 20 });
+    const query = String(term || "").trim();
+    const params = {
+      per_page: props.perPage,
+      ...(query ? { search: query } : {}),
+      ...(props.reservationOnly ? { reservationAllowed: true } : {}),
+    };
+    const result = await productService.getProducts(params);
+    if (currentRequest !== requestId.value) return;
+
     const list = result?.data || result || [];
-    const mapped = list
-      .map((product) =>
-        mapCatalogProductOption(product, {
-          reservationOnly: props.reservationOnly,
-        }),
-      )
-      .filter(Boolean)
-      .filter(
-        (option) =>
-          !props.excludeProductId || option.value !== props.excludeProductId,
-      );
-    internalOptions.value = mapped;
-    emit("loaded", mapped);
+    const mapped = markRemoteMatch(
+      list
+        .map((product) =>
+          mapCatalogProductOption(product, {
+            reservationOnly: props.reservationOnly,
+          }),
+        )
+        .filter(Boolean)
+        .filter(
+          (option) =>
+            !props.excludeProductId || option.value !== props.excludeProductId,
+        ),
+      query,
+    );
+    const next = withSelectedOption(mapped);
+    internalOptions.value = next;
+    emit("loaded", next);
   } catch (error) {
-    internalOptions.value = [];
+    if (currentRequest !== requestId.value) return;
+    internalOptions.value = withSelectedOption([]);
     emit("loaded", []);
     showError(error?.message || "تعذر تحميل المنتجات.");
   } finally {
-    internalLoading.value = false;
-    emit("loading", false);
+    if (currentRequest === requestId.value) {
+      internalLoading.value = false;
+      emit("loading", false);
+    }
   }
 };
 
-const reload = async () => {
+const reload = async (term = searchTerm.value) => {
   if (props.source === "inventory") {
-    await loadInventoryOptions();
+    await loadInventoryOptions(term);
     return;
   }
   if (props.source === "catalog") {
-    await loadCatalogOptions();
+    await loadCatalogOptions(term);
   }
 };
+
+const { run: runRemoteSearch } = useThrottledCallback((term) => {
+  reload(term);
+}, props.throttleMs);
+
+const onFilter = (event) => {
+  const term = String(event?.value ?? "").trim();
+  searchTerm.value = term;
+  emit("search", term);
+
+  if (!usesRemoteSearch.value) return;
+  runRemoteSearch(term);
+};
+
+watch(
+  () => props.modelValue,
+  (value) => {
+    if (!value) {
+      selectedOptionCache.value = null;
+      return;
+    }
+    const option =
+      resolvedOptions.value.find((item) => item.value === value) || null;
+    if (option) selectedOptionCache.value = option;
+  },
+  { immediate: true },
+);
 
 watch(
   () => [
@@ -252,7 +354,8 @@ watch(
   () => {
     if (!props.autoLoad) return;
     if (props.source === "options") return;
-    reload();
+    searchTerm.value = "";
+    reload("");
   },
   { immediate: true },
 );
@@ -261,5 +364,6 @@ defineExpose({
   reload,
   selectedOption,
   options: resolvedOptions,
+  searchTerm,
 });
 </script>

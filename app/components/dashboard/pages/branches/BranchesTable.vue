@@ -23,7 +23,9 @@
           {{ item.productName }}:
           <strong>{{ item.physicalQuantity }}</strong>
         </span>
-      
+        <span v-if="data?.inventoryItems?.length > 3" class="text-xs font-medium text-sky-600">
+          +{{ data.inventoryItems.length - 3 }} منتج آخر
+        </span>
       </div>
     </template>
 

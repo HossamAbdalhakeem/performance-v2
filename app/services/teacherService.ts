@@ -4,9 +4,15 @@ const teacherBody = (payload: Record<string, any>) => ({
   name: payload.name,
 });
 
-const statusBody = (payload: Record<string, any>) => {
-  if (payload.status) return { status: payload.status };
-  if (typeof payload.is_active === "boolean") {
+const statusBody = (payload: Record<string, any> | string | boolean) => {
+  if (typeof payload === "string") {
+    return { status: payload };
+  }
+  if (typeof payload === "boolean") {
+    return { status: payload ? "ACTIVE" : "INACTIVE" };
+  }
+  if (payload?.status) return { status: payload.status };
+  if (typeof payload?.is_active === "boolean") {
     return { status: payload.is_active ? "ACTIVE" : "INACTIVE" };
   }
   return payload;
@@ -39,14 +45,14 @@ export const teacherService = {
     );
   },
 
-  async updateTeacherStatus(id: string, payload: Record<string, any> | boolean) {
-    const body =
-      typeof payload === "boolean" ? statusBody({ is_active: payload }) : statusBody(payload);
-
+  async updateTeacherStatus(
+    id: string,
+    payload: Record<string, any> | string | boolean,
+  ) {
     return firstRow(
       await apiFetch(`/teachers/${id}/status`, {
         method: "PATCH",
-        body,
+        body: statusBody(payload),
       }),
     );
   },

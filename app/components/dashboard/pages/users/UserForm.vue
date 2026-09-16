@@ -64,20 +64,19 @@
     </Field>
 
     <Field v-slot="{ field, errorMessage }" name="role" rules="required">
-      <div class="flex flex-col gap-2 text-right">
-        <label class="text-sm font-medium text-slate-700">الدور</label>
-        <Select
-          v-bind="field"
-          v-model="form.role"
-          :options="roleOptions"
-          optionLabel="label"
-          optionValue="value"
-          placeholder="اختر الدور"
-          class="w-full"
-          :class="{ 'p-invalid': errorMessage || fieldErrors.role }"
-        />
-        <ErrorMessage name="role" class="text-xs text-red-500" />
-      </div>
+      <AppGlobalSelectUserRole
+        :model-value="form.role"
+        label="الدور"
+        placeholder="اختر الدور"
+        :invalid="!!(errorMessage || fieldErrors.role)"
+        @update:model-value="
+          (value) => {
+            form.role = value;
+            field.onChange(value);
+          }
+        "
+      />
+      <ErrorMessage name="role" class="text-xs text-red-500" />
     </Field>
 
     <Field
@@ -131,6 +130,7 @@
 <script setup>
 import Button from "primevue/button";
 import FormSubmitButton from "~/components/shared/form-submit-button/index.vue";
+import AppGlobalSelectUserRole from "~/components/shared/app-global-select-user-role/index.vue";
 import InputText from "primevue/inputtext";
 import Password from "primevue/password";
 import Select from "primevue/select";
@@ -138,6 +138,11 @@ import { Form, Field, ErrorMessage } from "vee-validate";
 import { userService } from "~/services/userService";
 import { branchService } from "~/services/branchService";
 import { useAppToast } from "~/composables/useAppToast";
+import {
+  UserRole,
+  normalizeUserRole,
+  userRoleRequiresBranch,
+} from "~/enums/userRole";
 
 const { showError } = useAppToast();
 
@@ -152,12 +157,6 @@ const formKey = ref(0);
 const branchOptions = ref([]);
 const isEdit = computed(() => Boolean(props.user?.id));
 
-const roleOptions = [
-  { label: "مدير", value: "ADMIN" },
-  { label: "خدمة العملاء", value: "CUSTOMER_SERVICE" },
-  { label: "موظف فرع", value: "BRANCH_EMPLOYEE" },
-];
-
 const statusOptions = [
   { label: "نشط", value: "ACTIVE" },
   { label: "غير نشط", value: "INACTIVE" },
@@ -168,19 +167,19 @@ const form = reactive({
   email: "",
   password: "",
   phone: "",
-  role: "ADMIN",
+  role: UserRole.ADMIN,
   branchId: null,
   status: "ACTIVE",
 });
 
-const needsBranch = computed(() => form.role === "BRANCH_EMPLOYEE");
+const needsBranch = computed(() => userRoleRequiresBranch(form.role));
 
 const initialValues = computed(() => ({
   fullName: props.user?.fullName || "",
   email: props.user?.email || "",
   password: "",
   phone: props.user?.phone || "",
-  role: props.user?.role || "ADMIN",
+  role: normalizeUserRole(props.user?.role),
   branchId: props.user?.branchId || null,
   status: props.user?.status || "ACTIVE",
 }));
@@ -205,7 +204,7 @@ watch(
     form.email = value?.email || "";
     form.password = "";
     form.phone = value?.phone || "";
-    form.role = value?.role || "ADMIN";
+    form.role = normalizeUserRole(value?.role);
     form.branchId = value?.branchId || null;
     form.status = value?.status || "ACTIVE";
     formKey.value += 1;
@@ -216,7 +215,7 @@ watch(
 watch(
   () => form.role,
   (role) => {
-    if (role !== "BRANCH_EMPLOYEE") form.branchId = null;
+    if (!userRoleRequiresBranch(role)) form.branchId = null;
   },
 );
 

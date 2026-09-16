@@ -26,6 +26,7 @@
         source="inventory"
         :branch-id="selectedBranchId"
         :inventory-query="{ availableOnly: true }"
+        :min-available-quantity="1"
         label="سحبت ايه"
         placeholder="اختار منتجاً من مخزن الفرع ▾"
         :disabled="!selectedBranchId"
@@ -42,13 +43,23 @@
     </div>
 
     <div class="flex flex-col gap-2 text-right">
-      <label class="text-sm font-medium text-slate-700">الكمية</label>
+      <div class="flex items-center justify-between gap-2">
+        <label class="text-sm font-medium text-slate-700">الكمية</label>
+        <span
+          v-if="selectedProduct"
+          class="rounded-full bg-amber-500/10 px-2.5 py-0.5 text-xs font-semibold text-amber-700"
+        >
+          المتاح بالمخزن: {{ availableQty }}
+        </span>
+      </div>
       <AppInputNumber
         v-model="form.quantity"
         :min="1"
         :max="maxQuantity"
         :max-fraction-digits="0"
+        :disabled="!selectedProduct || availableQty < 1"
         :invalid="!!errors.quantity"
+        @update:model-value="onQuantityChange"
       />
       <small v-if="errors.quantity" class="text-xs text-red-500">{{ errors.quantity }}</small>
     </div>
@@ -99,6 +110,7 @@ const { showError } = useAppToast();
 const saving = ref(false);
 const branchOptions = ref([]);
 const productOptions = ref([]);
+const selectedProductOption = ref(null);
 const errors = reactive({
   branchId: "",
   productId: "",
@@ -113,15 +125,24 @@ const form = reactive({
 
 const selectedBranchId = computed(() => props.lockedBranchId || form.branchId || null);
 
-const selectedProduct = computed(
-  () => productOptions.value.find((option) => option.value === form.productId) || null,
-);
+const selectedProduct = computed(() => {
+  if (selectedProductOption.value?.value === form.productId) {
+    return selectedProductOption.value;
+  }
+  return (
+    productOptions.value.find(
+      (option) => String(option.value) === String(form.productId),
+    ) || null
+  );
+});
 
 const availableQty = computed(() =>
-  Number(selectedProduct.value?.availableQuantity || 0),
+  Math.max(0, Number(selectedProduct.value?.availableQuantity || 0)),
 );
 
-const maxQuantity = computed(() => Math.max(1, availableQty.value || 1));
+const maxQuantity = computed(() =>
+  availableQty.value > 0 ? availableQty.value : 1,
+);
 
 const isFormValid = computed(() => {
   const branchId = selectedBranchId.value;
@@ -130,7 +151,9 @@ const isFormValid = computed(() => {
     branchId &&
       form.productId &&
       form.quantity != null &&
+      Number.isFinite(qty) &&
       qty >= 1 &&
+      availableQty.value > 0 &&
       qty <= availableQty.value,
   );
 });
@@ -145,41 +168,90 @@ const toId = (value) => {
   return null;
 };
 
+const validateQuantity = () => {
+  const available = availableQty.value;
+  const qty = Number(form.quantity);
+
+  if (!form.productId) {
+    errors.quantity = "";
+    return false;
+  }
+
+  if (available < 1) {
+    errors.quantity = "لا توجد كمية متاحة لهذا المنتج في الفرع.";
+    return false;
+  }
+
+  if (form.quantity == null || !Number.isFinite(qty) || qty < 1) {
+    errors.quantity = "الكمية يجب أن تكون 1 على الأقل.";
+    return false;
+  }
+
+  if (qty > available) {
+    errors.quantity = `الكمية أكبر من المتاح بالمخزن (${available}).`;
+    return false;
+  }
+
+  errors.quantity = "";
+  return true;
+};
+
+const clampQuantityToAvailable = () => {
+  const available = availableQty.value;
+  if (form.quantity == null) return;
+  const qty = Number(form.quantity);
+  if (!Number.isFinite(qty)) {
+    form.quantity = null;
+    return;
+  }
+  if (available < 1) {
+    form.quantity = null;
+    return;
+  }
+  if (qty > available) {
+    form.quantity = available;
+  }
+};
+
 const onBranchChange = (value) => {
   form.branchId = toId(value);
   form.productId = null;
   form.quantity = null;
+  selectedProductOption.value = null;
   errors.productId = "";
   errors.quantity = "";
 };
 
 const onProductsLoaded = (options) => {
   productOptions.value = options || [];
+  if (!form.productId) return;
+  const match =
+    productOptions.value.find(
+      (option) => String(option.value) === String(form.productId),
+    ) || null;
+  if (match) selectedProductOption.value = match;
+  clampQuantityToAvailable();
+  validateQuantity();
 };
 
-const onProductSelect = () => {
+const onProductSelect = (option) => {
+  selectedProductOption.value = option || null;
   errors.productId = "";
-  const available = availableQty.value;
-  if (form.quantity != null && Number(form.quantity) > available) {
-    form.quantity = available > 0 ? available : null;
-  }
+  clampQuantityToAvailable();
+  validateQuantity();
+};
+
+const onQuantityChange = () => {
+  clampQuantityToAvailable();
+  validateQuantity();
 };
 
 const validate = () => {
   const branchId = selectedBranchId.value;
   errors.branchId = branchId ? "" : "الفرع مطلوب.";
   errors.productId = form.productId ? "" : "المنتج مطلوب.";
-
-  const qty = Number(form.quantity);
-  if (!form.quantity || qty < 1) {
-    errors.quantity = "الكمية يجب أن تكون 1 على الأقل.";
-  } else if (qty > availableQty.value) {
-    errors.quantity = `الكمية أكبر من المتاح (${availableQty.value}).`;
-  } else {
-    errors.quantity = "";
-  }
-
-  return !errors.branchId && !errors.productId && !errors.quantity;
+  const quantityOk = validateQuantity();
+  return !errors.branchId && !errors.productId && quantityOk;
 };
 
 const loadBranches = async () => {
@@ -213,6 +285,8 @@ const submitRemove = async () => {
     form.quantity = null;
     if (!props.lockedBranchId) form.branchId = null;
     productOptions.value = [];
+    selectedProductOption.value = null;
+    errors.quantity = "";
     emit("saved");
   } catch (error) {
     showError(error?.message || "تعذر سحب المنتج من الفرع.");
@@ -227,9 +301,16 @@ watch(
     form.branchId = value || null;
     form.productId = null;
     form.quantity = null;
+    selectedProductOption.value = null;
+    errors.quantity = "";
   },
   { immediate: true },
 );
+
+watch(availableQty, () => {
+  clampQuantityToAvailable();
+  if (form.productId) validateQuantity();
+});
 
 onMounted(loadBranches);
 </script>

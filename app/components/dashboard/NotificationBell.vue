@@ -25,29 +25,43 @@
         dir="rtl"
       >
         <div class="border-b border-white/10 px-4 py-3">
-          <p class="text-sm font-semibold text-white">الإشعارات</p>
+          <p class="text-sm font-semibold text-white">تنبيهات المخزون</p>
           <p class="text-xs text-slate-500">تحديث كل 10 دقائق</p>
         </div>
 
         <div class="max-h-80 overflow-y-auto">
-          <div
-            v-if="loading && !notifications.length"
-            class="px-4 py-8 text-center text-sm text-slate-500"
-          >
-            جاري التحميل...
+          <div v-if="loading && !notifications.length" class="space-y-3 px-4 py-4">
+            <div
+              v-for="i in 4"
+              :key="i"
+              class="rounded-xl border border-white/5 bg-slate-900/60 p-3"
+            >
+              <Skeleton width="55%" height="0.85rem" class="mb-2" />
+              <Skeleton width="100%" height="0.7rem" class="mb-1.5" />
+              <Skeleton width="40%" height="0.55rem" />
+            </div>
           </div>
+
           <div
             v-else-if="!notifications.length"
             class="px-4 py-8 text-center text-sm text-slate-500"
           >
-            لا توجد إشعارات حالياً
+            لا توجد منتجات منخفضة المخزون حالياً
           </div>
+
           <div
             v-for="item in notifications"
             :key="item.id"
             class="flex flex-col gap-1 border-b border-white/5 px-4 py-3 text-right"
           >
-            <p class="text-sm font-semibold text-white">{{ item.title }}</p>
+            <div class="flex items-start justify-between gap-2">
+              <p class="text-sm font-semibold text-white">{{ item.title }}</p>
+              <span
+                class="shrink-0 rounded-full bg-amber-500/20 px-2 py-0.5 text-[10px] font-bold text-amber-300"
+              >
+                متاح {{ item.availableQuantity ?? "—" }}
+              </span>
+            </div>
             <p class="text-xs leading-5 text-slate-300">{{ item.message }}</p>
             <p v-if="item.createdAt" class="text-[11px] text-slate-500">
               {{ formatTime(item.createdAt) }}
@@ -60,6 +74,7 @@
 </template>
 
 <script setup>
+import Skeleton from "primevue/skeleton";
 import { notificationService } from "~/services/notificationService";
 import { useAuthStore } from "~/store/auth.js";
 import { useAppToast } from "~/composables/useAppToast";
@@ -90,7 +105,6 @@ const formatTime = (value) =>
     timeStyle: "short",
     empty: "",
   });
-
 
 const sameList = (next) => {
   const prev = notifications.value;

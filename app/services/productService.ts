@@ -1,4 +1,5 @@
 import { apiFetch, firstRow, asPaginated, type PaginatedResponse } from "~/utils/apiFetch";
+import { ProductType } from "~/enums/productType";
 
 const productBody = (payload: Record<string, any>) => {
   const purchasePrice = Number(payload.purchasePrice ?? payload.wholesale_price);
@@ -26,7 +27,7 @@ const productBody = (payload: Record<string, any>) => {
     body.studyYearId = payload.studyYearId || null;
   } else if (Object.prototype.hasOwnProperty.call(payload, "study_year_id")) {
     body.studyYearId = payload.study_year_id || null;
-  } else if (String(payload.type || "").toUpperCase() === "CARD") {
+  } else if (String(payload.type || "").toUpperCase() === ProductType.CARD) {
     // Ensure CARD create/update always sends studyYearId for API validation.
     body.studyYearId = null;
   }

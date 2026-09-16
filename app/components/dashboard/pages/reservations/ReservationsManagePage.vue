@@ -5,21 +5,8 @@
         <span class="text-lg font-bold text-slate-900">الحجوزات</span>
       </template>
       <template #content>
-        <div class="mb-5 grid gap-3 md:grid-cols-2">
+        <div class="mb-5">
           <SearchInput placeholder="رقم الحجز / طالب / منتج" @search="onSearch" />
-          <div class="flex flex-col gap-2 text-right">
-            <label class="text-sm font-medium text-slate-700">الحالة</label>
-            <Select
-              v-model="filters.status"
-              :options="statusOptions"
-              option-label="label"
-              option-value="value"
-              placeholder="كل الحالات"
-              show-clear
-              class="w-full"
-              @update:modelValue="onStatusChange"
-            />
-          </div>
         </div>
 
         <ReservationsTable
@@ -197,7 +184,6 @@
 import Button from "primevue/button";
 import Card from "primevue/card";
 import Dialog from "primevue/dialog";
-import Select from "primevue/select";
 import ReservationsTable from "~/components/dashboard/pages/reservations/ReservationsTable.vue";
 import SearchInput from "~/components/shared/search-input/index.vue";
 import { reservationService } from "~/services/reservationService";
@@ -247,7 +233,6 @@ const exchangeImage = ref(null);
 const exchangeProofKey = ref("");
 const filters = reactive({
   search: "",
-  status: null,
 });
 const pagination = reactive({
   page: 1,
@@ -260,11 +245,6 @@ const cancelDetailVisible = ref(false);
 const cancelConfirmVisible = ref(false);
 const exchangeDetailVisible = ref(false);
 const exchangeConfirmVisible = ref(false);
-
-const statusOptions = Object.entries(STATUS_META).map(([value, meta]) => ({
-  label: meta.label,
-  value,
-}));
 
 const roundMoney = (value) => Math.round(Number(value || 0) * 100) / 100;
 
@@ -361,7 +341,6 @@ const buildQuery = () => {
     per_page: pagination.perPage,
   };
   if (filters.search?.trim()) params.search = filters.search.trim();
-  if (filters.status) params.status = filters.status;
   return params;
 };
 
@@ -394,11 +373,6 @@ const onPage = (event) => {
 
 const onSearch = (value) => {
   filters.search = value;
-  resetPagination();
-  loadData();
-};
-
-const onStatusChange = () => {
   resetPagination();
   loadData();
 };
