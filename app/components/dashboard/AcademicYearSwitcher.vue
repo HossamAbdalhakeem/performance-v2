@@ -149,11 +149,15 @@ const loadYears = async () => {
       ? years.value.some((y) => String(y.id) === cookieId)
       : false;
 
-    const nextId = cookieExists
-      ? cookieId
-      : activeId.value || (years.value[0]?.id ? String(years.value[0].id) : null);
+    if (cookieExists) {
+      selectedId.value = cookieId;
+      return;
+    }
 
-    writeCookie(nextId);
+    // UI default: highlight ACTIVE, but do not write cookie until user selects
+    if (yearCookie.value) yearCookie.value = null;
+    selectedId.value =
+      activeId.value || (years.value[0]?.id ? String(years.value[0].id) : null);
   } finally {
     loading.value = false;
   }
@@ -166,7 +170,11 @@ const toggle = () => {
 const onSelect = (year) => {
   open.value = false;
   const nextId = year?.id ? String(year.id) : null;
-  if (!nextId || String(selectedId.value) === nextId) return;
+  if (!nextId) return;
+
+  const alreadySaved = yearCookie.value && String(yearCookie.value) === nextId;
+  if (alreadySaved) return;
+
   writeCookie(nextId);
   if (import.meta.client) window.location.reload();
 };
