@@ -57,17 +57,6 @@
       @update:image="$emit('update:refundImage', $event)"
       @update:image-data-url="$emit('update:refundProofKey', $event)"
     />
-
-    <div
-      class="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900"
-    >
-      <p class="font-semibold">عند الاسترداد سيتم:</p>
-      <ul class="mt-2 list-disc space-y-1 pr-5">
-        <li>إرجاع مبلغ {{ sale.refundAmountLabel }} للطالب</li>
-        <li>إعادة الكمية إلى مخزون الفرع</li>
-        <li>تسجيل عملية الاسترداد في التقارير</li>
-      </ul>
-    </div>
   </div>
 </template>
 

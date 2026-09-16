@@ -10,6 +10,16 @@
         {{ reservation.studentName }}
       </p>
       <p class="mt-1">
+        <span class="text-slate-400">أنشئ بواسطة:</span>
+        {{ reservation.createdByName || "—" }}
+        <span
+          v-if="reservation.createdByRoleLabel"
+          class="mr-1 rounded-md bg-slate-700/80 px-1.5 py-0.5 text-[11px] text-slate-300"
+        >
+          {{ reservation.createdByRoleLabel }}
+        </span>
+      </p>
+      <p class="mt-1">
         <span class="text-slate-400">المنتج:</span>
         {{ reservation.productName }}
       </p>

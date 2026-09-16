@@ -40,6 +40,7 @@ export const reportService = {
     const range = {
       ...todayRange(),
       ...params,
+      section: SECTION_HEADER[section] || "summary",
     };
     return asData(
       await apiFetch("/reports/daily", {

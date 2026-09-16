@@ -43,6 +43,18 @@
     <template #status="{ data }">
       <Tag :value="data.statusLabel" :severity="data.statusSeverity" />
     </template>
+
+    <template #createdBy="{ data }">
+      <div class="flex flex-col items-center gap-0.5">
+        <span class="text-sm font-medium">{{ data.createdByName }}</span>
+        <Tag
+          v-if="data.createdByRoleLabel && data.createdByRoleLabel !== '-'"
+          :value="data.createdByRoleLabel"
+          severity="secondary"
+        />
+      </div>
+    </template>
+
     <template #actions="{ data }">
       <div class="flex flex-wrap justify-center gap-1">
         <Button
@@ -88,6 +100,7 @@ const columns = [
   { field: "createdAtLabel", header: "تاريخ الحجز" },
   { field: "studentName", header: "الطالب" },
   { field: "productName", header: "المنتج" },
+  { field: "createdByName", header: "أنشئ بواسطة", slot: "createdBy" },
   { field: "sellingPriceLabel", header: "سعر البيع", slot: "sellingPriceLabel" },
   { field: "branchName", header: "الفرع" },
   { field: "quantity", header: "الكمية" },

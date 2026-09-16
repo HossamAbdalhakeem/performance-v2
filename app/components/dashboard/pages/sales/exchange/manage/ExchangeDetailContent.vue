@@ -84,7 +84,7 @@
           </div>
         </template>
         <p v-else class="text-sm text-slate-400">
-          اختر منتجًا متاحًا من نفس الفرع
+          {{ previewLoading ? "جاري حساب فرق السعر..." : "اختر منتجًا متاحًا من نفس الفرع" }}
         </p>
       </div>
     </div>
@@ -100,13 +100,19 @@
       <div class="mt-2 grid gap-1 text-slate-300">
         <div class="flex items-center justify-between gap-2">
           <span>سعر المنتج الحالي</span>
-          <span class="font-medium text-slate-100">{{ formatMoney(priceComparison.oldTotal) }}</span>
+          <span class="font-medium text-slate-100">{{
+            formatMoney(priceComparison.oldTotal)
+          }}</span>
         </div>
         <div class="flex items-center justify-between gap-2">
           <span>سعر المنتج الجديد</span>
-          <span class="font-medium text-slate-100">{{ formatMoney(priceComparison.newTotal) }}</span>
+          <span class="font-medium text-slate-100">{{
+            formatMoney(priceComparison.newTotal)
+          }}</span>
         </div>
-        <div class="flex items-center justify-between gap-2 border-t border-white/10 pt-1">
+        <div
+          class="flex items-center justify-between gap-2 border-t border-white/10 pt-1"
+        >
           <span>{{ priceComparison.diffLabel }}</span>
           <span class="font-bold" :class="priceComparison.diffClass">
             {{ formatMoney(Math.abs(priceComparison.difference)) }}
@@ -127,8 +133,6 @@
         placeholder="اختر المنتج البديل من نفس الفرع"
         :invalid="!!exchangeError"
         @update:model-value="$emit('update:newProductId', $event)"
-        @loaded="$emit('products-loaded', $event)"
-        @loading="$emit('products-loading', $event)"
       />
       <p v-if="exchangeError" class="text-xs text-red-500">{{ exchangeError }}</p>
     </div>
@@ -172,6 +176,7 @@ defineProps({
   newProductId: { type: [String, Number], default: null },
   selectedNewProduct: { type: Object, default: null },
   priceComparison: { type: Object, default: null },
+  previewLoading: { type: Boolean, default: false },
   exchangeError: { type: String, default: "" },
   exchangePaymentError: { type: String, default: "" },
   exchangePaymentMethod: { type: String, default: PaymentMethod.CASH },
@@ -186,7 +191,5 @@ defineEmits([
   "update:exchangeRefundMethod",
   "update:exchangeImage",
   "update:exchangeProofKey",
-  "products-loaded",
-  "products-loading",
 ]);
 </script>

@@ -5,17 +5,28 @@
         label=""
         variant="dark"
         placeholder="ابحث باسم الطالب أو رقم الموبايل أو رقم الحجز"
-        @search="search = $event"
+        @search="onSearch"
       />
     </div>
 
     <AppDataTable
-      :value="filteredReservations"
+      :value="reservations"
       :columns="tableColumns"
       :loading="loading"
       :empty-message="emptyMessage"
       :skeleton-rows="4"
     >
+      <template #createdBy="{ data }">
+        <div class="flex flex-col items-center gap-0.5">
+          <span class="text-sm font-medium text-slate-100">
+            {{ data.createdByName }}
+          </span>
+          <span class="rounded-md bg-slate-700/80 px-2 py-0.5 text-[11px] text-slate-300">
+            {{ data.createdByRoleLabel }}
+          </span>
+        </div>
+      </template>
+
       <template #sellingPrice="{ data }">
         <span
           class="rounded-md px-2 py-1 text-xs font-bold bg-sky-500/20 text-sky-300"
@@ -175,6 +186,7 @@ import {
   paymentMethodNeedsProof,
 } from "~/utils/paymentMethods";
 import { formatMoney } from "~/utils/format";
+import { getUserRoleLabel } from "~/enums/userRole";
 
 const DeliverReservationDetailContent = defineAsyncComponent(() =>
   import("~/components/dashboard/pages/reservations/deliver/manage/DeliverReservationDetailContent.vue"),
@@ -226,6 +238,7 @@ const tableColumns = [
   { field: "phone", header: "الموبايل", fallback: "-" },
   { field: "productName", header: "المنتج" },
   { field: "teacherName", header: "المدرس" },
+  { field: "createdByLabel", header: "أنشئ بواسطة", slot: "createdBy" },
   { field: "sellingPriceLabel", header: "سعر البيع", slot: "sellingPrice" },
   { field: "paidAmount", header: "المقدم", slot: "paidAmount" },
   { field: "remainingAmount", header: "المتبقي", slot: "remainingAmount" },
@@ -255,21 +268,18 @@ const canConfirmDeliver = computed(() => {
   return Boolean(paymentMethod.value);
 });
 
-const filteredReservations = computed(() => {
-  const q = search.value.trim().toLowerCase();
-  if (!q) return reservations.value;
-
-  return reservations.value.filter((item) => {
-    return (
-      String(item.reservationNumber || "").toLowerCase().includes(q) ||
-      String(item.studentName || "").toLowerCase().includes(q) ||
-      String(item.phone || "").toLowerCase().includes(q) ||
-      String(item.productName || "").toLowerCase().includes(q)
-    );
-  });
-});
-
 const isDeliverable = (item) => item?.status === "READY";
+
+const buildQuery = () => {
+  const params = { per_page: 20 };
+  if (search.value.trim()) params.search = search.value.trim();
+  return params;
+};
+
+const onSearch = (value) => {
+  search.value = value;
+  loadReservations();
+};
 
 const statusClass = (item) =>
   STATUS_META[item?.status]?.class || "bg-slate-500/20 text-slate-300";
@@ -295,6 +305,15 @@ const normalizeReservation = (item) => {
       0,
   );
 
+  const createdBy = item.createdBy || item.created_by || {};
+  const createdByName =
+    createdBy.fullName ||
+    createdBy.full_name ||
+    createdBy.name ||
+    item.createdByName ||
+    "-";
+  const createdByRole = createdBy.role || item.createdByRole || "";
+
   return {
     ...item,
     id: item.id,
@@ -308,6 +327,10 @@ const normalizeReservation = (item) => {
       item.teacher_name ||
       "-",
     productName: item.product?.name || item.product_name || "-",
+    createdByName,
+    createdByRole,
+    createdByRoleLabel: getUserRoleLabel(createdByRole),
+    createdByLabel: createdByName,
     totalAmount,
     paidAmount,
     remainingAmount,
@@ -393,7 +416,7 @@ const loadReservations = async () => {
   loading.value = true;
 
   try {
-    const result = await reservationService.getReservations({ per_page: 20 });
+    const result = await reservationService.getReservations(buildQuery());
     const list = result.data || [];
     reservations.value = list
       .map(normalizeReservation)

@@ -40,19 +40,12 @@
     </Field>
 
     <Field v-slot="{}" v-model="form.branchId" name="branchId">
-      <div class="flex flex-col gap-2 text-right">
-        <label class="text-sm font-medium text-slate-700">الفرع (اختياري)</label>
-        <Select
-          v-model="form.branchId"
-          :options="branchOptions"
-          optionLabel="label"
-          optionValue="value"
-          placeholder="كل الفروع / عام"
-          showClear
-          filter
-          class="w-full"
-        />
-      </div>
+      <AppGlobalSelectBranch
+        v-model="form.branchId"
+        label="الفرع (اختياري)"
+        placeholder="كل الفروع / عام"
+        show-clear
+      />
     </Field>
 
     <Field
@@ -141,9 +134,9 @@ import Textarea from "primevue/textarea";
 import DatePicker from "primevue/datepicker";
 import Dialog from "primevue/dialog";
 import AppInputNumber from "~/components/dashboard/AppInputNumber.vue";
+import AppGlobalSelectBranch from "~/components/shared/app-global-select-branch/index.vue";
 import { Form, Field, ErrorMessage } from "vee-validate";
 import { expenseService } from "~/services/expenseService";
-import { branchService } from "~/services/branchService";
 import { useAppToast } from "~/composables/useAppToast";
 
 const { showError } = useAppToast();
@@ -161,7 +154,6 @@ const showCategoryDialog = ref(false);
 const newCategoryName = ref("");
 const categoryError = ref("");
 const categoryOptions = ref([]);
-const branchOptions = ref([]);
 const isEdit = computed(() => Boolean(props.expense?.id));
 
 const toDate = (value) => {
@@ -196,20 +188,11 @@ const initialValues = computed(() => ({
 
 const loadLookups = async () => {
   try {
-    const [categories, branches] = await Promise.all([
-      expenseService.getCategories(),
-      branchService.getBranches(),
-    ]);
-    const branchList = Array.isArray(branches) ? branches : branches?.data || [];
+    const categories = await expenseService.getCategories();
 
     categoryOptions.value = (categories || [])
       .filter((item) => item.status !== "INACTIVE")
       .map((item) => ({ label: item.name, value: item.id }));
-
-    branchOptions.value = branchList.map((branch) => ({
-      label: branch.name,
-      value: branch.id,
-    }));
   } catch (error) {
     console.error("Failed to load expense lookups", error);
   }

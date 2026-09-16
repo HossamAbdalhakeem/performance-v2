@@ -89,9 +89,9 @@
             <div class="mt-8 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-right text-sm text-slate-600">
               <p class="font-semibold text-slate-800">بيانات تجريبية:</p>
               <ul class="mt-2 space-y-2">
-                <li>مدير: admin@library.local / Password123!</li>
-                <li>خدمة العملاء: cs@library.local / Password123!</li>
-                <li>موظف فرع: employee1@library.local / Password123!</li>
+                <li>مدير: admin@library.local </li>
+                <li>خدمة العملاء: hossamabdalhakeem99+098@gmail.com</li>
+                <li>موظف فرع: hossamabdalhakeem99+123@gmail.com  /  hossamabdalhakeem99+547@gmail.com</li>
               </ul>
             </div>
           </div>

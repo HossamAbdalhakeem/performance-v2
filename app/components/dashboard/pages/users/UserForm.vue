@@ -81,22 +81,17 @@
 
     <Field
       v-if="needsBranch"
-      v-slot="{ field, errorMessage }"
+      v-slot="{ errorMessage }"
+      v-model="form.branchId"
       name="branchId"
       rules="required"
     >
       <div class="flex flex-col gap-2 text-right">
-        <label class="text-sm font-medium text-slate-700">الفرع</label>
-        <Select
-          v-bind="field"
+        <AppGlobalSelectBranch
           v-model="form.branchId"
-          :options="branchOptions"
-          optionLabel="label"
-          optionValue="value"
+          label="الفرع"
           placeholder="اختر الفرع"
-          filter
-          class="w-full"
-          :class="{ 'p-invalid': errorMessage || fieldErrors.branchId }"
+          :invalid="!!(errorMessage || fieldErrors.branchId)"
         />
         <ErrorMessage name="branchId" class="text-xs text-red-500" />
       </div>
@@ -131,12 +126,12 @@
 import Button from "primevue/button";
 import FormSubmitButton from "~/components/shared/form-submit-button/index.vue";
 import AppGlobalSelectUserRole from "~/components/shared/app-global-select-user-role/index.vue";
+import AppGlobalSelectBranch from "~/components/shared/app-global-select-branch/index.vue";
 import InputText from "primevue/inputtext";
 import Password from "primevue/password";
 import Select from "primevue/select";
 import { Form, Field, ErrorMessage } from "vee-validate";
 import { userService } from "~/services/userService";
-import { branchService } from "~/services/branchService";
 import { useAppToast } from "~/composables/useAppToast";
 import {
   UserRole,
@@ -154,7 +149,6 @@ const emit = defineEmits(["saved", "cancel"]);
 
 const saving = ref(false);
 const formKey = ref(0);
-const branchOptions = ref([]);
 const isEdit = computed(() => Boolean(props.user?.id));
 
 const statusOptions = [
@@ -183,19 +177,6 @@ const initialValues = computed(() => ({
   branchId: props.user?.branchId || null,
   status: props.user?.status || "ACTIVE",
 }));
-
-const loadBranches = async () => {
-  try {
-    const branches = await branchService.getBranches();
-    const list = Array.isArray(branches) ? branches : branches?.data || [];
-    branchOptions.value = list.map((branch) => ({
-      label: branch.name,
-      value: branch.id,
-    }));
-  } catch (error) {
-    console.error("Failed to load branches", error);
-  }
-};
 
 watch(
   () => props.user,
@@ -247,6 +228,4 @@ const submit = async () => {
     saving.value = false;
   }
 };
-
-onMounted(loadBranches);
 </script>

@@ -7,175 +7,36 @@
           ملخص المبيعات والحجوزات والمخزون حسب الفلاتر
         </p>
       </div>
-      <div class="reports-filters flex flex-row flex-wrap items-center gap-2">
-        <ProductSelect
-          v-model="selectedBook"
-          source="catalog"
-          variant="simple"
-          label=""
-          placeholder="اختيار الكتاب ▾"
-          show-clear
-          wrapper-class="reports-filter-select"
-          @change="loadReport"
-        />
-        <Select
-          v-model="selectedBranch"
-          :options="branchOptions"
-          optionLabel="label"
-          optionValue="value"
-          placeholder="الفرع: كل الفروع ▾"
-          class="reports-filter-select reports-filter-select--branch"
-          @update:model-value="loadReport"
-        />
-        <Select
-          v-model="selectedDate"
-          :options="dateOptions"
-          optionLabel="label"
-          optionValue="value"
-          placeholder="اختيار التاريخ ▾"
-          class="reports-filter-select"
-          @update:model-value="loadReport"
-        />
-        <Button
-          icon="pi pi-refresh"
-          severity="secondary"
-          :loading="loading"
-          @click="loadReport"
-        />
-      </div>
+      <ReportsFilters
+        v-model:book="selectedBook"
+        v-model:branch="selectedBranch"
+        v-model:date="selectedDate"
+        :loading="loading"
+        @change="loadReport"
+        @refresh="loadReport"
+      />
     </div>
 
-    <template v-if="loading">
-      <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <div
-          v-for="i in 4"
-          :key="`kpi-${i}`"
-          class="rounded-xl border border-white/10 bg-slate-900 p-4"
-        >
-          <Skeleton width="7rem" height="0.9rem" class="mb-3" />
-          <Skeleton width="60%" height="1.8rem" />
-        </div>
-      </div>
-      <div class="rounded-xl border border-white/10 bg-slate-900 p-4">
-        <Skeleton width="5rem" height="1rem" class="mb-3" />
-        <Skeleton width="80%" height="0.9rem" class="mb-2" />
-        <Skeleton width="70%" height="0.9rem" class="mb-2" />
-        <Skeleton width="65%" height="0.9rem" />
-      </div>
-    </template>
+    <ReportsLoadingSkeleton v-if="loading" />
 
     <template v-else>
-      <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <div class="rounded-xl border border-white/10 bg-slate-900 p-4">
-          <p class="text-sm text-slate-300">إجمالي المبيعات</p>
-          <p class="mt-2 text-2xl font-bold text-white">
-            {{ formatMoney(summary.salesAmount, "locale") }}
-          </p>
-          <p class="mt-1 text-xs text-slate-500">
-            {{ summary.sales ?? 0 }} عملية بيع
-          </p>
-        </div>
-        <div class="rounded-xl border border-white/10 bg-slate-900 p-4">
-          <p class="text-sm text-slate-300">إجمالي الحجوزات</p>
-          <p class="mt-2 text-2xl font-bold text-white">
-            {{ summary.reservations ?? 0 }}
-          </p>
-          <p class="mt-1 text-xs text-slate-500">
-            مدفوع {{ formatMoney(summary.reservationsPaidAmount, "locale") }}
-          </p>
-        </div>
-        <div class="rounded-xl border border-white/10 bg-slate-900 p-4">
-          <p class="text-sm text-slate-300">إجمالي المخزون</p>
-          <p class="mt-2 text-2xl font-bold text-white">
-            {{ summary.inventoryTotal ?? 0 }}
-          </p>
-        </div>
-        <div class="rounded-xl border border-white/10 bg-slate-900 p-4">
-          <p class="text-sm text-slate-300">الكتب</p>
-          <div class="mt-2 grid grid-cols-3 gap-2 text-center">
-            <div>
-              <p class="text-xs text-slate-400">كل</p>
-              <p class="text-lg font-bold text-white">
-                {{ books.total ?? 0 }}
-              </p>
-            </div>
-            <div>
-              <p class="text-xs text-slate-400">محجوز</p>
-              <p class="text-lg font-bold text-white">
-                {{ books.reserved ?? 0 }}
-              </p>
-            </div>
-            <div>
-              <p class="text-[11px] text-slate-400">متاح بيع مباشر</p>
-              <p class="text-lg font-bold text-white">
-                {{ books.available ?? 0 }}
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
+      <ReportsSummaryCards :summary="summary" :books="books" />
 
-      <div class="rounded-xl border border-white/10 bg-slate-900 p-4">
-        <p class="mb-3 font-bold text-white">مبيعات</p>
-        <div class="grid gap-2 text-sm text-slate-200">
-          <p>
-            مبيعات فرع:
-            <strong class="text-white">{{
-              formatNumber(salesBreakdown.branchSales)
-            }}</strong>
-          </p>
-          <p>
-            محجوزات:
-            <strong class="text-white">{{
-              formatNumber(salesBreakdown.reservations)
-            }}</strong>
-          </p>
-          <p>
-            مرتجعات:
-            <strong class="text-white">{{
-              formatNumber(summary.refundsTotal)
-            }}</strong>
-          </p>
-          <p>
-            صافي الربح:
-            <strong class="text-white">{{
-              formatNumber(salesBreakdown.netProfit)
-            }}</strong>
-          </p>
-         
-        </div>
-      </div>
+      <ReportsSalesBreakdown
+        :breakdown="salesBreakdown"
+        :refunds-total="summary.refundsTotal"
+      />
 
       <PaymentMethodsReport
         :items="paymentMethodItems"
         total-label="إجمالي المدفوعات"
       />
 
-      <div class="rounded-xl border border-white/10 bg-slate-900 p-4">
-        <p class="mb-4 font-bold text-white">طلاب وعملاء</p>
-        <div class="grid gap-6 xl:grid-cols-2">
-          <div>
-            <p class="mb-3 text-center text-sm font-semibold text-white">
-              عدد العملاء لكل سنة دراسية
-            </p>
-            <CustomersByYearChart
-              :labels="customersByYearLabels"
-              :values="customersByYearValues"
-            />
-          </div>
-
-          <div>
-            <p class="mb-3 text-center text-sm font-semibold text-white">
-              طلاب كل مدرس
-            </p>
-            <AppDataTable
-              :value="studentRows"
-              :columns="studentColumns"
-              empty-message="لا توجد بيانات طلاب في هذه الفترة."
-            />
-          </div>
-        </div>
-      </div>
+      <ReportsCustomersSection
+        :year-labels="customersByYearLabels"
+        :year-values="customersByYearValues"
+        :students="studentRows"
+      />
 
       <Button
         label="⬇ تصدير كل التقارير Excel"
@@ -189,21 +50,15 @@
 </template>
 
 <script setup>
-import Select from "primevue/select";
 import Button from "primevue/button";
-import Skeleton from "primevue/skeleton";
-import ProductSelect from "~/components/shared/product-select/index.vue";
-import { branchService } from "~/services/branchService";
+import ReportsFilters from "~/components/dashboard/pages/reports/summary/ReportsFilters.vue";
+import ReportsLoadingSkeleton from "~/components/dashboard/pages/reports/summary/ReportsLoadingSkeleton.vue";
+import ReportsSummaryCards from "~/components/dashboard/pages/reports/summary/ReportsSummaryCards.vue";
+import ReportsSalesBreakdown from "~/components/dashboard/pages/reports/summary/ReportsSalesBreakdown.vue";
+import ReportsCustomersSection from "~/components/dashboard/pages/reports/summary/ReportsCustomersSection.vue";
 import { reportService } from "~/services/reportService";
 import { useAppToast } from "~/composables/useAppToast";
-import { formatMoney } from "~/utils/format";
 
-const AppDataTable = defineAsyncComponent(() =>
-  import("~/components/shared/app-data-table/index.vue"),
-);
-const CustomersByYearChart = defineAsyncComponent(() =>
-  import("~/components/shared/customers-by-year-chart/index.vue"),
-);
 const PaymentMethodsReport = defineAsyncComponent(() =>
   import("~/components/shared/payment-methods-report/index.vue"),
 );
@@ -217,21 +72,6 @@ const selectedBranch = ref("all");
 const selectedBook = ref(null);
 const loading = ref(true);
 const report = ref(null);
-
-const dateOptions = [
-  { label: "اليوم", value: "today" },
-  { label: "الأسبوع", value: "week" },
-  { label: "الشهر", value: "month" },
-];
-
-const branchOptions = ref([{ label: "كل الفروع", value: "all" }]);
-
-const studentColumns = [
-  { field: "student", header: "اسم الطالب" },
-  { field: "teacher", header: "المدرس" },
-  { field: "phone", header: "الموبايل" },
-  { field: "product", header: "اشترى ايه" },
-];
 
 const summary = computed(() => report.value?.summary || {});
 const books = computed(() => summary.value.books || {});
@@ -256,12 +96,6 @@ const studentRows = computed(() =>
     ? report.value.studentPurchases
     : [],
 );
-
-const formatNumber = (value) =>
-  Number(value || 0).toLocaleString("en-US", {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 2,
-  });
 
 const dateRangeParams = () => {
   const now = new Date();
@@ -292,23 +126,6 @@ const reportParams = () => {
     params.productId = selectedBook.value;
   }
   return params;
-};
-
-const loadFilters = async () => {
-  try {
-    const branches = await branchService.getBranches();
-    const branchList = Array.isArray(branches) ? branches : branches?.data || [];
-
-    branchOptions.value = [
-      { label: "كل الفروع", value: "all" },
-      ...branchList.map((branch) => ({
-        label: branch.name || branch.id,
-        value: branch.id,
-      })),
-    ];
-  } catch (error) {
-    console.error("Failed to load report filters", error);
-  }
 };
 
 const loadReport = async () => {
@@ -360,25 +177,5 @@ const exportReports = () => {
   URL.revokeObjectURL(url);
 };
 
-onMounted(async () => {
-  await loadFilters();
-  await loadReport();
-});
+onMounted(loadReport);
 </script>
-
-<style scoped>
-.reports-filters {
-  /* flex: 0 1 auto; */
-  justify-content: flex-end;
-  width: 75%;
-}
-
-.reports-filters :deep(.reports-filter-select.p-select),
-.reports-filters :deep(.p-select.reports-filter-select) {
-  width: 30% !important;
-  min-width: 30%;
-  max-width: 30%;
-}
-
-
-</style>

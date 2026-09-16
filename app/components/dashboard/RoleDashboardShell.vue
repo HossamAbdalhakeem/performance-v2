@@ -82,7 +82,7 @@
           </div>
 
           <div class="flex items-center gap-3">
-            <NotificationBell />
+            <NotificationBell v-if="normalizedRole !== 'social'" />
             <div class="flex items-center gap-3 rounded-2xl border border-white/10 bg-slate-900 px-3 py-2 shadow-sm">
               <div class="flex h-10 w-10 items-center justify-center rounded-full bg-sky-500/20 font-bold text-sky-200">
                 {{ userInitials }}

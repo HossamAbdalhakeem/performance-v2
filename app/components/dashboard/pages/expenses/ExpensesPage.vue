@@ -10,20 +10,13 @@
       <template #content>
         <div class="mb-5 grid gap-3 md:grid-cols-2">
           <SearchInput placeholder="تصنيف / وصف / فرع" @search="onSearch" />
-          <div class="flex flex-col gap-2 text-right">
-            <label class="text-sm font-medium text-slate-700">الفرع</label>
-            <Select
-              v-model="filters.branchId"
-              :options="branchOptions"
-              optionLabel="label"
-              optionValue="value"
-              placeholder="كل الفروع"
-              showClear
-              filter
-              class="w-full"
-              @update:modelValue="onBranchChange"
-            />
-          </div>
+          <AppGlobalSelectBranch
+            v-model="filters.branchId"
+            label="الفرع"
+            placeholder="كل الفروع"
+            show-clear
+            @change="onBranchChange"
+          />
         </div>
 
         <ExpensesTable
@@ -52,12 +45,11 @@
 <script setup>
 import Card from "primevue/card";
 import Button from "primevue/button";
-import Select from "primevue/select";
 import EntityDrawer from "~/components/dashboard/EntityDrawer.vue";
 import SearchInput from "~/components/shared/search-input/index.vue";
+import AppGlobalSelectBranch from "~/components/shared/app-global-select-branch/index.vue";
 import ExpensesTable from "~/components/dashboard/pages/expenses/ExpensesTable.vue";
 import { expenseService } from "~/services/expenseService";
-import { branchService } from "~/services/branchService";
 import { useAppToast } from "~/composables/useAppToast";
 import { formatMoney, formatDateTime } from "~/utils/format";
 
@@ -70,7 +62,6 @@ const loading = ref(true);
 const drawerVisible = ref(false);
 const editingItem = ref(null);
 const expenses = ref([]);
-const branchOptions = ref([]);
 const filters = reactive({
   search: "",
   branchId: null,
@@ -114,15 +105,6 @@ const onPage = (event) => {
   pagination.perPage = event.rows;
   pagination.first = event.first;
   loadData();
-};
-
-const loadBranches = async () => {
-  const branches = await branchService.getBranches();
-  const branchList = Array.isArray(branches) ? branches : branches?.data || [];
-  branchOptions.value = branchList.map((branch) => ({
-    label: branch.name,
-    value: branch.id,
-  }));
 };
 
 const loadData = async () => {
@@ -173,11 +155,6 @@ watch(drawerVisible, (visible) => {
 });
 
 onMounted(async () => {
-  try {
-    await loadBranches();
-  } catch (error) {
-    showError(error?.message || "تعذر تحميل الفروع.");
-  }
   await loadData();
 });
 </script>

@@ -64,13 +64,50 @@
         <li>جعل المنتج متاحًا للبيع مرة أخرى</li>
       </ul>
     </div>
+
+    <div
+      v-if="hasPaidDeposit"
+      class="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900"
+    >
+      <p class="mb-3 font-semibold">
+        مبلغ الرد للطالب: {{ reservation.paidAmountLabel }}
+      </p>
+      <PaymentFields
+        :method="refundMethod"
+        :image="refundImage"
+        :image-data-url="refundProofKey"
+        method-label="طريقة رد المبلغ"
+        :method-invalid="!!refundError"
+        :method-error="refundError"
+        @update:method="$emit('update:refundMethod', $event)"
+        @update:image="$emit('update:refundImage', $event)"
+        @update:image-data-url="$emit('update:refundProofKey', $event)"
+      />
+      <p v-if="refundError" class="mt-2 text-xs text-red-500">{{ refundError }}</p>
+    </div>
   </div>
 </template>
 
 <script setup>
+import PaymentFields from "~/components/shared/payment-fields/index.vue";
+import { PaymentMethod } from "~/utils/paymentMethods";
 import { formatMoney } from "~/utils/format";
 
-defineProps({
+const props = defineProps({
   reservation: { type: Object, default: null },
+  refundMethod: { type: String, default: PaymentMethod.CASH },
+  refundImage: { type: [Object, File], default: null },
+  refundProofKey: { type: String, default: "" },
+  refundError: { type: String, default: "" },
 });
+
+defineEmits([
+  "update:refundMethod",
+  "update:refundImage",
+  "update:refundProofKey",
+]);
+
+const hasPaidDeposit = computed(
+  () => Number(props.reservation?.paidAmount || 0) > 0,
+);
 </script>

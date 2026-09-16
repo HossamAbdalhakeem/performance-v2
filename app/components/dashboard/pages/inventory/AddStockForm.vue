@@ -1,15 +1,10 @@
 <template>
   <form class="grid gap-4" @submit.prevent="submitStock">
     <div v-if="!lockedBranchId" class="flex flex-col gap-2 text-right">
-      <label class="text-sm font-medium text-slate-700">الفرع</label>
-      <Select
+      <AppGlobalSelectBranch
         v-model="form.branchId"
-        :options="branchOptions"
-        option-label="label"
-        option-value="value"
+        label="الفرع"
         placeholder="اختار الفرع ▾"
-        filter
-        class="w-full"
         :invalid="!!errors.branchId"
       />
       <small v-if="errors.branchId" class="text-xs text-red-500">{{ errors.branchId }}</small>
@@ -85,10 +80,9 @@
 import Button from "primevue/button";
 import FormSubmitButton from "~/components/shared/form-submit-button/index.vue";
 import ProductSelect from "~/components/shared/product-select/index.vue";
-import Select from "primevue/select";
+import AppGlobalSelectBranch from "~/components/shared/app-global-select-branch/index.vue";
 import AppInputNumber from "~/components/dashboard/AppInputNumber.vue";
 import { inventoryService } from "~/services/inventoryService";
-import { branchService } from "~/services/branchService";
 import { useAppToast } from "~/composables/useAppToast";
 
 const props = defineProps({
@@ -101,7 +95,6 @@ const emit = defineEmits(["saved", "cancel"]);
 const { showError } = useAppToast();
 
 const saving = ref(false);
-const branchOptions = ref([]);
 const productOptions = ref([]);
 const errors = reactive({
   branchId: "",
@@ -150,25 +143,6 @@ const validate = () => {
   return !errors.branchId && !errors.productId && !errors.quantity;
 };
 
-const loadOptions = async () => {
-  if (props.lockedBranchId) {
-    branchOptions.value = [];
-    return;
-  }
-
-  try {
-    const branches = await branchService.getBranches();
-    const branchList = Array.isArray(branches) ? branches : branches?.data || [];
-    branchOptions.value = branchList.map((branch) => ({
-      label: branch.name || branch.id,
-      value: branch.id,
-    }));
-  } catch (error) {
-    console.error("Failed to load add-stock options", error);
-    showError(error?.message || "تعذر تحميل الفروع.");
-  }
-};
-
 const submitStock = async () => {
   if (!validate()) return;
 
@@ -198,6 +172,4 @@ watch(
   },
   { immediate: true },
 );
-
-onMounted(loadOptions);
 </script>

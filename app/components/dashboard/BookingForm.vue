@@ -1,7 +1,13 @@
 <template>
   <div class="space-y-4" dir="rtl">
-    <div v-if="showHeader" class="flex flex-wrap items-center justify-between gap-3">
-      <h2 class="text-xl font-bold" :class="isCustomerService ? 'text-white' : 'text-slate-900'">
+    <div
+      v-if="showHeader"
+      class="flex flex-wrap items-center justify-between gap-3"
+    >
+      <h2
+        class="text-xl font-bold"
+        :class="isCustomerService ? 'text-white' : 'text-slate-900'"
+      >
         {{ title }}
       </h2>
       <NuxtLink
@@ -36,7 +42,9 @@
             <StudentSearchField
               v-model="selectedStudent"
               :variant="isCustomerService ? 'dark' : 'default'"
-              :label-class="isCustomerService ? 'text-slate-200' : 'text-slate-700'"
+              :label-class="
+                isCustomerService ? 'text-slate-200' : 'text-slate-700'
+              "
               :invalid="!!(errorMessage || fieldErrors.studentId)"
               @select="(student) => applyStudent(student, setFieldValue)"
               @created="(student) => applyStudent(student, setFieldValue)"
@@ -50,6 +58,25 @@
           class="md:col-span-2 grid gap-4"
           :class="isCustomerService ? 'md:grid-cols-2' : 'md:grid-cols-1'"
         >
+          <Field
+            v-if="isCustomerService"
+            v-slot="{ errorMessage }"
+            v-model="form.branchId"
+            name="branchId"
+            label="الفرع"
+            rules="required"
+          >
+            <div class="flex h-full flex-col gap-2 text-right">
+              <AppGlobalSelectBranch
+                v-model="form.branchId"
+                label="اختيار الفرع"
+                placeholder="اختر الفرع"
+                :invalid="!!(errorMessage || fieldErrors.branchId)"
+                @change="onBranchChange"
+              />
+              <ErrorMessage name="branchId" class="text-xs text-red-500" />
+            </div>
+          </Field>
           <Field
             v-slot="{ errorMessage }"
             v-model="form.productId"
@@ -75,31 +102,6 @@
               <ErrorMessage name="productId" class="text-xs text-red-500" />
             </div>
           </Field>
-
-          <Field
-            v-if="isCustomerService"
-            v-slot="{ errorMessage }"
-            v-model="form.branchId"
-            name="branchId"
-            label="الفرع"
-            rules="required"
-          >
-            <div class="flex h-full flex-col gap-2 text-right">
-              <label class="text-sm font-medium text-slate-700">اختيار الفرع</label>
-              <Select
-                v-model="form.branchId"
-                :options="branchOptions"
-                option-label="label"
-                option-value="value"
-                placeholder="اختر الفرع"
-                filter
-                class="w-full"
-                :class="{ 'p-invalid': errorMessage || fieldErrors.branchId }"
-                @update:model-value="onBranchChange"
-              />
-              <ErrorMessage name="branchId" class="text-xs text-red-500" />
-            </div>
-          </Field>
         </div>
 
         <div
@@ -109,7 +111,9 @@
           <p class="mb-2 text-sm font-medium text-amber-100/80">
             {{ selectedProductOption.priceKindLabel || "مبلغ المنتج" }}
           </p>
-          <p class="text-4xl font-extrabold tracking-tight text-amber-300 md:text-5xl">
+          <p
+            class="text-4xl font-extrabold tracking-tight text-amber-300 md:text-5xl"
+          >
             {{ formatMoney(productDisplayPrice, "rtl") }}
           </p>
         </div>
@@ -123,7 +127,9 @@
         >
           <div class="md:col-span-2 flex flex-col gap-2 text-right">
             <div class="flex items-center justify-between gap-2">
-              <label class="text-sm font-medium text-slate-700">المبلغ المدفوع (مقدم)</label>
+              <label class="text-sm font-medium text-slate-700"
+                >المبلغ المدفوع (مقدم)</label
+              >
               <span
                 v-if="productDepositCap > 0"
                 class="text-xs font-medium text-slate-500"
@@ -141,7 +147,9 @@
               :use-grouping="true"
               :invalid="!!(errorMessage || fieldErrors.amount || amountError)"
             />
-            <p v-if="amountError" class="text-xs text-red-500">{{ amountError }}</p>
+            <p v-if="amountError" class="text-xs text-red-500">
+              {{ amountError }}
+            </p>
             <ErrorMessage name="amount" class="text-xs text-red-500" />
           </div>
         </Field>
@@ -188,15 +196,14 @@
 </template>
 
 <script setup>
-import Select from "primevue/select";
 import AppInputNumber from "~/components/dashboard/AppInputNumber.vue";
 import PaymentFields from "~/components/shared/payment-fields/index.vue";
 import FormSubmitButton from "~/components/shared/form-submit-button/index.vue";
 import ProductSelect from "~/components/shared/product-select/index.vue";
 import StudentSearchField from "~/components/shared/student-search-field/index.vue";
+import AppGlobalSelectBranch from "~/components/shared/app-global-select-branch/index.vue";
 import { Form, Field, ErrorMessage } from "vee-validate";
 import { inventoryService } from "~/services/inventoryService";
-import { branchService } from "~/services/branchService";
 import { mapInventoryProductOption } from "~/utils/productOptions";
 import {
   PAYMENT_METHOD_LABELS,
@@ -209,8 +216,8 @@ import { useAppToast } from "~/composables/useAppToast";
 
 defineOptions({ name: "DashboardBookingForm" });
 
-const ReservationSuccessDialog = defineAsyncComponent(() =>
-  import("~/components/dashboard/ReservationSuccessDialog.vue"),
+const ReservationSuccessDialog = defineAsyncComponent(
+  () => import("~/components/dashboard/ReservationSuccessDialog.vue"),
 );
 
 const props = defineProps({
@@ -230,7 +237,11 @@ const authStore = useAuthStore();
 
 const isCustomerService = computed(() => {
   const role = String(props.role || "").toUpperCase();
-  return role === "CUSTOMER_SERVICE" || role === "SOCIAL" || role === "CUSTOMER-SERVICE";
+  return (
+    role === "CUSTOMER_SERVICE" ||
+    role === "SOCIAL" ||
+    role === "CUSTOMER-SERVICE"
+  );
 });
 
 const employeeBranchId = computed(
@@ -254,7 +265,6 @@ const proofRequiredError = ref(false);
 const paymentFieldsRef = ref(null);
 const selectedStudent = ref(null);
 const inventoryItems = ref([]);
-const branches = ref([]);
 
 const paymentExclude = computed(() =>
   isCustomerService.value ? [PaymentMethod.CASH] : [],
@@ -287,19 +297,14 @@ const resolvedBranchId = computed(() =>
   isCustomerService.value ? form.branchId : employeeBranchId.value,
 );
 
-const branchOptions = computed(() =>
-  branches.value.map((branch) => ({
-    label: branch.name || branch.id,
-    value: branch.id,
-  })),
-);
-
 const productOptions = computed(() =>
   inventoryItems.value.map(mapInventoryProductOption),
 );
 
-const selectedProductOption = computed(() =>
-  productOptions.value.find((option) => option.value === form.productId) || null,
+const selectedProductOption = computed(
+  () =>
+    productOptions.value.find((option) => option.value === form.productId) ||
+    null,
 );
 
 /** Same amount shown in the product dropdown (selling or initial price) */
@@ -348,7 +353,8 @@ const loadProducts = async () => {
     if (
       form.productId &&
       !inventoryItems.value.some(
-        (item) => (item.product?.id || item.productId || item.id) === form.productId,
+        (item) =>
+          (item.product?.id || item.productId || item.id) === form.productId,
       )
     ) {
       form.productId = props.initialProduct || null;
@@ -362,17 +368,6 @@ const onBranchChange = async (value) => {
   form.branchId = value || null;
   form.productId = props.initialProduct || null;
   await loadProducts();
-};
-
-const loadBranches = async () => {
-  if (!isCustomerService.value) {
-    branches.value = [];
-    return;
-  }
-
-  const items = await branchService.getBranches();
-  const list = Array.isArray(items) ? items : items?.data || [];
-  branches.value = list.filter((branch) => branch.status !== "INACTIVE");
 };
 
 const validateStudentSelection = (value) => {
@@ -496,17 +491,14 @@ const handleSubmit = async () => {
       reservationNumber,
       dateTimeLabel: formatDateTime(result?.createdAt || new Date()),
       productName: product?.name || result?.product?.name || "-",
-      teacherName:
-        product?.teacherName ||
-        result?.product?.teacher?.name ||
-        "",
+      teacherName: product?.teacherName || result?.product?.teacher?.name || "",
       studyYearName:
-        product?.studyYearName ||
-        result?.product?.studyYear?.name ||
-        "",
+        product?.studyYearName || result?.product?.studyYear?.name || "",
       studentName: form.studentName || result?.student?.name || "-",
       paidAmount: Number(result?.paidAmount ?? paidAmount),
-      totalAmount: Number(result?.totalAmount ?? product?.sellingPrice ?? paidAmount),
+      totalAmount: Number(
+        result?.totalAmount ?? product?.sellingPrice ?? paidAmount,
+      ),
       methodLabel: PAYMENT_METHOD_LABELS[method] || method,
       proofImage: needsProof ? proofPreviewUrl.value || "" : "",
     };
@@ -564,7 +556,7 @@ watch(isCustomerService, async (value) => {
 
 onMounted(async () => {
   try {
-    await Promise.all([loadBranches(), loadProducts()]);
+    await loadProducts();
     if (props.initialProduct) form.productId = props.initialProduct;
     if (isCustomerService.value && form.paymentMethod === PaymentMethod.CASH) {
       form.paymentMethod = defaultPaymentMethod.value;

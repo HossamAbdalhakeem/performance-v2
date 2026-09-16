@@ -34,6 +34,13 @@
       <CancelReservationDetailContent
         v-if="cancelDetailVisible"
         :reservation="selectedReservation"
+        :refund-method="cancelRefundMethod"
+        :refund-image="cancelImage"
+        :refund-proof-key="cancelProofKey"
+        :refund-error="cancelRefundError"
+        @update:refund-method="cancelRefundMethod = $event"
+        @update:refund-image="cancelImage = $event"
+        @update:refund-proof-key="cancelProofKey = $event"
       />
 
       <template #footer>
@@ -43,7 +50,7 @@
             severity="danger"
             icon="pi pi-times"
             :disabled="!selectedReservation || busy"
-            @click="cancelConfirmVisible = true"
+            @click="requestCancelConfirm"
           />
           <Button
             label="رجوع"
@@ -193,6 +200,7 @@ import {
   paymentMethodNeedsProof,
 } from "~/utils/paymentMethods";
 import { formatMoney, formatDateTime } from "~/utils/format";
+import { getUserRoleLabel } from "~/enums/userRole";
 
 defineOptions({ name: "ReservationsManagePage" });
 
@@ -231,6 +239,10 @@ const exchangePaymentError = ref("");
 const exchangeRefundMethod = ref(PaymentMethod.CASH);
 const exchangeImage = ref(null);
 const exchangeProofKey = ref("");
+const cancelRefundMethod = ref(PaymentMethod.CASH);
+const cancelImage = ref(null);
+const cancelProofKey = ref("");
+const cancelRefundError = ref("");
 const filters = reactive({
   search: "",
 });
@@ -274,6 +286,14 @@ const normalizeReservation = (item) => {
   const productId = item.productId || item.product_id || item.product?.id || null;
   const branchId = item.branchId || item.branch_id || item.branch?.id || null;
 
+  const createdBy = item.createdBy || item.created_by || {};
+  const createdByName =
+    createdBy.fullName ||
+    createdBy.full_name ||
+    createdBy.name ||
+    "-";
+  const createdByRole = createdBy.role || "";
+
   return {
     ...item,
     productId,
@@ -289,6 +309,9 @@ const normalizeReservation = (item) => {
       item.teacher?.name ||
       "-",
     branchName: item.branch?.name || "-",
+    createdByName,
+    createdByRole,
+    createdByRoleLabel: getUserRoleLabel(createdByRole),
     quantity: item.quantity ?? 1,
     totalAmount,
     paidAmount,
@@ -379,6 +402,10 @@ const onSearch = (value) => {
 
 const openCancelDialog = (item) => {
   selectedReservation.value = item;
+  cancelRefundMethod.value = PaymentMethod.CASH;
+  cancelImage.value = null;
+  cancelProofKey.value = "";
+  cancelRefundError.value = "";
   cancelConfirmVisible.value = false;
   exchangeDetailVisible.value = false;
   exchangeConfirmVisible.value = false;
@@ -389,17 +416,58 @@ const closeCancelFlow = () => {
   if (busy.value) return;
   cancelDetailVisible.value = false;
   cancelConfirmVisible.value = false;
+  cancelRefundMethod.value = PaymentMethod.CASH;
+  cancelImage.value = null;
+  cancelProofKey.value = "";
+  cancelRefundError.value = "";
   if (!exchangeDetailVisible.value) selectedReservation.value = null;
+};
+
+const requestCancelConfirm = () => {
+  cancelRefundError.value = "";
+  const paidAmount = Number(selectedReservation.value?.paidAmount || 0);
+
+  if (paidAmount > 0) {
+    if (!cancelRefundMethod.value) {
+      cancelRefundError.value = "اختر طريقة رد المبلغ.";
+      return;
+    }
+    if (
+      paymentMethodNeedsProof(cancelRefundMethod.value) &&
+      !String(cancelProofKey.value || "").trim()
+    ) {
+      cancelRefundError.value = "صورة إثبات الرد مطلوبة لطريقة الرد المحددة.";
+      return;
+    }
+  }
+
+  cancelConfirmVisible.value = true;
 };
 
 const confirmCancel = async () => {
   if (!selectedReservation.value?.id) return;
   busy.value = true;
   try {
-    await reservationService.cancelReservation(selectedReservation.value.id);
+    const payload = {};
+    const paidAmount = Number(selectedReservation.value?.paidAmount || 0);
+    if (paidAmount > 0) {
+      payload.refundMethod = cancelRefundMethod.value;
+      if (cancelProofKey.value) {
+        payload.proofReference = cancelProofKey.value;
+      }
+    }
+
+    await reservationService.cancelReservation(
+      selectedReservation.value.id,
+      payload,
+    );
     cancelConfirmVisible.value = false;
     cancelDetailVisible.value = false;
     selectedReservation.value = null;
+    cancelRefundMethod.value = PaymentMethod.CASH;
+    cancelImage.value = null;
+    cancelProofKey.value = "";
+    cancelRefundError.value = "";
     showSuccess("تم إلغاء الحجز بنجاح.");
     await loadData();
   } catch (error) {
@@ -513,6 +581,14 @@ watch(newProductId, () => {
 
 watch(exchangeRefundMethod, () => {
   if (exchangePaymentError.value) exchangePaymentError.value = "";
+});
+
+watch(cancelRefundMethod, () => {
+  if (cancelRefundError.value) cancelRefundError.value = "";
+});
+
+watch(cancelProofKey, () => {
+  if (cancelRefundError.value) cancelRefundError.value = "";
 });
 
 onMounted(loadData);

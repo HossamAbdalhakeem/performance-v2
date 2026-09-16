@@ -75,11 +75,24 @@ export const reservationService = {
     );
   },
 
-  async cancelReservation(id: string) {
+  async cancelReservation(id: string, payload: Record<string, any> = {}) {
+    const body: Record<string, any> = {};
+
+    const refundMethodRaw = payload.refundMethod ?? payload.refund_method;
+    if (refundMethodRaw != null && String(refundMethodRaw).trim() !== "") {
+      body.refundMethod = normalizePaymentMethod(refundMethodRaw);
+    }
+
+    const proofReference =
+      payload.proofReference ||
+      payload.proof_reference ||
+      payload.payment_proof_path;
+    if (proofReference) body.proofReference = proofReference;
+
     return firstRow(
       await apiFetch(`/reservations/${id}/cancel`, {
         method: "POST",
-        body: {},
+        body,
       }),
     );
   },
