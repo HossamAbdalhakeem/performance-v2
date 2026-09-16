@@ -1,23 +1,24 @@
 <template>
-  <div class="reports-filters flex flex-row flex-wrap items-center gap-2">
+  <div class="reports-filters flex flex-row flex-wrap items-center justify-end gap-2">
     <ProductSelect
       :model-value="book"
       source="catalog"
       variant="simple"
       label=""
-      placeholder="اختيار الكتاب ▾"
+      placeholder="اختيار الكتاب"
       show-clear
-      wrapper-class="reports-filter-select"
+      wrapper-class="reports-filter-item"
       @update:model-value="onBookChange"
     />
     <AppGlobalSelectBranch
       :model-value="branch"
       label=""
-      placeholder="الفرع: كل الفروع ▾"
+      placeholder="كل الفروع"
       include-all-option
       all-option-label="كل الفروع"
       all-option-value="all"
-      select-class="reports-filter-select reports-filter-select--branch"
+      wrapper-class="reports-filter-item"
+      select-class="w-full"
       @update:model-value="onBranchChange"
     />
     <Select
@@ -25,13 +26,14 @@
       :options="dateOptions"
       optionLabel="label"
       optionValue="value"
-      placeholder="اختيار التاريخ ▾"
-      class="reports-filter-select"
+      placeholder="اختيار التاريخ"
+      class="reports-filter-item w-full"
       @update:model-value="onDateChange"
     />
     <Button
       icon="pi pi-refresh"
       severity="secondary"
+      class="shrink-0"
       :loading="loading"
       @click="$emit('refresh')"
     />
@@ -85,14 +87,18 @@ const onDateChange = (value) => {
 
 <style scoped>
 .reports-filters {
-  justify-content: flex-end;
   width: 75%;
+  max-width: 100%;
 }
 
-.reports-filters :deep(.reports-filter-select.p-select),
-.reports-filters :deep(.p-select.reports-filter-select) {
-  width: 30% !important;
+.reports-filters :deep(.reports-filter-item) {
+  width: 30%;
   min-width: 30%;
   max-width: 30%;
+}
+
+.reports-filters :deep(.reports-filter-item .p-select),
+.reports-filters :deep(.p-select.reports-filter-item) {
+  width: 100% !important;
 }
 </style>
