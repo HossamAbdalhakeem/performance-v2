@@ -19,12 +19,23 @@
       paginator
       :rows="20"
       :empty-message="sectionMeta.emptyMessage"
-    />
+    >
+      <template #method="{ data }">
+        <PaymentProofThumb
+          :method="data.paymentMethod"
+          :method-label="data.method"
+          :payment-id="data.paymentId"
+          :proof-url="data.proofUrl"
+          :has-proof="data.hasProof"
+        />
+      </template>
+    </AppDataTable>
   </Dialog>
 </template>
 
 <script setup>
 import Dialog from "primevue/dialog";
+import PaymentProofThumb from "~/components/shared/payment-proof-thumb/index.vue";
 import { formatMoney, formatDateTime } from "~/utils/format";
 
 const AppDataTable = defineAsyncComponent(() =>
@@ -57,7 +68,7 @@ const saleColumns = [
   { field: "student", header: "الطالب" },
   { field: "products", header: "المنتجات" },
   { field: "amount", header: "المبلغ" },
-  { field: "method", header: "الدفع" },
+  { field: "method", header: "الدفع", slot: "method" },
   { field: "by", header: "بواسطة" },
 ];
 
@@ -74,6 +85,7 @@ const reservationColumns = computed(() => {
   cols.push(
     { field: "status", header: "الحالة" },
     { field: "paid", header: "المدفوع" },
+    { field: "method", header: "الدفع", slot: "method" },
     { field: "by", header: "بواسطة" },
   );
   return cols;
@@ -170,7 +182,11 @@ const displayRows = computed(() => {
       student: row.student || "-",
       products: row.products || "-",
       amount: formatMoney(row.amount, "rtl"),
-      method: row.method || "-",
+      method: row.paymentMethodLabel || row.method || "-",
+      paymentMethod: row.paymentMethod || "",
+      paymentId: row.paymentId || null,
+      proofUrl: row.proofUrl || null,
+      hasProof: Boolean(row.hasProof),
       by: row.by || "-",
     }));
   }
@@ -184,6 +200,11 @@ const displayRows = computed(() => {
       branch: row.branch || "-",
       status: row.statusLabel || row.status || "-",
       paid: formatMoney(row.paid, "rtl"),
+      method: row.paymentMethodLabel || row.method || "-",
+      paymentMethod: row.paymentMethod || "",
+      paymentId: row.paymentId || null,
+      proofUrl: row.proofUrl || null,
+      hasProof: Boolean(row.hasProof),
       by: row.by || "-",
     }));
   }

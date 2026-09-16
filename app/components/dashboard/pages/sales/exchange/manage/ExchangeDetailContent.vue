@@ -19,10 +19,33 @@
           <span class="font-medium">{{ sale.branchName }}</span>
         </div>
         <div class="flex items-center justify-between gap-2">
-          <span class="text-slate-500">الكمية</span>
-          <span class="font-medium">{{ sale.remainingQuantity }}</span>
+          <span class="text-slate-500">الكمية المتاحة للاستبدال</span>
+          <span class="font-medium">{{ maxQuantity }}</span>
         </div>
       </div>
+    </div>
+
+    <div class="flex flex-col gap-2 text-right">
+      <div class="flex items-center justify-between gap-2">
+        <label class="text-sm font-medium text-slate-700">
+          كمية الاستبدال
+        </label>
+        <span class="text-xs text-slate-500">
+          من 1 إلى {{ maxQuantity }}
+        </span>
+      </div>
+      <AppInputNumber
+        :model-value="exchangeQuantity"
+        :min="1"
+        :max="maxQuantity"
+        :max-fraction-digits="0"
+        :invalid="!!quantityError"
+        @update:model-value="$emit('update:exchangeQuantity', $event)"
+      />
+      <p v-if="quantityError" class="text-xs text-red-500">{{ quantityError }}</p>
+      <p v-else class="text-xs text-slate-500">
+        سيتم استبدال {{ exchangeQuantity || 0 }} من المنتج الحالي بنفس الكمية من المنتج الجديد
+      </p>
     </div>
 
     <div class="grid gap-3 md:grid-cols-2">
@@ -34,9 +57,15 @@
         <p class="mt-1 text-xs text-slate-400">
           أ/ {{ sale.teacherName || "—" }}
         </p>
-        <div class="mt-3 flex items-center justify-between gap-2">
-          <span class="text-slate-400">السعر</span>
-          <span class="font-semibold text-slate-100">{{ sale.unitPriceLabel }}</span>
+        <div class="mt-3 space-y-1.5">
+          <div class="flex items-center justify-between gap-2">
+            <span class="text-slate-400">سعر الوحدة</span>
+            <span class="font-semibold text-slate-100">{{ sale.unitPriceLabel }}</span>
+          </div>
+          <div class="flex items-center justify-between gap-2">
+            <span class="text-slate-400">كمية الاستبدال</span>
+            <span class="font-semibold text-rose-300">{{ exchangeQuantity || 0 }}</span>
+          </div>
         </div>
       </div>
 
@@ -76,10 +105,14 @@
               </span>
             </div>
             <div class="flex items-center justify-between gap-2">
-              <span class="text-slate-400">السعر</span>
+              <span class="text-slate-400">سعر الوحدة</span>
               <span class="font-semibold text-slate-100">
                 {{ formatMoney(selectedNewProduct.unitPrice) }}
               </span>
+            </div>
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-slate-400">كمية الاستبدال</span>
+              <span class="font-semibold text-emerald-300">{{ exchangeQuantity || 0 }}</span>
             </div>
           </div>
         </template>
@@ -99,13 +132,13 @@
       </p>
       <div class="mt-2 grid gap-1 text-slate-300">
         <div class="flex items-center justify-between gap-2">
-          <span>سعر المنتج الحالي</span>
+          <span>إجمالي المنتج الحالي (×{{ exchangeQuantity || 0 }})</span>
           <span class="font-medium text-slate-100">{{
             formatMoney(priceComparison.oldTotal)
           }}</span>
         </div>
         <div class="flex items-center justify-between gap-2">
-          <span>سعر المنتج الجديد</span>
+          <span>إجمالي المنتج الجديد (×{{ exchangeQuantity || 0 }})</span>
           <span class="font-medium text-slate-100">{{
             formatMoney(priceComparison.newTotal)
           }}</span>
@@ -128,7 +161,7 @@
         :branch-id="sale.branchId"
         :inventory-query="{ availableOnly: true }"
         :exclude-product-id="sale.productId"
-        :min-available-quantity="Number(sale.remainingQuantity || 1)"
+        :min-available-quantity="Number(exchangeQuantity || 1)"
         label="المنتج الجديد"
         placeholder="اختر المنتج البديل من نفس الفرع"
         :invalid="!!exchangeError"
@@ -166,13 +199,16 @@
 </template>
 
 <script setup>
+import AppInputNumber from "~/components/dashboard/AppInputNumber.vue";
 import PaymentFields from "~/components/shared/payment-fields/index.vue";
 import ProductSelect from "~/components/shared/product-select/index.vue";
 import { PaymentMethod } from "~/utils/paymentMethods";
 import { formatMoney } from "~/utils/format";
 
-defineProps({
+const props = defineProps({
   sale: { type: Object, default: null },
+  exchangeQuantity: { type: Number, default: 1 },
+  quantityError: { type: String, default: "" },
   newProductId: { type: [String, Number], default: null },
   selectedNewProduct: { type: Object, default: null },
   priceComparison: { type: Object, default: null },
@@ -186,10 +222,15 @@ defineProps({
 });
 
 defineEmits([
+  "update:exchangeQuantity",
   "update:newProductId",
   "update:exchangePaymentMethod",
   "update:exchangeRefundMethod",
   "update:exchangeImage",
   "update:exchangeProofKey",
 ]);
+
+const maxQuantity = computed(() =>
+  Math.max(1, Number(props.sale?.remainingQuantity || 1)),
+);
 </script>

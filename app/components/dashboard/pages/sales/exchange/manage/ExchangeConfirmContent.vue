@@ -1,7 +1,9 @@
 <template>
   <div class="space-y-3 text-sm text-slate-700">
     <p>
-      هل أنت متأكد من استبدال منتج العملية
+      هل أنت متأكد من استبدال
+      <span class="font-bold text-slate-900">{{ exchangeQuantity }}</span>
+      من منتج العملية
       <span class="font-bold text-slate-900">
         {{ sale?.saleNumber }}
       </span>
@@ -14,7 +16,7 @@
           {{ sale?.productName }}
         </p>
         <p class="mt-0.5 text-xs text-slate-400">
-          {{ sale?.unitPriceLabel }}
+          {{ sale?.unitPriceLabel }} × {{ exchangeQuantity }}
         </p>
       </div>
       <div class="rounded-lg border border-white/10 bg-slate-900 px-3 py-2">
@@ -25,7 +27,7 @@
         <p class="mt-0.5 text-xs text-slate-400">
           {{
             selectedNewProduct
-              ? formatMoney(selectedNewProduct.unitPrice)
+              ? `${formatMoney(selectedNewProduct.unitPrice)} × ${exchangeQuantity}`
               : "—"
           }}
         </p>
@@ -48,5 +50,6 @@ defineProps({
   sale: { type: Object, default: null },
   selectedNewProduct: { type: Object, default: null },
   priceComparison: { type: Object, default: null },
+  exchangeQuantity: { type: Number, default: 1 },
 });
 </script>

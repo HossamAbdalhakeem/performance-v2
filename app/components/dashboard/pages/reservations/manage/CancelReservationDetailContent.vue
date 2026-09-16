@@ -56,14 +56,7 @@
       </div>
     </div>
 
-    <div class="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-      <p class="font-semibold">عند الإلغاء سيتم:</p>
-      <ul class="mt-2 list-disc space-y-1 pr-5">
-        <li>إرجاع المبلغ المدفوع للطالب (إن وجد)</li>
-        <li>تحرير الكمية المحجوزة من المخزون</li>
-        <li>جعل المنتج متاحًا للبيع مرة أخرى</li>
-      </ul>
-    </div>
+
 
     <div
       v-if="hasPaidDeposit"
@@ -77,13 +70,15 @@
         :image="refundImage"
         :image-data-url="refundProofKey"
         method-label="طريقة رد المبلغ"
+        image-label="صورة إثبات الاسترداد (اختياري)"
+        :show-image-when="'never'"
+        :require-image-when="'never'"
         :method-invalid="!!refundError"
         :method-error="refundError"
         @update:method="$emit('update:refundMethod', $event)"
         @update:image="$emit('update:refundImage', $event)"
         @update:image-data-url="$emit('update:refundProofKey', $event)"
       />
-      <p v-if="refundError" class="mt-2 text-xs text-red-500">{{ refundError }}</p>
     </div>
   </div>
 </template>

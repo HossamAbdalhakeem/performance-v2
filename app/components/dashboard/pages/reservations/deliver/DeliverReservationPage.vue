@@ -43,6 +43,16 @@
         </span>
       </template>
 
+      <template #paymentMethod="{ data }">
+        <PaymentProofThumb
+          :method="data.paymentMethod"
+          :method-label="data.paymentMethodLabel"
+          :payment-id="data.paymentId"
+          :proof-url="data.proofUrl"
+          :has-proof="data.hasProof"
+        />
+      </template>
+
       <template #remainingAmount="{ data }">
         <span
           class="rounded-md px-2 py-1 text-xs font-bold"
@@ -187,6 +197,7 @@ import {
 } from "~/utils/paymentMethods";
 import { formatMoney } from "~/utils/format";
 import { getUserRoleLabel } from "~/enums/userRole";
+import PaymentProofThumb from "~/components/shared/payment-proof-thumb/index.vue";
 
 const DeliverReservationDetailContent = defineAsyncComponent(() =>
   import("~/components/dashboard/pages/reservations/deliver/manage/DeliverReservationDetailContent.vue"),
@@ -241,6 +252,7 @@ const tableColumns = [
   { field: "createdByLabel", header: "أنشئ بواسطة", slot: "createdBy" },
   { field: "sellingPriceLabel", header: "سعر البيع", slot: "sellingPrice" },
   { field: "paidAmount", header: "المقدم", slot: "paidAmount" },
+  { field: "paymentMethodLabel", header: "طريقة الدفع", slot: "paymentMethod" },
   { field: "remainingAmount", header: "المتبقي", slot: "remainingAmount" },
   { field: "statusLabel", header: "الحالة", slot: "status" },
   { field: "actions", header: "إجراء", slot: "actions", style: "width: 7rem" },
@@ -313,6 +325,9 @@ const normalizeReservation = (item) => {
     item.createdByName ||
     "-";
   const createdByRole = createdBy.role || item.createdByRole || "";
+  const paymentMethodValue = String(
+    item.paymentMethod || item.payments?.[0]?.method || "CASH",
+  ).toUpperCase();
 
   return {
     ...item,
@@ -336,6 +351,20 @@ const normalizeReservation = (item) => {
     remainingAmount,
     sellingPrice,
     sellingPriceLabel: sellingPrice > 0 ? formatMoney(sellingPrice) : "—",
+    paymentId: item.paymentId || item.payments?.[0]?.id || null,
+    paymentMethod: paymentMethodValue,
+    paymentMethodLabel:
+      item.paymentMethodLabel ||
+      PAYMENT_METHOD_LABELS[paymentMethodValue] ||
+      paymentMethodValue ||
+      "—",
+    proofUrl: item.proofUrl || item.payments?.[0]?.proofUrl || null,
+    hasProof: Boolean(
+      item.hasProof ??
+        item.payments?.[0]?.hasProof ??
+        (paymentMethodValue !== "CASH" &&
+          (item.proofReference || item.payments?.[0]?.proofReference)),
+    ),
     hasRemaining: remainingAmount > 0,
     status,
     statusLabel:

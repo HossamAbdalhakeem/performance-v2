@@ -84,6 +84,15 @@
             {{ data.amountLabel }}
           </span>
         </template>
+        <template #paymentMethod="{ data }">
+          <PaymentProofThumb
+            :method="data.paymentMethod"
+            :method-label="data.paymentMethodLabel"
+            :payment-id="data.paymentId"
+            :proof-url="data.proofUrl"
+            :has-proof="data.hasProof"
+          />
+        </template>
         <template #statusLabel="{ data }">
           <Tag :value="data.statusLabel" :severity="data.statusSeverity" />
         </template>
@@ -97,11 +106,13 @@ import Button from "primevue/button";
 import Dialog from "primevue/dialog";
 import Tag from "primevue/tag";
 import AppDataTable from "~/components/shared/app-data-table/index.vue";
+import PaymentProofThumb from "~/components/shared/payment-proof-thumb/index.vue";
 import ProductSelect from "~/components/shared/product-select/index.vue";
 import AppGlobalSelectTeacher from "~/components/shared/app-global-select-teacher/index.vue";
 import { studentService } from "~/services/studentService";
 import { useAppToast } from "~/composables/useAppToast";
 import { formatMoney, formatDateTime } from "~/utils/format";
+import { PAYMENT_METHOD_LABELS } from "~/utils/paymentMethods";
 
 const props = defineProps({
   visible: { type: Boolean, default: false },
@@ -176,6 +187,7 @@ const columns = [
   { field: "branchName", header: "الفرع" },
   { field: "quantity", header: "الكمية" },
   { field: "amountLabel", header: "المبلغ", slot: "amountLabel" },
+  { field: "paymentMethodLabel", header: "طريقة الدفع", slot: "paymentMethod" },
   { field: "statusLabel", header: "الحالة", slot: "statusLabel" },
 ];
 
@@ -223,6 +235,7 @@ const normalizeTransaction = (item) => {
     item.statusLabel ||
     status ||
     (type === "RETURN" ? "مرتجع" : "—");
+  const paymentMethod = String(item.paymentMethod || "CASH").toUpperCase();
 
   return {
     ...item,
@@ -235,6 +248,15 @@ const normalizeTransaction = (item) => {
     branchName,
     quantity: item.quantity ?? item.qty ?? "—",
     statusLabel,
+    paymentId: item.paymentId || null,
+    paymentMethod,
+    paymentMethodLabel:
+      item.paymentMethodLabel ||
+      PAYMENT_METHOD_LABELS[paymentMethod] ||
+      paymentMethod ||
+      "—",
+    proofUrl: item.proofUrl || null,
+    hasProof: Boolean(item.hasProof),
     statusSeverity: statusSeverity(status, type),
   };
 };

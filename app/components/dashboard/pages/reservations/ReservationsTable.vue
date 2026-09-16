@@ -27,6 +27,16 @@
       </span>
     </template>
 
+    <template #paymentMethod="{ data }">
+      <PaymentProofThumb
+        :method="data.paymentMethod"
+        :method-label="data.paymentMethodLabel"
+        :payment-id="data.paymentId"
+        :proof-url="data.proofUrl"
+        :has-proof="data.hasProof"
+      />
+    </template>
+
     <template #remainingAmountLabel="{ data }">
       <span
         class="rounded-md px-2 py-1 text-xs font-bold"
@@ -84,6 +94,7 @@
 import Button from "primevue/button";
 import Tag from "primevue/tag";
 import AppDataTable from "~/components/shared/app-data-table/index.vue";
+import PaymentProofThumb from "~/components/shared/payment-proof-thumb/index.vue";
 
 defineProps({
   reservations: { type: Array, default: () => [] },
@@ -105,6 +116,7 @@ const columns = [
   { field: "branchName", header: "الفرع" },
   { field: "quantity", header: "الكمية" },
   { field: "paidAmountLabel", header: "المقدم", slot: "paidAmountLabel" },
+  { field: "paymentMethodLabel", header: "طريقة الدفع", slot: "paymentMethod" },
   { field: "remainingAmountLabel", header: "المتبقي", slot: "remainingAmountLabel" },
   { field: "statusLabel", header: "الحالة", slot: "status" },
   { field: "actions", header: "إجراء", slot: "actions", style: "width: 14rem" },

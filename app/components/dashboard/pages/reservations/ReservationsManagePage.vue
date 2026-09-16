@@ -195,10 +195,7 @@ import ReservationsTable from "~/components/dashboard/pages/reservations/Reserva
 import SearchInput from "~/components/shared/search-input/index.vue";
 import { reservationService } from "~/services/reservationService";
 import { useAppToast } from "~/composables/useAppToast";
-import {
-  PaymentMethod,
-  paymentMethodNeedsProof,
-} from "~/utils/paymentMethods";
+import { PaymentMethod, PAYMENT_METHOD_LABELS } from "~/utils/paymentMethods";
 import { formatMoney, formatDateTime } from "~/utils/format";
 import { getUserRoleLabel } from "~/enums/userRole";
 
@@ -294,6 +291,10 @@ const normalizeReservation = (item) => {
     "-";
   const createdByRole = createdBy.role || "";
 
+  const paymentMethod = String(
+    item.paymentMethod || item.payments?.[0]?.method || "CASH",
+  ).toUpperCase();
+
   return {
     ...item,
     productId,
@@ -321,6 +322,22 @@ const normalizeReservation = (item) => {
     paidAmountLabel: formatMoney(paidAmount),
     remainingAmount,
     remainingAmountLabel: formatMoney(remainingAmount),
+    paymentId: item.paymentId || item.payments?.[0]?.id || null,
+    paymentMethod,
+    paymentMethodLabel:
+      item.paymentMethodLabel ||
+      PAYMENT_METHOD_LABELS[paymentMethod] ||
+      paymentMethod ||
+      "—",
+    proofReference:
+      item.proofReference || item.payments?.[0]?.proofReference || null,
+    proofUrl: item.proofUrl || item.payments?.[0]?.proofUrl || null,
+    hasProof: Boolean(
+      item.hasProof ??
+        item.payments?.[0]?.hasProof ??
+        (paymentMethod !== "CASH" &&
+          (item.proofReference || item.payments?.[0]?.proofReference)),
+    ),
     status,
     statusLabel: meta.label,
     statusSeverity: meta.severity,
@@ -427,18 +444,9 @@ const requestCancelConfirm = () => {
   cancelRefundError.value = "";
   const paidAmount = Number(selectedReservation.value?.paidAmount || 0);
 
-  if (paidAmount > 0) {
-    if (!cancelRefundMethod.value) {
-      cancelRefundError.value = "اختر طريقة رد المبلغ.";
-      return;
-    }
-    if (
-      paymentMethodNeedsProof(cancelRefundMethod.value) &&
-      !String(cancelProofKey.value || "").trim()
-    ) {
-      cancelRefundError.value = "صورة إثبات الرد مطلوبة لطريقة الرد المحددة.";
-      return;
-    }
+  if (paidAmount > 0 && !cancelRefundMethod.value) {
+    cancelRefundError.value = "اختر طريقة رد المبلغ.";
+    return;
   }
 
   cancelConfirmVisible.value = true;
@@ -522,18 +530,9 @@ const requestExchangeConfirm = () => {
     return;
   }
 
-  if (priceComparison.value?.kind === "less") {
-    if (!exchangeRefundMethod.value) {
-      exchangePaymentError.value = "اختر طريقة رد فرق السعر.";
-      return;
-    }
-    if (
-      paymentMethodNeedsProof(exchangeRefundMethod.value) &&
-      !String(exchangeProofKey.value || "").trim()
-    ) {
-      exchangePaymentError.value = "صورة إثبات الرد مطلوبة لطريقة الرد المحددة.";
-      return;
-    }
+  if (priceComparison.value?.kind === "less" && !exchangeRefundMethod.value) {
+    exchangePaymentError.value = "اختر طريقة رد فرق السعر.";
+    return;
   }
 
   exchangeConfirmVisible.value = true;

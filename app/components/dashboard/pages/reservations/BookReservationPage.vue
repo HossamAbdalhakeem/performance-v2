@@ -23,7 +23,7 @@ import BookingForm from "~/components/dashboard/BookingForm.vue";
 import { reservationService } from "~/services/reservationService";
 import { useBookingRole } from "~/composables/useBookingRole";
 
-const props = defineProps({
+defineProps({
   title: { type: String, default: "حجز الكتب" },
   submitLabel: { type: String, default: "تأكيد الحجز" },
   showHeader: { type: Boolean, default: false },

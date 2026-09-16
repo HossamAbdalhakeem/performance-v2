@@ -12,6 +12,8 @@
       <ExchangeDetailContent
         v-if="detailVisible && sale"
         :sale="sale"
+        :exchange-quantity="exchangeQuantity"
+        :quantity-error="quantityError"
         :new-product-id="newProductId"
         :selected-new-product="selectedNewProduct"
         :price-comparison="priceComparisonUi"
@@ -22,6 +24,7 @@
         :exchange-refund-method="exchangeRefundMethod"
         :exchange-image="exchangeImage"
         :exchange-proof-key="exchangeProofKey"
+        @update:exchange-quantity="onExchangeQuantity"
         @update:new-product-id="onNewProductId"
         @update:exchange-payment-method="exchangePaymentMethod = $event"
         @update:exchange-refund-method="exchangeRefundMethod = $event"
@@ -66,6 +69,7 @@
         :sale="sale"
         :selected-new-product="selectedNewProduct"
         :price-comparison="priceComparisonUi"
+        :exchange-quantity="exchangeQuantity"
       />
 
       <template #footer>
@@ -135,6 +139,8 @@ const busy = ref(false);
 const previewLoading = ref(false);
 const confirmVisible = ref(false);
 const newProductId = ref(null);
+const exchangeQuantity = ref(1);
+const quantityError = ref("");
 const preview = ref(null);
 const exchangeError = ref("");
 const exchangePaymentError = ref("");
@@ -150,6 +156,10 @@ const detailVisible = computed({
   set: (value) => emit("update:open", value),
 });
 
+const maxQuantity = computed(() =>
+  Math.max(1, Number(props.sale?.remainingQuantity || 1)),
+);
+
 const selectedNewProduct = computed(() => preview.value?.newProduct || null);
 
 const priceComparisonUi = computed(() => {
@@ -161,8 +171,30 @@ const priceComparisonUi = computed(() => {
   };
 });
 
+const clampQuantity = (value) => {
+  const n = Number(value);
+  if (!Number.isFinite(n) || n < 1) return 1;
+  return Math.min(Math.floor(n), maxQuantity.value);
+};
+
+const validateQuantity = () => {
+  quantityError.value = "";
+  const qty = Number(exchangeQuantity.value);
+  if (!Number.isInteger(qty) || qty < 1) {
+    quantityError.value = "أدخل كمية صحيحة لا تقل عن 1.";
+    return false;
+  }
+  if (qty > maxQuantity.value) {
+    quantityError.value = `الحد الأقصى للاستبدال هو ${maxQuantity.value}.`;
+    return false;
+  }
+  return true;
+};
+
 const resetFields = () => {
   newProductId.value = null;
+  exchangeQuantity.value = maxQuantity.value;
+  quantityError.value = "";
   preview.value = null;
   exchangeError.value = "";
   exchangePaymentError.value = "";
@@ -186,12 +218,13 @@ const onDetailVisible = (value) => {
   else detailVisible.value = true;
 };
 
-const loadPreview = async (productId) => {
+const loadPreview = async (productId, quantity) => {
   if (!props.sale?.saleId || !props.sale?.saleItemId || !productId) {
     preview.value = null;
     return;
   }
 
+  const qty = clampQuantity(quantity);
   const requestId = ++previewRequestId;
   previewLoading.value = true;
   exchangeError.value = "";
@@ -200,7 +233,7 @@ const loadPreview = async (productId) => {
       saleId: props.sale.saleId,
       saleItemId: props.sale.saleItemId,
       newProductId: productId,
-      quantity: props.sale.remainingQuantity,
+      quantity: qty,
     });
     if (requestId !== previewRequestId) return;
     preview.value = result;
@@ -221,12 +254,30 @@ const onNewProductId = (value) => {
     exchangeError.value = "";
     return;
   }
-  loadPreview(value);
+  if (!validateQuantity()) {
+    preview.value = null;
+    return;
+  }
+  loadPreview(value, exchangeQuantity.value);
+};
+
+const onExchangeQuantity = (value) => {
+  exchangeQuantity.value = clampQuantity(value);
+  quantityError.value = "";
+  exchangePaymentError.value = "";
+  if (!newProductId.value) return;
+  if (!validateQuantity()) {
+    preview.value = null;
+    return;
+  }
+  loadPreview(newProductId.value, exchangeQuantity.value);
 };
 
 const requestConfirm = () => {
   exchangeError.value = "";
   exchangePaymentError.value = "";
+
+  if (!validateQuantity()) return;
 
   if (!newProductId.value) {
     exchangeError.value = "اختر المنتج الجديد قبل التأكيد.";
@@ -241,7 +292,7 @@ const requestConfirm = () => {
     return;
   }
   if (!preview.value?.newProduct?.isAvailable) {
-    exchangeError.value = "المنتج المختار غير متاح في مخزون الفرع.";
+    exchangeError.value = "المنتج المختار غير متاح في مخزون الفرع لهذه الكمية.";
     return;
   }
 
@@ -282,6 +333,7 @@ const confirm = async () => {
   if (!props.sale?.saleId || !props.sale?.saleItemId || !newProductId.value) {
     return;
   }
+  if (!validateQuantity()) return;
 
   busy.value = true;
   try {
@@ -289,7 +341,7 @@ const confirm = async () => {
       saleId: props.sale.saleId,
       saleItemId: props.sale.saleItemId,
       newProductId: newProductId.value,
-      quantity: props.sale.remainingQuantity,
+      quantity: clampQuantity(exchangeQuantity.value),
     };
 
     if (preview.value?.kind === "more") {
@@ -321,6 +373,15 @@ watch(
   () => props.open,
   (open) => {
     if (open) resetFields();
+  },
+);
+
+watch(
+  () => props.sale?.remainingQuantity,
+  () => {
+    if (props.open) {
+      exchangeQuantity.value = maxQuantity.value;
+    }
   },
 );
 </script>

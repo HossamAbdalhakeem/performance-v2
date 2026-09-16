@@ -15,6 +15,16 @@
       </span>
     </template>
 
+    <template #paymentMethod="{ data }">
+      <PaymentProofThumb
+        :method="data.paymentMethod"
+        :method-label="data.paymentMethodLabel"
+        :payment-id="data.paymentId"
+        :proof-url="data.proofUrl"
+        :has-proof="data.hasProof"
+      />
+    </template>
+
     <template #status="{ data }">
       <Tag :value="data.statusLabel" :severity="data.statusSeverity" />
     </template>
@@ -39,12 +49,7 @@
           severity="danger"
           @click="$emit('refund', data)"
         />
-        <span
-          v-if="!canModify(data)"
-          class="text-xs text-slate-400"
-        >
-          —
-        </span>
+        <span v-if="!canModify(data)" class="text-xs text-slate-400">—</span>
       </div>
     </template>
   </AppDataTable>
@@ -54,6 +59,7 @@
 import Button from "primevue/button";
 import Tag from "primevue/tag";
 import AppDataTable from "~/components/shared/app-data-table/index.vue";
+import PaymentProofThumb from "~/components/shared/payment-proof-thumb/index.vue";
 
 defineProps({
   sales: { type: Array, default: () => [] },
@@ -70,7 +76,7 @@ const columns = [
   { field: "productName", header: "المنتج" },
   { field: "remainingQuantity", header: "الكمية" },
   { field: "amountLabel", header: "المبلغ", slot: "amountLabel" },
-  { field: "paymentMethodLabel", header: "طريقة الدفع" },
+  { field: "paymentMethodLabel", header: "طريقة الدفع", slot: "paymentMethod" },
   { field: "branchName", header: "الفرع" },
   { field: "statusLabel", header: "الحالة", slot: "status" },
   { field: "actions", header: "إجراء", slot: "actions", style: "width: 14rem" },
