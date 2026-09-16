@@ -14,33 +14,13 @@
       </template>
 
       <template #content>
-        <div class="mb-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-          <SearchInput placeholder="اسم المنتج / مدرس / نوع / سنة" @search="onSearch" />
-
-          <AppGlobalSelectTeacher
-            v-model="filters.teacherId"
-            label="المدرس"
-            placeholder="كل المدرسين"
-            show-clear
-            @change="reloadProducts"
-          />
-
-          <AppGlobalSelectProductType
-            v-model="filters.type"
-            label="النوع"
-            placeholder="كل الأنواع"
-            show-clear
-            @change="reloadProducts"
-          />
-
-          <AppGlobalSelectStudyYear
-            v-model="filters.studyYearId"
-            label="السنة الدراسية"
-            placeholder="كل السنوات"
-            show-clear
-            @change="reloadProducts"
-          />
-        </div>
+        <ProductsFilters
+          v-model:teacher-id="filters.teacherId"
+          v-model:type="filters.type"
+          v-model:study-year-id="filters.studyYearId"
+          @search="onSearch"
+          @change="reloadProducts"
+        />
 
         <ProductsTable
           :products="products"
@@ -67,10 +47,7 @@
 <script setup>
 import Card from "primevue/card";
 import Button from "primevue/button";
-import SearchInput from "~/components/shared/search-input/index.vue";
-import AppGlobalSelectTeacher from "~/components/shared/app-global-select-teacher/index.vue";
-import AppGlobalSelectStudyYear from "~/components/shared/app-global-select-study-year/index.vue";
-import AppGlobalSelectProductType from "~/components/shared/app-global-select-product-type/index.vue";
+import ProductsFilters from "~/components/dashboard/pages/products/ProductsFilters.vue";
 import ProductsTable from "~/components/dashboard/pages/products/ProductsTable.vue";
 import { productService } from "~/services/productService";
 import { useAppToast } from "~/composables/useAppToast";
