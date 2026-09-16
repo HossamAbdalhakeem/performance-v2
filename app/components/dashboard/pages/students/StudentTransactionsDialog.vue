@@ -4,7 +4,7 @@
     modal
     dir="rtl"
     :header="dialogTitle"
-    :style="{ width: '1280px', maxWidth: '98vw' }"
+    :style="{ width: '1320px', maxWidth: '98vw' }"
     :pt="{ header: { class: 'text-right' }, content: { class: 'text-right' } }"
     @update:visible="$emit('update:visible', $event)"
     @hide="$emit('hide')"
@@ -276,7 +276,11 @@ const resetPagination = () => {
   pagination.first = 0;
 };
 
-const onFiltersChange = () => {
+const onFiltersChange = (payload) => {
+  if (payload && typeof payload === "object") {
+    if ("from" in payload) filters.from = payload.from;
+    if ("to" in payload) filters.to = payload.to;
+  }
   resetPagination();
   loadTransactions();
 };

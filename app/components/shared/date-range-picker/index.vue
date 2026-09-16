@@ -7,6 +7,7 @@
       selection-mode="range"
       :manual-input="false"
       show-icon
+      show-clear
       icon-display="input"
       date-format="yy/mm/dd"
       :placeholder="placeholder"
@@ -15,6 +16,7 @@
       input-class="w-full"
       :number-of-months="2"
       @date-select="onDateSelect"
+      @clear="onClear"
       @hide="onHide"
     />
   </div>
@@ -37,6 +39,7 @@ const props = defineProps({
 const emit = defineEmits(["update:from", "update:to", "change"]);
 
 const pickerRef = ref(null);
+const suppressingWatch = ref(false);
 
 const toDate = (value) => {
   if (!value) return null;
@@ -73,12 +76,16 @@ watch(
   { immediate: true },
 );
 
-const emitRange = () => {
+const emitRange = async ({ from, to } = {}) => {
   const range = Array.isArray(rangeModel.value) ? rangeModel.value : [];
-  const nextFrom = toIsoDate(range[0] || null);
-  const nextTo = toIsoDate(range[1] || range[0] || null);
+  const nextFrom =
+    from !== undefined ? from : toIsoDate(range[0] || null);
+  const nextTo =
+    to !== undefined ? to : toIsoDate(range[1] || range[0] || null);
+
   emit("update:from", nextFrom);
   emit("update:to", nextTo);
+  await nextTick();
   emit("change", { from: nextFrom, to: nextTo });
 };
 
@@ -99,11 +106,30 @@ const onDateSelect = async () => {
   const range = Array.isArray(rangeModel.value) ? rangeModel.value : [];
   // Close only after both ends of the range are chosen
   if (!range[0] || !range[1]) return;
-  emitRange();
+  await emitRange();
   await closePicker();
 };
 
-const onHide = () => {
-  emitRange();
+const onClear = async () => {
+  suppressingWatch.value = true;
+  rangeModel.value = null;
+  await emitRange({ from: null, to: null });
+  await nextTick();
+  suppressingWatch.value = false;
 };
+
+const onHide = async () => {
+  // Skip hide emit right after clear — onClear already refreshed the list
+  if (!rangeModel.value) return;
+  await emitRange();
+};
+
+// Fallback if PrimeVue clear doesn't fire @clear
+watch(rangeModel, async (value, oldValue) => {
+  if (suppressingWatch.value) return;
+  const hadValue = Array.isArray(oldValue) && oldValue.some(Boolean);
+  const isEmpty = !value || (Array.isArray(value) && !value.some(Boolean));
+  if (!hadValue || !isEmpty) return;
+  await emitRange({ from: null, to: null });
+});
 </script>
