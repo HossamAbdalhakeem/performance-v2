@@ -15,49 +15,20 @@
       <Tag :value="data.statusLabel" :severity="data.statusSeverity" />
     </template>
     <template #actions="{ data }">
-      <div class="flex flex-wrap justify-center gap-1">
-        <span title="المعاملات" class="inline-flex">
-          <Button
-            icon="pi pi-list"
-            text
-            rounded
-            size="small"
-            severity="secondary"
-            aria-label="المعاملات"
-            @click="$emit('transactions', data)"
-          />
-        </span>
-        <span title="تعديل" class="inline-flex">
-          <Button
-            icon="pi pi-pencil"
-            text
-            rounded
-            size="small"
-            severity="info"
-            aria-label="تعديل"
-            @click="$emit('edit', data)"
-          />
-        </span>
-        <span title="تعطيل" class="inline-flex">
-          <Button
-            icon="pi pi-ban"
-            text
-            rounded
-            size="small"
-            severity="danger"
-            aria-label="تعطيل"
-            @click="$emit('deactivate', data)"
-          />
-        </span>
-      </div>
+      <StudentsTableActions
+        :student="data"
+        @transactions="$emit('transactions', $event)"
+        @edit="$emit('edit', $event)"
+        @deactivate="$emit('deactivate', $event)"
+      />
     </template>
   </AppDataTable>
 </template>
 
 <script setup>
-import Button from "primevue/button";
 import Tag from "primevue/tag";
 import AppDataTable from "~/components/shared/app-data-table/index.vue";
+import StudentsTableActions from "~/components/dashboard/pages/students/StudentsTableActions.vue";
 
 defineProps({
   students: { type: Array, default: () => [] },
