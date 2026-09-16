@@ -129,6 +129,30 @@
         </div>
       </Field>
 
+      <Field
+        v-slot="{ errorMessage }"
+        v-model="form.minStockQuantity"
+        name="minStockQuantity"
+        label="حد تنبيه المخزون"
+        rules="min_value:0"
+      >
+        <div class="flex flex-col gap-2 text-right">
+          <label class="text-sm font-medium">حد تنبيه المخزون</label>
+          <AppInputNumber
+            v-model="form.minStockQuantity"
+            :min="0"
+            :min-fraction-digits="0"
+            :max-fraction-digits="0"
+            :use-grouping="false"
+            :invalid="!!(errorMessage || fieldErrors.minStockQuantity)"
+          />
+          <p class="text-xs text-slate-500">
+            عند وصول كمية المخزون لهذا الرقم أو أقل، سيتم إرسال تنبيه بنقص المخزون.
+          </p>
+          <ErrorMessage name="minStockQuantity" class="text-xs text-red-400" />
+        </div>
+      </Field>
+
       <div class="rounded-xl bg-slate-50 px-3 py-2 text-sm text-slate-600 text-right">
         نسبة الربح المحسوبة:
         <span class="font-semibold text-slate-900">{{ profitPercentage }}%</span>
@@ -250,6 +274,7 @@ const emptyForm = () => ({
   name: "",
   purchasePrice: null,
   sellingPrice: null,
+  minStockQuantity: null,
   reservationAllowed: false,
   reservationPrice: null,
 });
@@ -281,6 +306,9 @@ const applyProduct = (product) => {
     name: product?.name || "",
     purchasePrice: toNumber(product?.purchasePrice),
     sellingPrice: toNumber(product?.sellingPrice),
+    minStockQuantity: toNumber(
+      product?.minStockQuantity ?? product?.min_stock_quantity,
+    ),
     reservationAllowed: Boolean(product?.reservationAllowed),
     reservationPrice: toNumber(product?.reservationPrice),
   };
@@ -380,6 +408,8 @@ const buildPayload = () => {
     sellingPrice: form.sellingPrice,
     profitPercentage: Number(profitPercentage.value),
     reservationAllowed: form.reservationAllowed,
+    minStockQuantity:
+      form.minStockQuantity == null ? null : Number(form.minStockQuantity),
   };
 
   if (isBook.value) {

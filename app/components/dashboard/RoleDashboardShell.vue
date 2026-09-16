@@ -44,13 +44,16 @@
             <h1 class="mt-1 text-2xl font-bold text-white">{{ subtitle }}</h1>
           </div>
 
-          <div class="flex items-center gap-3 rounded-2xl border border-white/10 bg-slate-900 px-3 py-2 shadow-sm">
-            <div class="flex h-10 w-10 items-center justify-center rounded-full bg-sky-500/20 font-bold text-sky-200">
-              {{ userInitials }}
-            </div>
-            <div class="text-right">
-              <p class="text-sm font-semibold text-white">{{ userName }}</p>
-              <p class="text-xs text-slate-400">{{ roleLabel }}</p>
+          <div class="flex items-center gap-3">
+            <NotificationBell />
+            <div class="flex items-center gap-3 rounded-2xl border border-white/10 bg-slate-900 px-3 py-2 shadow-sm">
+              <div class="flex h-10 w-10 items-center justify-center rounded-full bg-sky-500/20 font-bold text-sky-200">
+                {{ userInitials }}
+              </div>
+              <div class="text-right">
+                <p class="text-sm font-semibold text-white">{{ userName }}</p>
+                <p class="text-xs text-slate-400">{{ roleLabel }}</p>
+              </div>
             </div>
           </div>
         </div>
@@ -111,6 +114,7 @@
 <script setup>
 import Dialog from "primevue/dialog";
 import Button from "primevue/button";
+import NotificationBell from "~/components/dashboard/NotificationBell.vue";
 import { useAuthStore } from "~/store/auth.js";
 
 const props = defineProps({

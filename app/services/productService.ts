@@ -38,6 +38,18 @@ const productBody = (payload: Record<string, any>) => {
     body.reservationPrice = payload.reservation_price;
   }
 
+  if (Object.prototype.hasOwnProperty.call(payload, "minStockQuantity")) {
+    body.minStockQuantity =
+      payload.minStockQuantity == null || payload.minStockQuantity === ""
+        ? null
+        : Number(payload.minStockQuantity);
+  } else if (Object.prototype.hasOwnProperty.call(payload, "min_stock_quantity")) {
+    body.minStockQuantity =
+      payload.min_stock_quantity == null || payload.min_stock_quantity === ""
+        ? null
+        : Number(payload.min_stock_quantity);
+  }
+
   return body;
 };
 
