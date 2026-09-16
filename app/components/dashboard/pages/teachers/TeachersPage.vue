@@ -14,23 +14,11 @@
       </template>
 
       <template #content>
-        <div class="mb-5 grid gap-3 md:grid-cols-2">
-          <SearchInput placeholder="ابحث باسم المدرس" @search="onSearch" />
-
-          <div class="flex flex-col gap-2 text-right">
-            <label class="text-sm font-medium text-slate-700">الحالة</label>
-            <Select
-              v-model="filters.status"
-              :options="statusOptions"
-              optionLabel="label"
-              optionValue="value"
-              placeholder="كل الحالات"
-              showClear
-              class="w-full"
-              @update:modelValue="loadTeachers"
-            />
-          </div>
-        </div>
+        <TeachersFilters
+          v-model:status="filters.status"
+          @search="onSearch"
+          @change="loadTeachers"
+        />
 
         <TeachersTable
           :teachers="teachers"
@@ -62,8 +50,7 @@
 import Card from "primevue/card";
 import Button from "primevue/button";
 import Drawer from "primevue/drawer";
-import Select from "primevue/select";
-import SearchInput from "~/components/shared/search-input/index.vue";
+import TeachersFilters from "~/components/dashboard/pages/teachers/TeachersFilters.vue";
 import TeachersTable from "~/components/dashboard/pages/teachers/TeachersTable.vue";
 import { teacherService } from "~/services/teacherService";
 import { useAppToast } from "~/composables/useAppToast";
@@ -81,11 +68,6 @@ const filters = reactive({
   search: "",
   status: null,
 });
-
-const statusOptions = [
-  { label: "نشط", value: "ACTIVE" },
-  { label: "غير نشط", value: "INACTIVE" },
-];
 
 const drawerTitle = computed(() =>
   editingTeacher.value?.id ? "تعديل المدرس" : "إضافة مدرس جديد",
