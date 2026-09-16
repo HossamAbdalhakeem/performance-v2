@@ -41,7 +41,7 @@
           </button>
         </div>
 
-        <div class="flex flex-wrap items-center justify-center gap-2">
+        <!-- <div class="flex flex-wrap items-center justify-center gap-2">
           <Button
             type="button"
             label="قص الصورة"
@@ -69,7 +69,7 @@
             text
             @click="clear"
           />
-        </div>
+        </div> -->
         <p v-if="fileMeta" class="text-center text-xs text-slate-500">{{ fileMeta }}</p>
       </div>
 
@@ -245,7 +245,7 @@ const handleCropped = async ({ blob, dataURL }) => {
     revokePreview();
     previewUrl.value = dataURL || URL.createObjectURL(file);
     selectedImage.value = previewUrl.value;
-    fileMeta.value = `${file.name} • ${(file.size / 1024).toFixed(1)} ك.ب`;
+    fileMeta.value = `${file.name} `;
 
     emit("update:modelValue", file);
     emit("select", file);
