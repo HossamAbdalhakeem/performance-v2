@@ -47,10 +47,13 @@ import Select from "primevue/select";
 import EntityDrawer from "~/components/dashboard/EntityDrawer.vue";
 import SearchInput from "~/components/shared/search-input/index.vue";
 import UsersTable from "~/components/dashboard/pages/users/UsersTable.vue";
-import UserForm from "~/components/dashboard/pages/users/UserForm.vue";
 import { userService } from "~/services/userService";
 import { branchService } from "~/services/branchService";
 import { useAppToast } from "~/composables/useAppToast";
+
+const UserForm = defineAsyncComponent(() =>
+  import("~/components/dashboard/pages/users/UserForm.vue"),
+);
 
 const { showError, showSuccess } = useAppToast();
 

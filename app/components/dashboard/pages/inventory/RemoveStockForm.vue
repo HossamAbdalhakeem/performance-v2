@@ -21,37 +21,23 @@
     </div>
 
     <div class="flex flex-col gap-2 text-right">
-      <label class="text-sm font-medium text-slate-700">سحبت ايه</label>
-      <Select
-        :model-value="form.productId"
-        :options="productOptions"
-        optionLabel="label"
-        optionValue="value"
+      <ProductSelect
+        v-model="form.productId"
+        source="inventory"
+        :branch-id="selectedBranchId"
+        :inventory-query="{ availableOnly: true }"
+        label="سحبت ايه"
         placeholder="اختار منتجاً من مخزن الفرع ▾"
-        filter
-        :loading="loadingProducts"
-        :disabled="!selectedBranchId || loadingProducts"
-        class="w-full"
+        :disabled="!selectedBranchId"
         :invalid="!!errors.productId"
-        @update:model-value="onProductChange"
-      >
-        <template #option="{ option }">
-          <div class="flex w-full items-center justify-between gap-3 text-right">
-            <span>{{ option.name }}</span>
-            <span
-              class="shrink-0 rounded-full bg-amber-500/15 px-2 py-0.5 text-xs font-semibold text-amber-700"
-            >
-              متاح {{ option.availableQuantity }}
-            </span>
-          </div>
-        </template>
-      </Select>
-      <small v-if="!selectedBranchId" class="text-xs text-slate-400">
-        اختر الفرع أولاً لعرض منتجات المخزن.
-      </small>
-      <small v-else-if="!loadingProducts && !productOptions.length" class="text-xs text-slate-400">
-        لا توجد منتجات متاحة في مخزن هذا الفرع.
-      </small>
+        :hint="
+          !selectedBranchId
+            ? 'اختر الفرع أولاً لعرض منتجات المخزن.'
+            : ''
+        "
+        @select="onProductSelect"
+        @loaded="onProductsLoaded"
+      />
       <small v-if="errors.productId" class="text-xs text-red-500">{{ errors.productId }}</small>
     </div>
 
@@ -81,13 +67,20 @@
         text
         @click="$emit('cancel')"
       />
-      <Button type="submit" label="تأكيد السحب" :loading="saving" severity="warning" />
+      <FormSubmitButton
+        label="تأكيد السحب"
+        :loading="saving"
+        :valid="isFormValid"
+        severity="warning"
+      />
     </div>
   </form>
 </template>
 
 <script setup>
 import Button from "primevue/button";
+import FormSubmitButton from "~/components/shared/form-submit-button/index.vue";
+import ProductSelect from "~/components/shared/product-select/index.vue";
 import Select from "primevue/select";
 import AppInputNumber from "~/components/dashboard/AppInputNumber.vue";
 import { inventoryService } from "~/services/inventoryService";
@@ -104,7 +97,6 @@ const emit = defineEmits(["saved", "cancel"]);
 const { showError } = useAppToast();
 
 const saving = ref(false);
-const loadingProducts = ref(false);
 const branchOptions = ref([]);
 const productOptions = ref([]);
 const errors = reactive({
@@ -122,14 +114,26 @@ const form = reactive({
 const selectedBranchId = computed(() => props.lockedBranchId || form.branchId || null);
 
 const selectedProduct = computed(
-  () => productOptions.value.find((option) => option.value === form.productId) || null
+  () => productOptions.value.find((option) => option.value === form.productId) || null,
 );
 
 const availableQty = computed(() =>
-  Number(selectedProduct.value?.availableQuantity || 0)
+  Number(selectedProduct.value?.availableQuantity || 0),
 );
 
 const maxQuantity = computed(() => Math.max(1, availableQty.value || 1));
+
+const isFormValid = computed(() => {
+  const branchId = selectedBranchId.value;
+  const qty = Number(form.quantity);
+  return Boolean(
+    branchId &&
+      form.productId &&
+      form.quantity != null &&
+      qty >= 1 &&
+      qty <= availableQty.value,
+  );
+});
 
 const toId = (value) => {
   if (value == null || value === "") return null;
@@ -141,19 +145,20 @@ const toId = (value) => {
   return null;
 };
 
-const onBranchChange = async (value) => {
+const onBranchChange = (value) => {
   form.branchId = toId(value);
   form.productId = null;
   form.quantity = null;
   errors.productId = "";
   errors.quantity = "";
-  await loadBranchProducts();
 };
 
-const onProductChange = (value) => {
-  form.productId = toId(value);
-  errors.productId = "";
+const onProductsLoaded = (options) => {
+  productOptions.value = options || [];
+};
 
+const onProductSelect = () => {
+  errors.productId = "";
   const available = availableQty.value;
   if (form.quantity != null && Number(form.quantity) > available) {
     form.quantity = available > 0 ? available : null;
@@ -193,50 +198,6 @@ const loadBranches = async () => {
   }
 };
 
-const loadBranchProducts = async () => {
-  const branchId = selectedBranchId.value;
-  productOptions.value = [];
-
-  if (!branchId) return;
-
-  loadingProducts.value = true;
-  try {
-    const items = await inventoryService.getBranchInventory(branchId, {
-      availableOnly: true,
-    });
-    const list = Array.isArray(items) ? items : items?.data || [];
-
-    productOptions.value = list
-      .map((item) => {
-        const product = item.product || item;
-        const productId = product.id || item.productId;
-        if (!productId) return null;
-
-        const availableQuantity = Number(
-          item.availableQuantity ??
-            Math.max(
-              0,
-              Number(item.physicalQuantity || 0) - Number(item.reservedQuantity || 0)
-            )
-        );
-        const name = product.name || product.title || productId;
-
-        return {
-          name,
-          availableQuantity,
-          label: `${name} · متاح ${availableQuantity}`,
-          value: String(productId),
-        };
-      })
-      .filter(Boolean);
-  } catch (error) {
-    console.error("Failed to load branch inventory products", error);
-    showError(error?.message || "تعذر تحميل منتجات مخزن الفرع.");
-  } finally {
-    loadingProducts.value = false;
-  }
-};
-
 const submitRemove = async () => {
   if (!validate()) return;
 
@@ -262,19 +223,13 @@ const submitRemove = async () => {
 
 watch(
   () => props.lockedBranchId,
-  async (value) => {
+  (value) => {
     form.branchId = value || null;
     form.productId = null;
     form.quantity = null;
-    await loadBranchProducts();
   },
   { immediate: true },
 );
 
-onMounted(async () => {
-  await loadBranches();
-  if (selectedBranchId.value) {
-    await loadBranchProducts();
-  }
-});
+onMounted(loadBranches);
 </script>

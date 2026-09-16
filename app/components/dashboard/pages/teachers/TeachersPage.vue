@@ -65,9 +65,12 @@ import Drawer from "primevue/drawer";
 import Select from "primevue/select";
 import SearchInput from "~/components/shared/search-input/index.vue";
 import TeachersTable from "~/components/dashboard/pages/teachers/TeachersTable.vue";
-import TeacherForm from "~/components/dashboard/pages/teachers/TeacherForm.vue";
 import { teacherService } from "~/services/teacherService";
 import { useAppToast } from "~/composables/useAppToast";
+
+const TeacherForm = defineAsyncComponent(() =>
+  import("~/components/dashboard/pages/teachers/TeacherForm.vue"),
+);
 
 const { showError, showSuccess } = useAppToast();
 const loading = ref(true);

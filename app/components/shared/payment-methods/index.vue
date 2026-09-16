@@ -25,16 +25,12 @@
 </template>
 
 <script setup>
+import { PaymentMethod, PAYMENT_METHOD_OPTIONS } from "~/utils/paymentMethods";
+
 defineOptions({ name: "PaymentMethods" });
 
-const DEFAULT_PAYMENT_OPTIONS = [
-  { label: "كاش", value: "CASH" },
-  { label: "انستا باي", value: "INSTAPAY" },
-  { label: "محفظة إلكترونية", value: "WALLET" },
-];
-
 const props = defineProps({
-  modelValue: { type: String, default: "CASH" },
+  modelValue: { type: String, default: PaymentMethod.CASH },
   label: { type: String, default: "طريقة الدفع" },
   options: { type: Array, default: null },
   exclude: { type: Array, default: () => [] },
@@ -49,7 +45,7 @@ const normalizeValue = (value) => String(value || "").trim().toUpperCase();
 const resolvedOptions = computed(() => {
   const base = Array.isArray(props.options) && props.options.length
     ? props.options
-    : DEFAULT_PAYMENT_OPTIONS;
+    : PAYMENT_METHOD_OPTIONS;
 
   const excluded = new Set((props.exclude || []).map(normalizeValue));
 

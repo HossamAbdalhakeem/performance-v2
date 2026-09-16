@@ -8,15 +8,15 @@
         </p>
       </div>
       <div class="reports-filters flex flex-row flex-wrap items-center gap-2">
-        <Select
+        <ProductSelect
           v-model="selectedBook"
-          :options="bookOptions"
-          optionLabel="label"
-          optionValue="value"
+          source="catalog"
+          variant="simple"
+          label=""
           placeholder="اختيار الكتاب ▾"
-          class="reports-filter-select"
           show-clear
-          @update:model-value="loadReport"
+          wrapper-class="reports-filter-select"
+          @change="loadReport"
         />
         <Select
           v-model="selectedBranch"
@@ -69,7 +69,7 @@
         <div class="rounded-xl border border-white/10 bg-slate-900 p-4">
           <p class="text-sm text-slate-300">إجمالي المبيعات</p>
           <p class="mt-2 text-2xl font-bold text-white">
-            {{ formatMoney(summary.salesAmount) }}
+            {{ formatMoney(summary.salesAmount, "locale") }}
           </p>
           <p class="mt-1 text-xs text-slate-500">
             {{ summary.sales ?? 0 }} عملية بيع
@@ -81,7 +81,7 @@
             {{ summary.reservations ?? 0 }}
           </p>
           <p class="mt-1 text-xs text-slate-500">
-            مدفوع {{ formatMoney(summary.reservationsPaidAmount) }}
+            مدفوع {{ formatMoney(summary.reservationsPaidAmount, "locale") }}
           </p>
         </div>
         <div class="rounded-xl border border-white/10 bg-slate-900 p-4">
@@ -192,13 +192,21 @@
 import Select from "primevue/select";
 import Button from "primevue/button";
 import Skeleton from "primevue/skeleton";
-import AppDataTable from "~/components/shared/app-data-table/index.vue";
-import CustomersByYearChart from "~/components/shared/customers-by-year-chart/index.vue";
-import PaymentMethodsReport from "~/components/shared/payment-methods-report/index.vue";
-import { productService } from "~/services/productService";
+import ProductSelect from "~/components/shared/product-select/index.vue";
 import { branchService } from "~/services/branchService";
 import { reportService } from "~/services/reportService";
 import { useAppToast } from "~/composables/useAppToast";
+import { formatMoney } from "~/utils/format";
+
+const AppDataTable = defineAsyncComponent(() =>
+  import("~/components/shared/app-data-table/index.vue"),
+);
+const CustomersByYearChart = defineAsyncComponent(() =>
+  import("~/components/shared/customers-by-year-chart/index.vue"),
+);
+const PaymentMethodsReport = defineAsyncComponent(() =>
+  import("~/components/shared/payment-methods-report/index.vue"),
+);
 
 defineOptions({ name: "ReportsPage" });
 
@@ -217,7 +225,6 @@ const dateOptions = [
 ];
 
 const branchOptions = ref([{ label: "كل الفروع", value: "all" }]);
-const bookOptions = ref([{ label: "كل الكتب", value: "all" }]);
 
 const studentColumns = [
   { field: "student", header: "اسم الطالب" },
@@ -250,12 +257,6 @@ const studentRows = computed(() =>
     : [],
 );
 
-const formatMoney = (value) =>
-  `${Number(value || 0).toLocaleString("en-US", {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 2,
-  })} ج.م`;
-
 const formatNumber = (value) =>
   Number(value || 0).toLocaleString("en-US", {
     minimumFractionDigits: 0,
@@ -287,7 +288,7 @@ const reportParams = () => {
   if (selectedBranch.value && selectedBranch.value !== "all") {
     params.branchId = selectedBranch.value;
   }
-  if (selectedBook.value && selectedBook.value !== "all") {
+  if (selectedBook.value) {
     params.productId = selectedBook.value;
   }
   return params;
@@ -295,27 +296,14 @@ const reportParams = () => {
 
 const loadFilters = async () => {
   try {
-    const [branches, products] = await Promise.all([
-      branchService.getBranches(),
-      productService.getProducts({ per_page: 200 }),
-    ]);
-
+    const branches = await branchService.getBranches();
     const branchList = Array.isArray(branches) ? branches : branches?.data || [];
-    const productList = products.data || [];
 
     branchOptions.value = [
       { label: "كل الفروع", value: "all" },
       ...branchList.map((branch) => ({
         label: branch.name || branch.id,
         value: branch.id,
-      })),
-    ];
-
-    bookOptions.value = [
-      { label: "كل الكتب", value: "all" },
-      ...productList.map((product) => ({
-        label: product.name || product.title || product.id,
-        value: product.id,
       })),
     ];
   } catch (error) {

@@ -1,6 +1,6 @@
 <template>
   <Form
-    v-slot="{ errors: fieldErrors }"
+    v-slot="{ errors: fieldErrors, meta }"
     :key="formKey"
     :initial-values="initialValues"
     class="grid gap-4"
@@ -14,19 +14,16 @@
       <strong class="text-slate-900">{{ reservation?.productName || "—" }}</strong>
     </div>
 
-    <Field v-slot="{ field, errorMessage }" name="newProductId" rules="required">
+    <Field v-slot="{ errorMessage }" v-model="form.newProductId" name="newProductId" rules="required">
       <div class="flex flex-col gap-2 text-right">
-        <label class="text-sm font-medium text-slate-700">المنتج الجديد</label>
-        <Select
-          v-bind="field"
+        <ProductSelect
           v-model="form.newProductId"
-          :options="productOptions"
-          optionLabel="label"
-          optionValue="value"
-          placeholder="اختر المنتج"
-          filter
-          class="w-full"
-          :class="{ 'p-invalid': errorMessage || fieldErrors.newProductId }"
+          source="catalog"
+          label="المنتج الجديد"
+          :reservation-only="true"
+          :exclude-product-id="reservation?.productId"
+          variant="simple"
+          :invalid="!!(errorMessage || fieldErrors.newProductId)"
         />
         <ErrorMessage name="newProductId" class="text-xs text-red-500" />
       </div>
@@ -34,16 +31,16 @@
 
     <div class="flex justify-end gap-2">
       <Button type="button" label="إلغاء" severity="secondary" text @click="$emit('cancel')" />
-      <Button type="submit" label="تأكيد التبديل" :loading="saving" severity="info" />
+      <FormSubmitButton label="تأكيد التبديل" :loading="saving" :valid="meta.valid" />
     </div>
   </Form>
 </template>
 
 <script setup>
 import Button from "primevue/button";
-import Select from "primevue/select";
+import FormSubmitButton from "~/components/shared/form-submit-button/index.vue";
+import ProductSelect from "~/components/shared/product-select/index.vue";
 import { Form, Field, ErrorMessage } from "vee-validate";
-import { productService } from "~/services/productService";
 import { reservationService } from "~/services/reservationService";
 import { useAppToast } from "~/composables/useAppToast";
 
@@ -56,31 +53,8 @@ const { showError } = useAppToast();
 
 const saving = ref(false);
 const formKey = ref(0);
-const productOptions = ref([]);
 const form = reactive({ newProductId: null });
 const initialValues = { newProductId: null };
-
-const loadProducts = async () => {
-  try {
-    const result = await productService.getProducts({ per_page: 200 });
-    const list = result.data || [];
-    productOptions.value = list
-      .filter((product) => product.reservationAllowed !== false)
-      .map((product) => {
-        const sellingPrice = Number(
-          product.sellingPrice ?? product.selling_price ?? 0,
-        );
-        const priceLabel =
-          sellingPrice > 0 ? ` · سعر البيع ${sellingPrice.toFixed(2)}ج.م` : "";
-        return {
-          label: `${product.name || "-"}${priceLabel}`,
-          value: product.id,
-        };
-      });
-  } catch (error) {
-    showError(error?.message || "تعذر تحميل المنتجات.");
-  }
-};
 
 const submit = async () => {
   if (!props.reservation?.id) return;
@@ -105,6 +79,4 @@ watch(
   },
   { immediate: true },
 );
-
-onMounted(loadProducts);
 </script>

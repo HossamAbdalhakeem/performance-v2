@@ -20,10 +20,10 @@
           :key="item.method"
           :style="{ color: item.color }"
         >
-          ● {{ item.label }}: {{ formatMoney(item.amount) }} — {{ item.percent }}%
+          ● {{ item.label }}: {{ formatMoney(item.amount, "locale") }} — {{ item.percent }}%
         </p>
         <p class="pt-1 font-bold text-white">
-          {{ totalLabel }}: {{ formatMoney(totalAmount) }}
+          {{ totalLabel }}: {{ formatMoney(totalAmount, "locale") }}
         </p>
       </div>
     </div>
@@ -31,15 +31,14 @@
 </template>
 
 <script setup>
+import {
+  PAYMENT_METHOD_KEYS,
+  PAYMENT_METHOD_META,
+  normalizePaymentMethod,
+} from "~/utils/paymentMethods";
+import { formatMoney } from "~/utils/format";
+
 defineOptions({ name: "PaymentMethodsReport" });
-
-const METHOD_META = {
-  CASH: { label: "كاش", color: "#4472C4" },
-  WALLET: { label: "محفظة إلكترونية", color: "#70AD47" },
-  INSTAPAY: { label: "انستا باي", color: "#ED7D31" },
-};
-
-const ALLOWED_METHODS = Object.keys(METHOD_META);
 
 const props = defineProps({
   items: {
@@ -60,33 +59,25 @@ const props = defineProps({
   },
 });
 
-const normalizeMethod = (value) => String(value || "CASH").trim().toUpperCase();
-
-const formatMoney = (value) =>
-  `${Number(value || 0).toLocaleString("en-US", {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 2,
-  })} ج.م`;
-
 const resolvedItems = computed(() => {
   const raw = Array.isArray(props.items) ? props.items : [];
-  const totals = Object.fromEntries(ALLOWED_METHODS.map((m) => [m, 0]));
+  const totals = Object.fromEntries(PAYMENT_METHOD_KEYS.map((m) => [m, 0]));
 
   for (const row of raw) {
-    const method = normalizeMethod(row.method || row.value);
-    if (!ALLOWED_METHODS.includes(method)) continue;
+    const method = normalizePaymentMethod(row.method || row.value);
+    if (!PAYMENT_METHOD_KEYS.includes(method)) continue;
     const amount = Number(row.amount ?? 0);
     if (!Number.isFinite(amount) || amount <= 0) continue;
     totals[method] += amount;
   }
 
-  const total = ALLOWED_METHODS.reduce((sum, method) => sum + totals[method], 0);
+  const total = PAYMENT_METHOD_KEYS.reduce((sum, method) => sum + totals[method], 0);
   if (total <= 0) return [];
 
-  return ALLOWED_METHODS.filter((method) => totals[method] > 0)
+  return PAYMENT_METHOD_KEYS.filter((method) => totals[method] > 0)
     .map((method) => {
       const amount = totals[method];
-      const meta = METHOD_META[method];
+      const meta = PAYMENT_METHOD_META[method];
       return {
         method,
         label: meta.label,

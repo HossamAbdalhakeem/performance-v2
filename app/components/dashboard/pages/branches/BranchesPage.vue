@@ -73,11 +73,16 @@
 import Card from "primevue/card";
 import Drawer from "primevue/drawer";
 import BranchesTable from "~/components/dashboard/pages/branches/BranchesTable.vue";
-import AddStockForm from "~/components/dashboard/pages/inventory/AddStockForm.vue";
-import RemoveStockForm from "~/components/dashboard/pages/inventory/RemoveStockForm.vue";
 import { branchService } from "~/services/branchService";
 import { inventoryService } from "~/services/inventoryService";
 import { useAppToast } from "~/composables/useAppToast";
+
+const AddStockForm = defineAsyncComponent(() =>
+  import("~/components/dashboard/pages/inventory/AddStockForm.vue"),
+);
+const RemoveStockForm = defineAsyncComponent(() =>
+  import("~/components/dashboard/pages/inventory/RemoveStockForm.vue"),
+);
 
 const { showError, showSuccess } = useAppToast();
 const loading = ref(true);

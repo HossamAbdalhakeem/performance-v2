@@ -68,6 +68,7 @@ import AppDataTable from "~/components/shared/app-data-table/index.vue";
 import SearchInput from "~/components/shared/search-input/index.vue";
 import { productService } from "~/services/productService";
 import { useAppToast } from "~/composables/useAppToast";
+import { formatMoney } from "~/utils/format";
 
 const { showError } = useAppToast();
 const pending = ref(false);
@@ -118,8 +119,6 @@ const navigateToReserve = async () => {
     query: selectedId.value ? { book: selectedId.value } : {},
   });
 };
-
-const formatMoney = (value) => `${Number(value || 0).toFixed(2)} ج.م`;
 
 const normalizeBook = (item) => {
   const status = String(item.status || "").toUpperCase();

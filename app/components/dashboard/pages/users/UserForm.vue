@@ -1,6 +1,6 @@
 <template>
   <Form
-    v-slot="{ errors: fieldErrors }"
+    v-slot="{ errors: fieldErrors, meta }"
     :key="formKey"
     :initial-values="initialValues"
     class="grid gap-4"
@@ -119,13 +119,18 @@
 
     <div class="flex justify-end gap-2">
       <Button type="button" label="إلغاء" severity="secondary" text @click="$emit('cancel')" />
-      <Button type="submit" :label="isEdit ? 'حفظ التعديل' : 'إضافة'" :loading="saving" severity="info" />
+      <FormSubmitButton
+        :label="isEdit ? 'حفظ التعديل' : 'إضافة'"
+        :loading="saving"
+        :valid="meta.valid"
+      />
     </div>
   </Form>
 </template>
 
 <script setup>
 import Button from "primevue/button";
+import FormSubmitButton from "~/components/shared/form-submit-button/index.vue";
 import InputText from "primevue/inputtext";
 import Password from "primevue/password";
 import Select from "primevue/select";

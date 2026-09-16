@@ -33,7 +33,10 @@
 
 <script setup>
 import Drawer from "primevue/drawer";
-import ProductForm from "~/components/dashboard/pages/products/ProductForm.vue";
+
+const ProductForm = defineAsyncComponent(() =>
+  import("~/components/dashboard/pages/products/ProductForm.vue"),
+);
 
 defineProps({
   visible: { type: Boolean, default: false },

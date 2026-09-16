@@ -35,7 +35,7 @@
               <h2 class="mt-3 text-3xl font-bold text-slate-900">مرحباً بعودتك</h2>
             </div>
 
-            <Form v-slot="{ errors: fieldErrors }" @submit="submitLogin" class="space-y-6" :initial-values="initialValues">
+            <Form v-slot="{ errors: fieldErrors, meta }" @submit="submitLogin" class="space-y-6" :initial-values="initialValues">
               <Field v-slot="{ field, errorMessage }" name="email" rules="required|email">
                 <div class="flex flex-col gap-2 text-right">
                   <label class="text-sm font-medium text-slate-700">البريد الإلكتروني</label>
@@ -75,9 +75,15 @@
                 <button type="button" class="text-sky-700 hover:underline">نسيت كلمة المرور؟</button>
               </div>
 
-              <Button type="submit" class="w-full justify-center" :loading="authStore.loading" severity="info" size="large">
+              <FormSubmitButton
+                :loading="authStore.loading"
+                :valid="meta.valid"
+                severity="info"
+                size="large"
+                button-class="w-full justify-center"
+              >
                 {{ authStore.loading ? "جاري تسجيل الدخول..." : "تسجيل الدخول" }}
-              </Button>
+              </FormSubmitButton>
             </Form>
 
             <div class="mt-8 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-right text-sm text-slate-600">
@@ -100,7 +106,7 @@ import { Form, Field, ErrorMessage } from "vee-validate";
 import InputText from "primevue/inputtext";
 import Password from "primevue/password";
 import Checkbox from "primevue/checkbox";
-import Button from "primevue/button";
+import FormSubmitButton from "~/components/shared/form-submit-button/index.vue";
 import { useAuthStore } from "~/store/auth.js";
 import { useAppToast } from "~/composables/useAppToast";
 

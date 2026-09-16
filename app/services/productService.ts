@@ -23,9 +23,12 @@ const productBody = (payload: Record<string, any>) => {
   };
 
   if (Object.prototype.hasOwnProperty.call(payload, "studyYearId")) {
-    body.studyYearId = payload.studyYearId;
+    body.studyYearId = payload.studyYearId || null;
   } else if (Object.prototype.hasOwnProperty.call(payload, "study_year_id")) {
-    body.studyYearId = payload.study_year_id;
+    body.studyYearId = payload.study_year_id || null;
+  } else if (String(payload.type || "").toUpperCase() === "CARD") {
+    // Ensure CARD create/update always sends studyYearId for API validation.
+    body.studyYearId = null;
   }
 
   if (payload.academicYearId || payload.academic_year_id) {

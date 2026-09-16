@@ -63,6 +63,7 @@
 import { notificationService } from "~/services/notificationService";
 import { useAuthStore } from "~/store/auth.js";
 import { useAppToast } from "~/composables/useAppToast";
+import { formatDateTime } from "~/utils/format";
 
 defineOptions({ name: "NotificationBell" });
 
@@ -83,15 +84,13 @@ const panelRef = ref(null);
 let pollTimer = null;
 let fetching = false;
 
-const formatTime = (value) => {
-  if (!value) return "";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "";
-  return new Intl.DateTimeFormat("ar-EG", {
+const formatTime = (value) =>
+  formatDateTime(value, {
     dateStyle: "short",
     timeStyle: "short",
-  }).format(date);
-};
+    empty: "",
+  });
+
 
 const sameList = (next) => {
   const prev = notifications.value;

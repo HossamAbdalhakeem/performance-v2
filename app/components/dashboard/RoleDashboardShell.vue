@@ -1,7 +1,7 @@
 <template>
   <div class="min-h-screen bg-[#111827] text-slate-100" dir="rtl">
-    <aside class="fixed inset-y-0 right-0 z-20 w-72 border-l border-white/10 bg-[#0b1220] text-slate-100 shadow-xl">
-      <div class="flex items-center justify-between border-b border-white/10 px-6 py-5">
+    <aside class="fixed inset-y-0 right-0 z-20 flex w-72 flex-col border-l border-white/10 bg-[#0b1220] text-slate-100 shadow-xl">
+      <div class="flex shrink-0 items-center justify-between border-b border-white/10 px-6 py-5">
         <div>
           <p class="text-xs tracking-[0.28em] text-sky-200/80">مكتبة</p>
           <h2 class="mt-1 text-xl font-bold">لوحة التحكم</h2>
@@ -11,20 +11,40 @@
         </div>
       </div>
 
-      <nav class="space-y-2 px-4 py-5">
-        <NuxtLink
-          v-for="item in menuItems"
-          :key="item.label"
-          :to="item.to"
-          class="flex w-full items-center justify-between rounded-xl px-3 py-3 text-right text-sm font-medium transition hover:bg-white/5"
-          :class="item.active ? 'bg-slate-800 text-sky-200 ring-1 ring-sky-500/40' : 'text-slate-300'"
-        >
-          <span>{{ item.label }}</span>
-          <span class="text-lg">{{ item.icon }}</span>
-        </NuxtLink>
+      <nav class="flex-1 space-y-5 overflow-y-auto px-4 py-5 pb-28">
+        <template v-if="menuSections.length">
+          <div v-for="section in menuSections" :key="section.label" class="space-y-1">
+            <p class="px-3 pb-1 text-[11px] font-semibold tracking-wide text-slate-500">
+              {{ section.label }}
+            </p>
+            <NuxtLink
+              v-for="item in section.items"
+              :key="item.to"
+              :to="item.to"
+              class="flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-right text-sm font-medium transition hover:bg-white/5"
+              :class="item.active ? 'bg-slate-800 text-sky-200 ring-1 ring-sky-500/40' : 'text-slate-300'"
+            >
+              <span>{{ item.label }}</span>
+              <span class="text-lg">{{ item.icon }}</span>
+            </NuxtLink>
+          </div>
+        </template>
+
+        <template v-else>
+          <NuxtLink
+            v-for="item in menuItems"
+            :key="item.to"
+            :to="item.to"
+            class="flex w-full items-center justify-between rounded-xl px-3 py-3 text-right text-sm font-medium transition hover:bg-white/5"
+            :class="item.active ? 'bg-slate-800 text-sky-200 ring-1 ring-sky-500/40' : 'text-slate-300'"
+          >
+            <span>{{ item.label }}</span>
+            <span class="text-lg">{{ item.icon }}</span>
+          </NuxtLink>
+        </template>
       </nav>
 
-      <div class="absolute bottom-0 left-0 right-0 border-t border-white/10 p-4">
+      <div class="absolute bottom-0 left-0 right-0 border-t border-white/10 bg-[#0b1220] p-4">
         <button
           type="button"
           class="flex w-full items-center justify-between rounded-xl bg-red-500/10 px-3 py-3 text-sm font-medium text-red-200 hover:bg-red-500/20"
@@ -136,39 +156,78 @@ const roleLabels = {
 };
 
 const roleMeta = roleLabels[props.role] || roleLabels.admin;
-const menuItems = computed(() => {
-  const isActive = (to) => {
-    if (to === "/reservations") return route.path === "/reservations";
-    return route.path === to || route.path.startsWith(`${to}/`);
-  };
 
+const isActive = (to) => {
+  if (to === "/reservations") return route.path === "/reservations";
+  if (to === "/reports") {
+    return route.path === "/reports" || (route.path.startsWith("/reports/") && !route.path.startsWith("/reports/daily"));
+  }
+  return route.path === to || route.path.startsWith(`${to}/`);
+};
+
+const menuItem = (label, icon, to, active = isActive(to)) => ({
+  label,
+  icon,
+  to,
+  active,
+});
+
+/** Flat list for branch / social roles */
+const menuItems = computed(() => {
   if (props.role === "branch") {
     return [
-      { label: "البيع المباشر", icon: "◫", to: "/sales/direct", active: isActive("/sales/direct") },
-      { label: "حجز الكتب", icon: "✓", to: "/reservations", active: isActive("/reservations") },
-      { label: "تسليم الحجز", icon: "📝", to: "/reservations/deliver", active: isActive("/reservations/deliver") },
-      { label: "تقرير اليوم", icon: "▤", to: "/reports/daily", active: isActive("/reports/daily") },
+      menuItem("البيع المباشر", "◫", "/sales/direct"),
+      menuItem("حجز الكتب", "✓", "/reservations"),
+      menuItem("تسليم الحجز", "📝", "/reservations/deliver"),
+      menuItem("تقرير اليوم", "▤", "/reports/daily"),
     ];
   }
 
   if (props.role === "social") {
     return [
-      { label: "احجز كتاب", icon: "📝", to: "/books", active: isActive("/books") },
-      { label: "تقرير اليوم", icon: "▤", to: "/reports/daily", active: isActive("/reports/daily") },
+      menuItem("احجز كتاب", "📝", "/books/reserve", isActive("/books/reserve") || isActive("/books")),
+      menuItem("تقرير اليوم", "▤", "/reports/daily"),
     ];
   }
 
+  return [];
+});
+
+/** Categorized sections for admin */
+const menuSections = computed(() => {
+  if (props.role === "branch" || props.role === "social") return [];
+
   return [
-    { label: "المنتجات", icon: "＋", to: "/products", active: isActive("/products") },
-    { label: "المدرسون", icon: "◉", to: "/teachers", active: isActive("/teachers") },
-    { label: "الفروع", icon: "⌂", to: "/branches", active: isActive("/branches") },
-    { label: "الطلاب", icon: "◎", to: "/students", active: isActive("/students") },
-    { label: "السنوات الدراسية", icon: "▦", to: "/study-years", active: isActive("/study-years") },
-    { label: "المستخدمون", icon: "♟", to: "/users", active: isActive("/users") },
-    { label: "المصروفات", icon: "﷼", to: "/expenses", active: isActive("/expenses") },
-    { label: "الحجوزات", icon: "✓", to: "/reservations/manage", active: isActive("/reservations/manage") },
-    { label: "استبدال واسترداد", icon: "⇄", to: "/sales/exchange", active: isActive("/sales/exchange") },
-    { label: "التقارير", icon: "▤", to: "/reports", active: isActive("/reports") },
+    {
+      label: "البيانات الأساسية",
+      items: [
+        menuItem("المنتجات", "＋", "/products"),
+        menuItem("المدرسون", "◉", "/teachers"),
+        menuItem("السنوات الدراسية", "▦", "/study-years"),
+        menuItem("الفروع", "⌂", "/branches"),
+        menuItem("الطلاب", "◎", "/students"),
+      ],
+    },
+    {
+      label: "العمليات",
+      items: [
+        menuItem("الحجوزات", "✓", "/reservations/manage"),
+        menuItem("استبدال واسترداد", "⇄", "/sales/exchange"),
+      ],
+    },
+    {
+      label: "الأشخاص",
+      items: [
+        menuItem("الموظفون", "♟", "/users"),
+      ],
+    },
+    {
+      label: "المالية والتقارير",
+      items: [
+        menuItem("المصروفات", "﷼", "/expenses"),
+        menuItem("التقارير", "▤", "/reports"),
+      ],
+    },
   ];
 });
 

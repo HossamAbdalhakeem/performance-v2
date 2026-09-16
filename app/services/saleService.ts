@@ -1,14 +1,18 @@
 import { apiFetch, firstRow, asList } from "~/utils/apiFetch";
-
-const PAYMENT_METHODS = new Set(["CASH", "WALLET", "INSTAPAY"]);
+import {
+  PaymentMethod,
+  normalizePaymentMethod,
+} from "~/utils/paymentMethods";
 
 const saleBody = (payload: Record<string, any>) => {
-  const method = String(payload.method || payload.payment_method || "CASH").toUpperCase();
+  const method = normalizePaymentMethod(
+    payload.method || payload.payment_method || PaymentMethod.CASH,
+  );
   const body: Record<string, any> = {
     studentId: payload.studentId ?? payload.student_id,
     productId: payload.productId ?? payload.product_id,
     quantity: Number(payload.quantity || 1),
-    method: PAYMENT_METHODS.has(method) ? method : "CASH",
+    method,
   };
 
   const proof =

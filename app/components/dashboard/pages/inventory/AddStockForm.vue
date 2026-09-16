@@ -20,17 +20,14 @@
     </div>
 
     <div class="flex flex-col gap-2 text-right">
-      <label class="text-sm font-medium text-slate-700">المنتج</label>
-      <Select
-        :model-value="form.productId"
-        :options="productOptions"
-        optionLabel="label"
-        optionValue="value"
+      <ProductSelect
+        v-model="form.productId"
+        source="catalog"
+        variant="simple"
         placeholder="اختار المنتج ▾"
-        filter
-        class="w-full"
         :invalid="!!errors.productId"
-        @update:model-value="onProductChange"
+        @select="onProductSelect"
+        @loaded="onProductsLoaded"
       />
       <small v-if="errors.productId" class="text-xs text-red-500">{{ errors.productId }}</small>
     </div>
@@ -75,18 +72,23 @@
         text
         @click="$emit('cancel')"
       />
-      <Button type="submit" label="تسليم المنتجات للفرع" :loading="saving" severity="info" />
+      <FormSubmitButton
+        label="تسليم المنتجات للفرع"
+        :loading="saving"
+        :valid="isFormValid"
+      />
     </div>
   </form>
 </template>
 
 <script setup>
 import Button from "primevue/button";
+import FormSubmitButton from "~/components/shared/form-submit-button/index.vue";
+import ProductSelect from "~/components/shared/product-select/index.vue";
 import Select from "primevue/select";
 import AppInputNumber from "~/components/dashboard/AppInputNumber.vue";
 import { inventoryService } from "~/services/inventoryService";
 import { branchService } from "~/services/branchService";
-import { productService } from "~/services/productService";
 import { useAppToast } from "~/composables/useAppToast";
 
 const props = defineProps({
@@ -113,23 +115,28 @@ const form = reactive({
   quantity: null,
 });
 
-const toId = (value) => {
-  if (value == null || value === "") return null;
-  if (typeof value === "string" || typeof value === "number") return String(value);
-  if (typeof value === "object") {
-    const id = value.value ?? value.id ?? value.productId;
-    return id != null && id !== "" ? String(id) : null;
-  }
-  return null;
+const onProductSelect = (option) => {
+  errors.productId = "";
+  if (!option) return;
 };
 
-const onProductChange = (value) => {
-  form.productId = toId(value);
+const onProductsLoaded = (options) => {
+  productOptions.value = options || [];
 };
 
 const currentProductName = computed(() => {
   const selected = productOptions.value.find((item) => item.value === form.productId);
-  return selected?.label || "-";
+  return selected?.name || selected?.label || "-";
+});
+
+const isFormValid = computed(() => {
+  const branchId = props.lockedBranchId || form.branchId;
+  return Boolean(
+    branchId &&
+      form.productId &&
+      form.quantity != null &&
+      Number(form.quantity) >= 1,
+  );
 });
 
 const validate = () => {
@@ -144,29 +151,21 @@ const validate = () => {
 };
 
 const loadOptions = async () => {
+  if (props.lockedBranchId) {
+    branchOptions.value = [];
+    return;
+  }
+
   try {
-    const [branches, products] = await Promise.all([
-      props.lockedBranchId ? Promise.resolve([]) : branchService.getBranches(),
-      productService.getProducts({ per_page: 200 }),
-    ]);
-
+    const branches = await branchService.getBranches();
     const branchList = Array.isArray(branches) ? branches : branches?.data || [];
-    const productList = products.data || [];
-
     branchOptions.value = branchList.map((branch) => ({
       label: branch.name || branch.id,
       value: branch.id,
     }));
-
-    productOptions.value = productList
-      .filter((product) => product?.id)
-      .map((product) => ({
-        label: product.name || product.title || product.id,
-        value: String(product.id),
-      }));
   } catch (error) {
     console.error("Failed to load add-stock options", error);
-    showError(error?.message || "تعذر تحميل المنتجات.");
+    showError(error?.message || "تعذر تحميل الفروع.");
   }
 };
 

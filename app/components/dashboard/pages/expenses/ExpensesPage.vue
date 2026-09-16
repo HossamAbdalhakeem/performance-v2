@@ -56,10 +56,14 @@ import Select from "primevue/select";
 import EntityDrawer from "~/components/dashboard/EntityDrawer.vue";
 import SearchInput from "~/components/shared/search-input/index.vue";
 import ExpensesTable from "~/components/dashboard/pages/expenses/ExpensesTable.vue";
-import ExpenseForm from "~/components/dashboard/pages/expenses/ExpenseForm.vue";
 import { expenseService } from "~/services/expenseService";
 import { branchService } from "~/services/branchService";
 import { useAppToast } from "~/composables/useAppToast";
+import { formatMoney, formatDateTime } from "~/utils/format";
+
+const ExpenseForm = defineAsyncComponent(() =>
+  import("~/components/dashboard/pages/expenses/ExpenseForm.vue"),
+);
 
 const { showError, showSuccess } = useAppToast();
 const loading = ref(true);
@@ -81,21 +85,12 @@ const drawerTitle = computed(() =>
   editingItem.value?.id ? "تعديل المصروف" : "إضافة مصروف",
 );
 
-const formatMoney = (value) => `${Number(value || 0).toFixed(2)} ج.م`;
-
-const formatDate = (value) => {
-  if (!value) return "-";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return String(value);
-  return date.toLocaleDateString("ar-EG");
-};
-
 const normalizeExpense = (expense) => ({
   ...expense,
   categoryName: expense.category?.name || "-",
   branchName: expense.branch?.name || "عام",
   amountLabel: formatMoney(expense.amount),
-  expenseDateLabel: formatDate(expense.expenseDate),
+  expenseDateLabel: formatDateTime(expense.expenseDate, "date"),
   description: expense.description || "-",
 });
 

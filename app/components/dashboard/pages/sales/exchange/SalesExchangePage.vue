@@ -44,73 +44,17 @@
       :pt="{ header: { class: 'text-right' }, content: { class: 'text-right' } }"
       @hide="closeRefundFlow"
     >
-      <div v-if="selectedSale" class="flex flex-col gap-4">
-        <div
-          class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700"
-        >
-          <div class="grid gap-2">
-            <div class="flex items-center justify-between gap-2">
-              <span class="text-slate-500">رقم العملية</span>
-              <span class="font-semibold text-slate-900">
-                {{ selectedSale.saleNumber }}
-              </span>
-            </div>
-            <div class="flex items-center justify-between gap-2">
-              <span class="text-slate-500">الطالب</span>
-              <span class="font-medium">{{ selectedSale.studentName }}</span>
-            </div>
-            <div class="flex items-center justify-between gap-2">
-              <span class="text-slate-500">الموبايل</span>
-              <span class="font-medium">{{ selectedSale.phone || "—" }}</span>
-            </div>
-            <div class="flex items-center justify-between gap-2">
-              <span class="text-slate-500">المنتج</span>
-              <span class="font-medium">{{ selectedSale.productName }}</span>
-            </div>
-            <div class="flex items-center justify-between gap-2">
-              <span class="text-slate-500">الفرع</span>
-              <span class="font-medium">{{ selectedSale.branchName }}</span>
-            </div>
-            <div class="flex items-center justify-between gap-2">
-              <span class="text-slate-500">الكمية القابلة للاسترداد</span>
-              <span class="font-medium">{{ selectedSale.remainingQuantity }}</span>
-            </div>
-            <div class="flex items-center justify-between gap-2">
-              <span class="text-slate-500">طريقة الدفع الأصلية</span>
-              <span class="font-medium">{{ selectedSale.paymentMethodLabel }}</span>
-            </div>
-            <div class="flex items-center justify-between gap-2">
-              <span class="text-slate-500">مبلغ الاسترداد</span>
-              <span class="font-semibold text-emerald-700">
-                {{ selectedSale.refundAmountLabel }}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <PaymentFields
-          v-model:method="refundMethod"
-          v-model:image="refundImage"
-          v-model:image-data-url="refundProofKey"
-          method-label="طريقة الاسترداد"
-          image-label="صورة إثبات الاسترداد (اختياري)"
-          :show-image-when="'never'"
-          :require-image-when="'never'"
-          :method-invalid="!!refundError"
-          :method-error="refundError"
-        />
-
-        <div
-          class="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900"
-        >
-          <p class="font-semibold">عند الاسترداد سيتم:</p>
-          <ul class="mt-2 list-disc space-y-1 pr-5">
-            <li>إرجاع مبلغ {{ selectedSale.refundAmountLabel }} للطالب</li>
-            <li>إعادة الكمية إلى مخزون الفرع</li>
-            <li>تسجيل عملية الاسترداد في التقارير</li>
-          </ul>
-        </div>
-      </div>
+      <RefundDetailContent
+        v-if="refundDetailVisible && selectedSale"
+        :sale="selectedSale"
+        :refund-method="refundMethod"
+        :refund-image="refundImage"
+        :refund-proof-key="refundProofKey"
+        :refund-error="refundError"
+        @update:refund-method="refundMethod = $event"
+        @update:refund-image="refundImage = $event"
+        @update:refund-proof-key="refundProofKey = $event"
+      />
 
       <template #footer>
         <div class="flex w-full justify-start gap-2">
@@ -144,32 +88,11 @@
       :style="{ width: '420px', maxWidth: '95vw' }"
       :pt="{ header: { class: 'text-right' }, content: { class: 'text-right' } }"
     >
-      <div class="space-y-3 text-sm text-slate-700">
-        <p>
-          هل أنت متأكد من استرداد
-          <span class="font-bold text-slate-900">
-            {{ selectedSale?.productName }}
-          </span>
-          من العملية
-          <span class="font-bold text-slate-900">
-            {{ selectedSale?.saleNumber }}
-          </span>
-          ؟
-        </p>
-        <p
-          class="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-red-700"
-        >
-          لا يمكن التراجع عن هذا الإجراء بعد التأكيد.
-        </p>
-        <p class="text-slate-600">
-          سيتم تسجيل استرداد بمبلغ
-          <span class="font-semibold text-emerald-700">
-            {{ selectedSale?.refundAmountLabel }}
-          </span>
-          عبر
-          <span class="font-semibold">{{ METHOD_LABELS[refundMethod] || refundMethod }}</span>
-        </p>
-      </div>
+      <RefundConfirmContent
+        v-if="refundConfirmVisible"
+        :sale="selectedSale"
+        :refund-method-label="refundMethodLabel"
+      />
 
       <template #footer>
         <div class="flex w-full justify-start gap-2">
@@ -201,214 +124,26 @@
       :pt="{ header: { class: 'text-right' }, content: { class: 'text-right' } }"
       @hide="closeExchangeFlow"
     >
-      <div v-if="selectedSale" class="flex flex-col gap-4">
-        <div
-          class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700"
-        >
-          <div class="grid gap-2 sm:grid-cols-2">
-            <div class="flex items-center justify-between gap-2">
-              <span class="text-slate-500">رقم العملية</span>
-              <span class="font-semibold text-slate-900">
-                {{ selectedSale.saleNumber }}
-              </span>
-            </div>
-            <div class="flex items-center justify-between gap-2">
-              <span class="text-slate-500">الطالب</span>
-              <span class="font-medium">{{ selectedSale.studentName }}</span>
-            </div>
-            <div class="flex items-center justify-between gap-2">
-              <span class="text-slate-500">الفرع</span>
-              <span class="font-medium">{{ selectedSale.branchName }}</span>
-            </div>
-            <div class="flex items-center justify-between gap-2">
-              <span class="text-slate-500">الكمية</span>
-              <span class="font-medium">{{ selectedSale.remainingQuantity }}</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="grid gap-3 md:grid-cols-2">
-          <div class="rounded-xl border border-white/10 bg-slate-900 p-4 text-sm text-slate-200">
-            <p class="mb-3 text-xs font-semibold text-rose-300">المنتج الحالي</p>
-            <p class="text-base font-bold text-white">
-              {{ selectedSale.productName }}
-            </p>
-            <p class="mt-1 text-xs text-slate-400">
-              أ/ {{ selectedSale.teacherName || "—" }}
-            </p>
-            <div class="mt-3 flex items-center justify-between gap-2">
-              <span class="text-slate-400">السعر</span>
-              <span class="font-semibold text-slate-100">{{ selectedSale.unitPriceLabel }}</span>
-            </div>
-          </div>
-
-          <div
-            class="rounded-xl border p-4 text-sm"
-            :class="
-              selectedNewProduct
-                ? 'border-white/10 bg-slate-900 text-slate-200'
-                : 'border-dashed border-slate-600 bg-slate-900/70 text-slate-300'
-            "
-          >
-            <p
-              class="mb-3 text-xs font-semibold"
-              :class="selectedNewProduct ? 'text-emerald-300' : 'text-slate-400'"
-            >
-              المنتج الجديد
-            </p>
-            <template v-if="selectedNewProduct">
-              <p class="text-base font-bold text-white">
-                {{ selectedNewProduct.name }}
-              </p>
-              <p class="mt-1 text-xs text-slate-400">
-                أ/ {{ selectedNewProduct.teacherName || "—" }}
-              </p>
-              <div class="mt-3 space-y-1.5">
-                <div class="flex items-center justify-between gap-2">
-                  <span class="text-slate-400">التوفر</span>
-                  <span
-                    class="rounded-full px-2 py-0.5 text-xs font-semibold"
-                    :class="
-                      selectedNewProduct.isAvailable
-                        ? 'bg-emerald-500/20 text-emerald-300'
-                        : 'bg-amber-500/20 text-amber-300'
-                    "
-                  >
-                    {{ selectedNewProduct.availabilityLabel }}
-                  </span>
-                </div>
-                <div class="flex items-center justify-between gap-2">
-                  <span class="text-slate-400">السعر</span>
-                  <span class="font-semibold text-slate-100">
-                    {{ formatMoney(selectedNewProduct.unitPrice) }}
-                  </span>
-                </div>
-              </div>
-            </template>
-            <p v-else class="text-sm text-slate-400">
-              اختر منتجًا متاحًا من نفس الفرع
-            </p>
-          </div>
-        </div>
-
-        <div
-          v-if="priceComparison"
-          class="rounded-xl border px-4 py-3 text-sm"
-          :class="priceComparison.boxClass"
-        >
-          <p class="font-semibold" :class="priceComparison.titleClass">
-            {{ priceComparison.title }}
-          </p>
-          <div class="mt-2 grid gap-1 text-slate-300">
-            <div class="flex items-center justify-between gap-2">
-              <span>سعر المنتج الحالي</span>
-              <span class="font-medium text-slate-100">{{ formatMoney(priceComparison.oldTotal) }}</span>
-            </div>
-            <div class="flex items-center justify-between gap-2">
-              <span>سعر المنتج الجديد</span>
-              <span class="font-medium text-slate-100">{{ formatMoney(priceComparison.newTotal) }}</span>
-            </div>
-            <div class="flex items-center justify-between gap-2 border-t border-white/10 pt-1">
-              <span>{{ priceComparison.diffLabel }}</span>
-              <span class="font-bold" :class="priceComparison.diffClass">
-                {{ formatMoney(Math.abs(priceComparison.difference)) }}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <div class="flex flex-col gap-2 text-right">
-          <label class="text-sm font-medium text-slate-700">المنتج الجديد</label>
-          <Select
-            v-model="newProductId"
-            :options="productOptions"
-            option-label="label"
-            option-value="value"
-            placeholder="اختر المنتج البديل من نفس الفرع"
-            filter
-            :filter-fields="['name', 'teacherName', 'label']"
-            :loading="loadingProducts"
-            :disabled="loadingProducts || !selectedSale.branchId"
-            class="w-full product-select"
-            :invalid="!!exchangeError"
-          >
-            <template #value="{ placeholder }">
-              <div v-if="selectedNewProduct" class="w-full py-0.5 text-right">
-                <div class="flex items-start justify-between gap-3">
-                  <span class="font-medium text-slate-900">
-                    {{ selectedNewProduct.name }}
-                  </span>
-                  <span
-                    class="shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold"
-                    :class="
-                      selectedNewProduct.isAvailable
-                        ? 'bg-emerald-500/15 text-emerald-700'
-                        : 'bg-amber-500/15 text-amber-700'
-                    "
-                  >
-                    {{ selectedNewProduct.availabilityLabel }}
-                  </span>
-                </div>
-                <div class="mt-0.5 flex items-center justify-between gap-3">
-                  <p class="text-xs text-slate-500">
-                    أ/ {{ selectedNewProduct.teacherName || "-" }}
-                  </p>
-                  <span class="text-xs text-sky-700">
-                    {{ formatMoney(selectedNewProduct.unitPrice) }}
-                  </span>
-                </div>
-              </div>
-              <span v-else>{{ placeholder }}</span>
-            </template>
-            <template #option="{ option }">
-              <div class="w-full py-1 text-right">
-                <div class="flex items-start justify-between gap-3">
-                  <span class="font-medium">{{ option.name }}</span>
-                  <span
-                    class="shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold"
-                    :class="
-                      option.isAvailable
-                        ? 'bg-emerald-500/15 text-emerald-700'
-                        : 'bg-amber-500/15 text-amber-700'
-                    "
-                  >
-                    {{ option.availabilityLabel }}
-                  </span>
-                </div>
-                <div class="mt-0.5 flex items-center justify-between gap-3">
-                  <p class="text-xs text-slate-400">
-                    أ/ {{ option.teacherName || "-" }}
-                  </p>
-                  <span class="text-sm text-sky-600">
-                    {{ formatMoney(option.unitPrice) }}
-                  </span>
-                </div>
-              </div>
-            </template>
-          </Select>
-          <p v-if="exchangeError" class="text-xs text-red-500">{{ exchangeError }}</p>
-        </div>
-
-        <PaymentFields
-          v-if="priceComparison?.kind === 'more'"
-          v-model:method="exchangePaymentMethod"
-          v-model:image="exchangeImage"
-          v-model:image-data-url="exchangeProofKey"
-          method-label="طريقة تحصيل فرق السعر"
-          :method-invalid="!!exchangePaymentError"
-          :method-error="exchangePaymentError"
-        />
-
-        <PaymentFields
-          v-else-if="priceComparison?.kind === 'less'"
-          v-model:method="exchangeRefundMethod"
-          v-model:image="exchangeImage"
-          v-model:image-data-url="exchangeProofKey"
-          method-label="طريقة رد فرق السعر"
-          :method-invalid="!!exchangePaymentError"
-          :method-error="exchangePaymentError"
-        />
-      </div>
+      <ExchangeDetailContent
+        v-if="exchangeDetailVisible && selectedSale"
+        :sale="selectedSale"
+        :new-product-id="newProductId"
+        :selected-new-product="selectedNewProduct"
+        :price-comparison="priceComparison"
+        :exchange-error="exchangeError"
+        :exchange-payment-error="exchangePaymentError"
+        :exchange-payment-method="exchangePaymentMethod"
+        :exchange-refund-method="exchangeRefundMethod"
+        :exchange-image="exchangeImage"
+        :exchange-proof-key="exchangeProofKey"
+        @update:new-product-id="newProductId = $event"
+        @update:exchange-payment-method="exchangePaymentMethod = $event"
+        @update:exchange-refund-method="exchangeRefundMethod = $event"
+        @update:exchange-image="exchangeImage = $event"
+        @update:exchange-proof-key="exchangeProofKey = $event"
+        @products-loaded="onExchangeProductsLoaded"
+        @products-loading="(value) => (loadingProducts = value)"
+      />
 
       <template #footer>
         <div class="flex w-full justify-start gap-2">
@@ -442,46 +177,12 @@
       :style="{ width: '520px', maxWidth: '95vw' }"
       :pt="{ header: { class: 'text-right' }, content: { class: 'text-right' } }"
     >
-      <div class="space-y-3 text-sm text-slate-700">
-        <p>
-          هل أنت متأكد من استبدال منتج العملية
-          <span class="font-bold text-slate-900">
-            {{ selectedSale?.saleNumber }}
-          </span>
-          ؟
-        </p>
-        <div class="grid gap-3 sm:grid-cols-2">
-          <div class="rounded-lg border border-white/10 bg-slate-900 px-3 py-2">
-            <p class="text-xs text-rose-300">من</p>
-            <p class="mt-1 font-semibold text-white">
-              {{ selectedSale?.productName }}
-            </p>
-            <p class="mt-0.5 text-xs text-slate-400">
-              {{ selectedSale?.unitPriceLabel }}
-            </p>
-          </div>
-          <div class="rounded-lg border border-white/10 bg-slate-900 px-3 py-2">
-            <p class="text-xs text-emerald-300">إلى</p>
-            <p class="mt-1 font-semibold text-white">
-              {{ selectedNewProduct?.name || "—" }}
-            </p>
-            <p class="mt-0.5 text-xs text-slate-400">
-              {{
-                selectedNewProduct
-                  ? formatMoney(selectedNewProduct.unitPrice)
-                  : "—"
-              }}
-            </p>
-          </div>
-        </div>
-        <p
-          v-if="priceComparison"
-          class="rounded-lg border px-3 py-2 text-slate-200"
-          :class="priceComparison.boxClass"
-        >
-          {{ priceComparison.confirmText }}
-        </p>
-      </div>
+      <ExchangeConfirmContent
+        v-if="exchangeConfirmVisible"
+        :sale="selectedSale"
+        :selected-new-product="selectedNewProduct"
+        :price-comparison="priceComparison"
+      />
 
       <template #footer>
         <div class="flex w-full justify-start gap-2">
@@ -511,26 +212,37 @@ import Card from "primevue/card";
 import Dialog from "primevue/dialog";
 import Select from "primevue/select";
 import SalesExchangeTable from "~/components/dashboard/pages/sales/exchange/SalesExchangeTable.vue";
-import PaymentFields from "~/components/shared/payment-fields/index.vue";
 import SearchInput from "~/components/shared/search-input/index.vue";
 import { exchangeService } from "~/services/exchangeService";
-import { inventoryService } from "~/services/inventoryService";
 import { returnService } from "~/services/returnService";
 import { saleService } from "~/services/saleService";
 import { useAppToast } from "~/composables/useAppToast";
+import {
+  PAYMENT_METHOD_LABELS,
+  PaymentMethod,
+  paymentMethodNeedsProof,
+} from "~/utils/paymentMethods";
+import { formatMoney, formatDateTime } from "~/utils/format";
 
 defineOptions({ name: "SalesExchangePage" });
+
+const RefundDetailContent = defineAsyncComponent(() =>
+  import("~/components/dashboard/pages/sales/exchange/manage/RefundDetailContent.vue"),
+);
+const RefundConfirmContent = defineAsyncComponent(() =>
+  import("~/components/dashboard/pages/sales/exchange/manage/RefundConfirmContent.vue"),
+);
+const ExchangeDetailContent = defineAsyncComponent(() =>
+  import("~/components/dashboard/pages/sales/exchange/manage/ExchangeDetailContent.vue"),
+);
+const ExchangeConfirmContent = defineAsyncComponent(() =>
+  import("~/components/dashboard/pages/sales/exchange/manage/ExchangeConfirmContent.vue"),
+);
 
 const STATUS_META = {
   COMPLETED: { label: "مكتمل", severity: "success" },
   PARTIALLY_RETURNED: { label: "مسترد جزئيًا", severity: "warn" },
   RETURNED: { label: "تم الاسترداد", severity: "danger" },
-};
-
-const METHOD_LABELS = {
-  CASH: "كاش",
-  INSTAPAY: "انستا باي",
-  WALLET: "محفظة إلكترونية",
 };
 
 const { showError, showSuccess } = useAppToast();
@@ -550,12 +262,12 @@ const filters = reactive({
   status: null,
 });
 
-const refundMethod = ref("CASH");
+const refundMethod = ref(PaymentMethod.CASH);
 const refundImage = ref(null);
 const refundProofKey = ref("");
 
-const exchangePaymentMethod = ref("CASH");
-const exchangeRefundMethod = ref("CASH");
+const exchangePaymentMethod = ref(PaymentMethod.CASH);
+const exchangeRefundMethod = ref(PaymentMethod.CASH);
 const exchangeImage = ref(null);
 const exchangeProofKey = ref("");
 
@@ -569,22 +281,15 @@ const statusOptions = Object.entries(STATUS_META).map(([value, meta]) => ({
   value,
 }));
 
-const formatMoney = (value) => `${Number(value || 0).toFixed(2)} ج.م`;
+const refundMethodLabel = computed(
+  () => PAYMENT_METHOD_LABELS[refundMethod.value] || refundMethod.value || "-",
+);
+
 const roundMoney = (value) => Math.round(Number(value || 0) * 100) / 100;
 const toMoneyNumber = (value) => {
   if (value == null || value === "") return 0;
   const n = Number(value);
   return Number.isFinite(n) ? n : 0;
-};
-
-const formatDateTime = (value) => {
-  if (!value) return "—";
-  const date = value instanceof Date ? value : new Date(value);
-  if (Number.isNaN(date.getTime())) return "—";
-  return new Intl.DateTimeFormat("ar-EG", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(date);
 };
 
 const normalizeSaleRow = (sale, item) => {
@@ -631,9 +336,9 @@ const normalizeSaleRow = (sale, item) => {
     refundAmount: lineTotal,
     refundAmountLabel: formatMoney(lineTotal),
     paymentMethod: method,
-    paymentMethodLabel: METHOD_LABELS[method] || method || "—",
+    paymentMethodLabel: PAYMENT_METHOD_LABELS[method] || method || "—",
     createdAt,
-    createdAtLabel: formatDateTime(createdAt),
+    createdAtLabel: formatDateTime(createdAt, { empty: "—" }),
     status,
     statusLabel: meta.label,
     statusSeverity: meta.severity,
@@ -706,36 +411,8 @@ const priceComparison = computed(() => {
   };
 });
 
-const mapInventoryProductOption = (item) => {
-  const product = item.product || item;
-  const teacherName =
-    product.teacher?.name || product.teacherName || product.teacher_name || "";
-  const availableQuantity = Number(
-    item.availableQuantity ??
-      Math.max(
-        0,
-        Number(item.physicalQuantity || 0) - Number(item.reservedQuantity || 0),
-      ),
-  );
-  const isAvailable = availableQuantity > 0;
-  const unitPrice = toMoneyNumber(
-    product.sellingPrice ?? product.selling_price,
-  );
-  const name = product.name || product.title || "-";
-  const availabilityLabel = isAvailable
-    ? `متاح ${availableQuantity}`
-    : "غير متاح";
-
-  return {
-    name,
-    teacherName,
-    unitPrice,
-    availableQuantity,
-    isAvailable,
-    availabilityLabel,
-    label: `${name} · ${availabilityLabel} · ${unitPrice.toFixed(2)}ج.م`,
-    value: product.id || item.productId,
-  };
+const onExchangeProductsLoaded = (options) => {
+  productOptions.value = options || [];
 };
 
 const buildQuery = () => {
@@ -763,37 +440,8 @@ const onSearch = (value) => {
   loadData();
 };
 
-const loadProducts = async () => {
-  loadingProducts.value = true;
-  productOptions.value = [];
-  try {
-    const branchId = selectedSale.value?.branchId;
-    if (!branchId) {
-      showError("تعذر تحديد فرع البيع لتحميل المنتجات المتاحة.");
-      return;
-    }
-
-    const items = await inventoryService.getBranchInventory(branchId, {
-      availableOnly: true,
-    });
-    const list = Array.isArray(items) ? items : items?.data || [];
-    const currentProductId = selectedSale.value?.productId;
-    const neededQty = Number(selectedSale.value?.remainingQuantity || 1);
-
-    productOptions.value = list
-      .map(mapInventoryProductOption)
-      .filter((option) => option.value && option.value !== currentProductId)
-      .filter((option) => option.availableQuantity >= neededQty);
-  } catch (error) {
-    productOptions.value = [];
-    showError(error?.message || "تعذر تحميل منتجات الفرع المتاحة.");
-  } finally {
-    loadingProducts.value = false;
-  }
-};
-
 const resetRefundFields = () => {
-  refundMethod.value = "CASH";
+  refundMethod.value = PaymentMethod.CASH;
   refundImage.value = null;
   refundProofKey.value = "";
   refundError.value = "";
@@ -803,8 +451,8 @@ const resetExchangeFields = () => {
   newProductId.value = null;
   exchangeError.value = "";
   exchangePaymentError.value = "";
-  exchangePaymentMethod.value = "CASH";
-  exchangeRefundMethod.value = "CASH";
+  exchangePaymentMethod.value = PaymentMethod.CASH;
+  exchangeRefundMethod.value = PaymentMethod.CASH;
   exchangeImage.value = null;
   exchangeProofKey.value = "";
 };
@@ -858,14 +506,14 @@ const confirmRefund = async () => {
   }
 };
 
-const openExchangeDialog = async (item) => {
+const openExchangeDialog = (item) => {
   selectedSale.value = item;
+  productOptions.value = [];
   resetExchangeFields();
   refundDetailVisible.value = false;
   refundConfirmVisible.value = false;
   exchangeConfirmVisible.value = false;
   exchangeDetailVisible.value = true;
-  await loadProducts();
 };
 
 const closeExchangeFlow = () => {
@@ -875,9 +523,6 @@ const closeExchangeFlow = () => {
   resetExchangeFields();
   if (!refundDetailVisible.value) selectedSale.value = null;
 };
-
-const needsProof = (method) =>
-  method === "WALLET" || method === "INSTAPAY";
 
 const requestExchangeConfirm = () => {
   exchangeError.value = "";
@@ -903,7 +548,7 @@ const requestExchangeConfirm = () => {
       return;
     }
     if (
-      needsProof(exchangePaymentMethod.value) &&
+      paymentMethodNeedsProof(exchangePaymentMethod.value) &&
       !String(exchangeProofKey.value || "").trim()
     ) {
       exchangePaymentError.value = "صورة إثبات الدفع مطلوبة لطريقة الدفع المحددة.";
@@ -917,7 +562,7 @@ const requestExchangeConfirm = () => {
       return;
     }
     if (
-      needsProof(exchangeRefundMethod.value) &&
+      paymentMethodNeedsProof(exchangeRefundMethod.value) &&
       !String(exchangeProofKey.value || "").trim()
     ) {
       exchangePaymentError.value = "صورة إثبات الرد مطلوبة لطريقة الرد المحددة.";

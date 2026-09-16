@@ -1,11 +1,5 @@
 import { apiFetch, firstRow, asList } from "~/utils/apiFetch";
-
-const PAYMENT_METHODS = new Set(["CASH", "WALLET", "INSTAPAY"]);
-
-const normalizeMethod = (value?: string) => {
-  const method = String(value || "CASH").toUpperCase();
-  return PAYMENT_METHODS.has(method) ? method : "CASH";
-};
+import { normalizePaymentMethod } from "~/utils/paymentMethods";
 
 export const returnService = {
   async getReturns() {
@@ -35,7 +29,7 @@ export const returnService = {
         body: {
           saleId: payload.saleId ?? payload.sale_id,
           items,
-          method: normalizeMethod(payload.method ?? payload.refundMethod),
+          method: normalizePaymentMethod(payload.method ?? payload.refundMethod),
         },
       }),
     );

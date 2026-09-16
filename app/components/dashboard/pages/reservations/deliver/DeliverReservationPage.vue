@@ -78,74 +78,23 @@
       }"
       @hide="closeDeliverDialog"
     >
-      <div v-if="selectedReservation" class="flex flex-col gap-4">
-        <div class="rounded-xl border border-slate-700 bg-slate-900/60 px-3 py-3 text-sm text-slate-300">
-          <p>
-            <span class="text-slate-400">رقم الحجز:</span>
-            {{ selectedReservation.reservationNumber }}
-          </p>
-          <p class="mt-1">
-            <span class="text-slate-400">الطالب:</span>
-            {{ selectedReservation.studentName }}
-          </p>
-          <p class="mt-1">
-            <span class="text-slate-400">المنتج:</span>
-            {{ selectedReservation.productName }}
-          </p>
-          <div class="mt-3 grid gap-2 rounded-lg border border-slate-700/80 bg-slate-950/40 p-3 text-sm">
-            <div class="flex items-center justify-between gap-2">
-              <span class="text-slate-400">إجمالي المبلغ</span>
-              <span class="font-semibold text-slate-100">
-                {{ formatMoney(selectedReservation.totalAmount) }}
-              </span>
-            </div>
-            <div class="flex items-center justify-between gap-2">
-              <span class="text-slate-400">المدفوع مسبقاً</span>
-              <span class="font-semibold text-emerald-300">
-                {{ formatMoney(selectedReservation.paidAmount) }}
-              </span>
-            </div>
-            <div class="flex items-center justify-between gap-2 border-t border-slate-700 pt-3">
-              <span class="text-base font-bold text-slate-200">المتبقي</span>
-              <span
-                class="text-2xl font-extrabold tracking-tight"
-                :class="
-                  needsRemainingPayment ? 'text-orange-300' : 'text-emerald-300'
-                "
-              >
-                {{ formatMoney(selectedReservation.remainingAmount) }}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <div
-          v-if="!needsRemainingPayment"
-          class="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-200"
-        >
-          تم سداد المبلغ بالكامل. يمكن إتمام التسليم مباشرة.
-        </div>
-
-        <template v-else>
-
-          <PaymentFields
-            ref="paymentFieldsRef"
-            v-model:method="paymentMethod"
-            v-model:image="proofFile"
-            v-model:image-data-url="proofKey"
-            v-model:image-preview-url="proofPreviewUrl"
-            method-label="طريقة دفع المبلغ المتبقي"
-            image-label="صورة إثبات دفع المتبقي"
-            :method-invalid="!!methodError"
-            :method-error="methodError"
-            :image-invalid="proofRequiredError"
-            show-image-when="non-cash"
-            require-image-when="non-cash"
-          />
-        </template>
-
-        <p v-if="dialogError" class="text-sm text-red-300">{{ dialogError }}</p>
-      </div>
+      <DeliverReservationDetailContent
+        v-if="dialogVisible && selectedReservation"
+        ref="deliverDetailContentRef"
+        :reservation="selectedReservation"
+        :needs-remaining-payment="needsRemainingPayment"
+        :payment-method="paymentMethod"
+        :proof-file="proofFile"
+        :proof-key="proofKey"
+        :proof-preview-url="proofPreviewUrl"
+        :method-error="methodError"
+        :proof-required-error="proofRequiredError"
+        :dialog-error="dialogError"
+        @update:payment-method="paymentMethod = $event"
+        @update:proof-file="proofFile = $event"
+        @update:proof-key="proofKey = $event"
+        @update:proof-preview-url="proofPreviewUrl = $event"
+      />
 
       <template #footer>
         <div class="flex w-full justify-start gap-2">
@@ -180,34 +129,12 @@
         content: { class: 'text-right' },
       }"
     >
-      <div class="space-y-3 text-right text-slate-200">
-        <p class="text-sm">
-          هل أنت متأكد من تسليم الحجز
-          <span class="font-bold text-white">
-            {{ selectedReservation?.reservationNumber }}
-          </span>
-          ؟
-        </p>
-
-        <div
-          v-if="needsRemainingPayment"
-          class="rounded-xl border border-orange-500/40 bg-orange-500/10 px-4 py-3 text-center"
-        >
-          <p class="text-sm font-medium text-orange-200">
-            تأكد من تحصيل المبلغ المتبقي من الطالب قبل التسليم
-          </p>
-          <p class="mt-2 text-3xl font-extrabold text-orange-300">
-            {{ formatMoney(selectedReservation?.remainingAmount) }}
-          </p>
-          <p class="mt-2 text-xs text-slate-300">
-            طريقة الدفع: {{ methodLabel }}
-          </p>
-        </div>
-
-        <p v-else class="text-sm text-emerald-300">
-          لا يوجد مبلغ متبقي. سيتم التسليم مباشرة.
-        </p>
-      </div>
+      <DeliverReservationConfirmContent
+        v-if="confirmVisible"
+        :reservation="selectedReservation"
+        :needs-remaining-payment="needsRemainingPayment"
+        :method-label="methodLabel"
+      />
 
       <template #footer>
         <div class="flex w-full justify-start gap-2">
@@ -240,9 +167,21 @@ import Button from "primevue/button";
 import Dialog from "primevue/dialog";
 import AppDataTable from "~/components/shared/app-data-table/index.vue";
 import SearchInput from "~/components/shared/search-input/index.vue";
-import PaymentFields from "~/components/shared/payment-fields/index.vue";
 import { reservationService } from "~/services/reservationService";
 import { useAppToast } from "~/composables/useAppToast";
+import {
+  PAYMENT_METHOD_LABELS,
+  PaymentMethod,
+  paymentMethodNeedsProof,
+} from "~/utils/paymentMethods";
+import { formatMoney } from "~/utils/format";
+
+const DeliverReservationDetailContent = defineAsyncComponent(() =>
+  import("~/components/dashboard/pages/reservations/deliver/manage/DeliverReservationDetailContent.vue"),
+);
+const DeliverReservationConfirmContent = defineAsyncComponent(() =>
+  import("~/components/dashboard/pages/reservations/deliver/manage/DeliverReservationConfirmContent.vue"),
+);
 
 const STATUS_META = {
   PENDING: { label: "قيد الانتظار", class: "bg-amber-500/20 text-amber-300" },
@@ -252,22 +191,16 @@ const STATUS_META = {
   CANCELLED: { label: "ملغي", class: "bg-red-500/20 text-red-300" },
 };
 
-const METHOD_LABELS = {
-  CASH: "كاش",
-  INSTAPAY: "انستا باي",
-  WALLET: "محفظة إلكترونية",
-};
-
 const { showError, showSuccess } = useAppToast();
 const loading = ref(false);
 const delivering = ref(false);
 const search = ref("");
-const paymentMethod = ref("CASH");
+const paymentMethod = ref(PaymentMethod.CASH);
 const proofFile = ref(null);
 const proofKey = ref("");
 const proofPreviewUrl = ref("");
 const proofRequiredError = ref(false);
-const paymentFieldsRef = ref(null);
+const deliverDetailContentRef = ref(null);
 const methodError = ref("");
 const dialogVisible = ref(false);
 const confirmVisible = ref(false);
@@ -275,12 +208,10 @@ const dialogError = ref("");
 const selectedReservation = ref(null);
 const reservations = ref([]);
 
-const formatMoney = (value) => `${Number(value || 0).toFixed(2)} ج.م`;
-
 const roundMoney = (value) => Math.round(Number(value || 0) * 100) / 100;
 
 const methodLabel = computed(
-  () => METHOD_LABELS[paymentMethod.value] || paymentMethod.value || "-",
+  () => PAYMENT_METHOD_LABELS[paymentMethod.value] || paymentMethod.value || "-",
 );
 
 const emptyMessage = computed(() =>
@@ -392,13 +323,13 @@ const normalizeReservation = (item) => {
 };
 
 const resetPaymentFields = () => {
-  paymentMethod.value = "CASH";
+  paymentMethod.value = PaymentMethod.CASH;
   proofFile.value = null;
   proofKey.value = "";
   proofPreviewUrl.value = "";
   proofRequiredError.value = false;
   methodError.value = "";
-  paymentFieldsRef.value?.reset?.();
+  deliverDetailContentRef.value?.resetPayment?.();
 };
 
 const openDeliverDialog = (item) => {
@@ -431,13 +362,12 @@ const validateRemainingPayment = () => {
     return false;
   }
 
-  if (paymentFieldsRef.value && !paymentFieldsRef.value.validate()) {
+  if (deliverDetailContentRef.value && !deliverDetailContentRef.value.validatePayment()) {
     proofRequiredError.value = true;
     return false;
   }
 
-  const needsProof =
-    paymentMethod.value === "WALLET" || paymentMethod.value === "INSTAPAY";
+  const needsProof = paymentMethodNeedsProof(paymentMethod.value);
   if (needsProof && !proofKey.value) {
     proofRequiredError.value = true;
     return false;
@@ -463,7 +393,7 @@ const loadReservations = async () => {
   loading.value = true;
 
   try {
-    const result = await reservationService.getReservations({ per_page: 200 });
+    const result = await reservationService.getReservations({ per_page: 20 });
     const list = result.data || [];
     reservations.value = list
       .map(normalizeReservation)
@@ -493,8 +423,7 @@ const deliverReservation = async () => {
     const payload = {};
 
     if (needsRemainingPayment.value) {
-      const needsProof =
-        paymentMethod.value === "WALLET" || paymentMethod.value === "INSTAPAY";
+      const needsProof = paymentMethodNeedsProof(paymentMethod.value);
 
       payload.method = paymentMethod.value;
       payload.proofReference = needsProof

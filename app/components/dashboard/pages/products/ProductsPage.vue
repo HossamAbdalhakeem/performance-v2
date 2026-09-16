@@ -74,6 +74,7 @@
     </Card>
 
     <ProductDrawer
+      v-if="drawerVisible"
       v-model:visible="drawerVisible"
       :product="editingProduct"
       :title="drawerTitle"
@@ -88,11 +89,15 @@ import Button from "primevue/button";
 import Select from "primevue/select";
 import SearchInput from "~/components/shared/search-input/index.vue";
 import ProductsTable from "~/components/dashboard/pages/products/ProductsTable.vue";
-import ProductDrawer from "~/components/dashboard/pages/products/ProductDrawer.vue";
 import { productService } from "~/services/productService";
 import { teacherService } from "~/services/teacherService";
 import { studyYearService } from "~/services/studyYearService";
 import { useAppToast } from "~/composables/useAppToast";
+import { formatMoney } from "~/utils/format";
+
+const ProductDrawer = defineAsyncComponent(() =>
+  import("~/components/dashboard/pages/products/ProductDrawer.vue"),
+);
 
 const { showError, showSuccess } = useAppToast();
 const loading = ref(true);
@@ -122,11 +127,6 @@ const typeOptions = [
 const drawerTitle = computed(() =>
   editingProduct.value?.id ? "تعديل المنتج" : "إضافة منتج جديد",
 );
-
-const formatMoney = (value) => {
-  const amount = Number(value || 0);
-  return `${amount.toFixed(2)} ج.م`;
-};
 
 const normalizeProduct = (product) => ({
   ...product,

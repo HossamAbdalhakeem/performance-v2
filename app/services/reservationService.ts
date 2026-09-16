@@ -1,22 +1,25 @@
 import {
   apiFetch,
   firstRow,
-  asList,
   asPaginated,
   type PaginatedResponse,
 } from "~/utils/apiFetch";
-
-const PAYMENT_METHODS = new Set(["CASH", "WALLET", "INSTAPAY"]);
+import {
+  PaymentMethod,
+  normalizePaymentMethod,
+} from "~/utils/paymentMethods";
 
 const reservationBody = (payload: Record<string, any>) => {
-  const method = String(payload.method || payload.payment_method || "CASH").toUpperCase();
+  const method = normalizePaymentMethod(
+    payload.method || payload.payment_method || PaymentMethod.CASH,
+  );
 
   const body: Record<string, any> = {
     studentId: payload.studentId ?? payload.student_id,
     productId: payload.productId ?? payload.product_id,
     quantity: Number(payload.quantity || 1),
     deposit: Number(payload.deposit ?? payload.paid_amount ?? payload.amount),
-    method: PAYMENT_METHODS.has(method) ? method : "CASH",
+    method,
   };
 
   const branchId = payload.branchId ?? payload.branch_id;
@@ -57,8 +60,7 @@ export const reservationService = {
 
     const methodRaw = payload.method ?? payload.payment_method;
     if (methodRaw != null && String(methodRaw).trim() !== "") {
-      const method = String(methodRaw).toUpperCase();
-      body.method = PAYMENT_METHODS.has(method) ? method : "CASH";
+      body.method = normalizePaymentMethod(methodRaw);
     }
 
     const proofReference =
@@ -93,10 +95,7 @@ export const reservationService = {
 
     const refundMethodRaw = payload.refundMethod ?? payload.refund_method;
     if (refundMethodRaw != null && String(refundMethodRaw).trim() !== "") {
-      const refundMethod = String(refundMethodRaw).toUpperCase();
-      body.refundMethod = PAYMENT_METHODS.has(refundMethod)
-        ? refundMethod
-        : "CASH";
+      body.refundMethod = normalizePaymentMethod(refundMethodRaw);
     }
 
     const proofReference =

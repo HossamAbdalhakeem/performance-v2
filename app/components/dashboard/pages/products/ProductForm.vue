@@ -1,7 +1,7 @@
 <template>
   <div class="space-y-4" dir="rtl">
     <Form
-      v-slot="{ errors: fieldErrors }"
+      v-slot="{ errors: fieldErrors, meta }"
       :key="formKey"
       :initial-values="initialValues"
       class="grid gap-4"
@@ -11,35 +11,49 @@
         <div class="flex flex-col gap-2 text-right">
           <label class="text-sm font-medium">نوع المنتج</label>
           <Select
-            v-bind="field"
-            v-model="form.type"
+            :model-value="form.type"
             :options="typeOptions"
             optionLabel="label"
             optionValue="value"
             placeholder="اختر النوع ▾"
             :class="{ 'p-invalid': errorMessage || fieldErrors.type }"
+            @update:model-value="
+              (value) => {
+                form.type = value;
+                field.onChange(value);
+              }
+            "
           />
           <ErrorMessage name="type" class="text-xs text-red-400" />
         </div>
       </Field>
 
       <Field
-        v-if="isBook"
-        v-slot="{ field, errorMessage }"
+        v-if="requiresStudyYear"
+        v-slot="{ errorMessage, handleChange }"
+        v-model="form.studyYearId"
         name="studyYearId"
         rules="required"
       >
         <div class="flex flex-col gap-2 text-right">
-          <label class="text-sm font-medium">السنة الدراسية</label>
+          <label class="text-sm font-medium">
+            السنة الدراسية
+            <span class="text-red-400">*</span>
+          </label>
           <Select
-            v-bind="field"
-            v-model="form.studyYearId"
+            :model-value="form.studyYearId || null"
             :options="studyYearOptions"
             optionLabel="label"
             optionValue="value"
             placeholder="اختر السنة الدراسية ▾"
             :loading="loadingLookups"
             :class="{ 'p-invalid': errorMessage || fieldErrors.studyYearId }"
+            @update:model-value="
+              (value) => {
+                form.studyYearId = value || '';
+                handleChange(value || '');
+              }
+            "
           />
           <ErrorMessage name="studyYearId" class="text-xs text-red-400" />
         </div>
@@ -190,11 +204,10 @@
 
       <div class="flex justify-end gap-2 pt-2">
         <Button type="button" label="إلغاء" severity="secondary" text @click="$emit('cancel')" />
-        <Button
-          type="submit"
+        <FormSubmitButton
           :label="isEdit ? 'تحديث المنتج' : 'حفظ المنتج'"
           :loading="saving"
-          severity="info"
+          :valid="meta.valid"
         />
       </div>
     </Form>
@@ -206,7 +219,12 @@
       class="w-full max-w-md"
       dir="rtl"
     >
-      <Form :initial-values="{ teacherName: '' }" class="space-y-4" @submit="submitTeacher">
+      <Form
+        v-slot="{ meta: teacherMeta }"
+        :initial-values="{ teacherName: '' }"
+        class="space-y-4"
+        @submit="submitTeacher"
+      >
         <Field v-slot="{ field, errorMessage }" name="teacherName" rules="required">
           <div class="flex flex-col gap-2 text-right">
             <label class="text-sm font-medium">اسم المدرس</label>
@@ -226,7 +244,11 @@
 
         <div class="flex justify-end gap-2">
           <Button type="button" label="إلغاء" severity="secondary" text @click="showTeacherDialog = false" />
-          <Button type="submit" label="حفظ المدرس" :loading="savingTeacher" severity="info" />
+          <FormSubmitButton
+            label="حفظ المدرس"
+            :loading="savingTeacher"
+            :valid="teacherMeta.valid"
+          />
         </div>
       </Form>
     </Dialog>
@@ -235,6 +257,7 @@
 
 <script setup>
 import Button from "primevue/button";
+import FormSubmitButton from "~/components/shared/form-submit-button/index.vue";
 import InputText from "primevue/inputtext";
 import Select from "primevue/select";
 import Dialog from "primevue/dialog";
@@ -285,6 +308,8 @@ const formKey = ref(0);
 
 const isEdit = computed(() => Boolean(props.product?.id));
 const isBook = computed(() => form.type === "BOOK");
+const isCard = computed(() => form.type === "CARD");
+const requiresStudyYear = computed(() => isBook.value || isCard.value);
 
 const profitPercentage = computed(() => {
   const purchase = Number(form.purchasePrice || 0);
@@ -329,7 +354,7 @@ watch(
 watch(
   () => form.type,
   (type) => {
-    if (type !== "BOOK") form.studyYearId = "";
+    if (type !== "BOOK" && type !== "CARD") form.studyYearId = "";
   },
 );
 
@@ -412,8 +437,9 @@ const buildPayload = () => {
       form.minStockQuantity == null ? null : Number(form.minStockQuantity),
   };
 
-  if (isBook.value) {
-    payload.studyYearId = form.studyYearId;
+  // CARD always requires study year on create/update; BOOK keeps it when set.
+  if (form.type === "CARD" || form.studyYearId) {
+    payload.studyYearId = form.studyYearId || null;
   } else if (isEdit.value) {
     payload.studyYearId = null;
   }
@@ -431,11 +457,20 @@ const submit = async () => {
   saving.value = true;
 
   try {
-    if (isBook.value && !form.studyYearId) {
+    if (form.type === "CARD" && !form.studyYearId) {
+      throw new Error("السنة الدراسية مطلوبة عند إنشاء كارت.");
+    }
+
+    if (form.type === "BOOK" && !form.studyYearId) {
       throw new Error("السنة الدراسية مطلوبة للكتب.");
     }
 
     const payload = buildPayload();
+
+    if (form.type === "CARD" && !payload.studyYearId) {
+      throw new Error("السنة الدراسية مطلوبة عند إنشاء كارت.");
+    }
+
     const result = isEdit.value
       ? await productService.updateProduct(props.product.id, payload)
       : await productService.createProduct(payload);

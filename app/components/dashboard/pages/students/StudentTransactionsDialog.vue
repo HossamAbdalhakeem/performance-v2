@@ -41,16 +41,13 @@
           />
         </div>
         <div class="flex flex-col gap-2 text-right">
-          <label class="text-sm font-medium text-slate-700">المنتج</label>
-          <Select
+          <ProductSelect
             v-model="filters.productId"
-            :options="productOptions"
-            option-label="label"
-            option-value="value"
+            source="catalog"
+            variant="simple"
+            label="المنتج"
             placeholder="كل المنتجات"
             show-clear
-            filter
-            class="w-full"
           />
         </div>
       </div>
@@ -96,10 +93,11 @@ import Dialog from "primevue/dialog";
 import Select from "primevue/select";
 import Tag from "primevue/tag";
 import AppDataTable from "~/components/shared/app-data-table/index.vue";
-import { productService } from "~/services/productService";
+import ProductSelect from "~/components/shared/product-select/index.vue";
 import { studentService } from "~/services/studentService";
 import { teacherService } from "~/services/teacherService";
 import { useAppToast } from "~/composables/useAppToast";
+import { formatMoney, formatDateTime } from "~/utils/format";
 
 const props = defineProps({
   visible: { type: Boolean, default: false },
@@ -113,7 +111,6 @@ const { showError } = useAppToast();
 const loading = ref(false);
 const rows = ref([]);
 const teacherOptions = ref([]);
-const productOptions = ref([]);
 
 const today = () => {
   const d = new Date();
@@ -138,18 +135,6 @@ const dialogTitle = computed(() =>
     ? `معاملات الطالب: ${props.student.name}`
     : "معاملات الطالب",
 );
-
-const formatMoney = (value) => `${Number(value || 0).toFixed(2)} ج.م`;
-
-const formatDateTime = (value) => {
-  if (!value) return "—";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "—";
-  return new Intl.DateTimeFormat("ar-EG", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(date);
-};
 
 const statusSeverity = (status, type) => {
   if (type === "SALE") return "success";
@@ -185,24 +170,15 @@ const buildParams = () => {
 
 const loadFilters = async () => {
   try {
-    const [teachers, products] = await Promise.all([
-      teacherService.getTeachers(),
-      productService.getProducts({ per_page: 200 }),
-    ]);
+    const teachers = await teacherService.getTeachers();
     const teacherList = Array.isArray(teachers) ? teachers : teachers?.data || [];
-    const productList = products.data || [];
 
     teacherOptions.value = teacherList.map((item) => ({
       label: item.name || item.id,
       value: item.id,
     }));
-    productOptions.value = productList.map((item) => ({
-      label: item.name || item.title || item.id,
-      value: item.id,
-    }));
   } catch (error) {
     teacherOptions.value = [];
-    productOptions.value = [];
   }
 };
 
@@ -216,7 +192,7 @@ const loadTransactions = async () => {
     );
     rows.value = (payload?.transactions || []).map((item) => ({
       ...item,
-      dateLabel: formatDateTime(item.date),
+      dateLabel: formatDateTime(item.date, { empty: "—" }),
       amountLabel: formatMoney(item.amount),
       teacherName: item.teacherName ? `أ. ${item.teacherName}` : "—",
       statusSeverity: statusSeverity(item.status, item.type),

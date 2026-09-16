@@ -2,17 +2,17 @@
   <div class="space-y-6">
     <Card>
       <template #title>
-        <div class="flex flex-wrap items-center justify-between gap-3">
-          <span class="text-lg font-bold text-slate-900">الطلاب</span>
-          <Button label="إضافة طالب" icon="pi pi-plus" severity="info" @click="openCreate" />
-        </div>
+        <span class="text-lg font-bold text-slate-900">الطلاب</span>
       </template>
       <template #content>
         <div class="mb-5">
-          <SearchInput
-            placeholder="اسم / هاتف"
-            wrapper-class="md:max-w-sm"
+          <StudentSearchField
+            mode="filter"
+            label="بحث"
+            placeholder="ابحث بالاسم أو رقم الهاتف"
+            wrapper-class="md:max-w-xl"
             @search="onSearch"
+            @created="handleCreated"
           />
         </div>
 
@@ -40,6 +40,7 @@
     </EntityDrawer>
 
     <StudentTransactionsDialog
+      v-if="transactionsVisible"
       v-model:visible="transactionsVisible"
       :student="transactionsStudent"
       @hide="transactionsStudent = null"
@@ -49,14 +50,18 @@
 
 <script setup>
 import Card from "primevue/card";
-import Button from "primevue/button";
 import EntityDrawer from "~/components/dashboard/EntityDrawer.vue";
-import SearchInput from "~/components/shared/search-input/index.vue";
+import StudentSearchField from "~/components/shared/student-search-field/index.vue";
 import StudentsTable from "~/components/dashboard/pages/students/StudentsTable.vue";
-import StudentForm from "~/components/dashboard/pages/students/StudentForm.vue";
-import StudentTransactionsDialog from "~/components/dashboard/pages/students/StudentTransactionsDialog.vue";
 import { studentService } from "~/services/studentService";
 import { useAppToast } from "~/composables/useAppToast";
+
+const StudentForm = defineAsyncComponent(() =>
+  import("~/components/dashboard/pages/students/StudentForm.vue"),
+);
+const StudentTransactionsDialog = defineAsyncComponent(() =>
+  import("~/components/dashboard/pages/students/StudentTransactionsDialog.vue"),
+);
 
 const { showError, showSuccess } = useAppToast();
 const loading = ref(true);
@@ -124,9 +129,10 @@ const onSearch = (value) => {
   loadData();
 };
 
-const openCreate = () => {
-  editingItem.value = null;
-  drawerVisible.value = true;
+const handleCreated = async () => {
+  showSuccess("تم إضافة الطالب بنجاح.");
+  resetPagination();
+  await loadData();
 };
 
 const openEdit = (item) => {

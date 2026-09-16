@@ -41,13 +41,21 @@
 
 <script setup>
 import PaymentMethods from "~/components/shared/payment-methods/index.vue";
-import ImageUpload from "~/components/shared/image-upload/index.vue";
 import { paymentService } from "~/services/paymentService";
+import {
+  PaymentMethod,
+  normalizePaymentMethod,
+  paymentMethodNeedsProof,
+} from "~/utils/paymentMethods";
+
+const ImageUpload = defineAsyncComponent(() =>
+  import("~/components/shared/image-upload/index.vue"),
+);
 
 defineOptions({ name: "PaymentFields" });
 
 const props = defineProps({
-  method: { type: String, default: "CASH" },
+  method: { type: String, default: PaymentMethod.CASH },
   image: { type: [Object, File, null], default: null },
   /**
    * Permanent storage object key (Payment.proofReference).
@@ -100,14 +108,10 @@ const uploading = ref(false);
 const imageKey = computed(() => props.imageDataUrl);
 
 const normalizedMethod = computed(() =>
-  String(props.method || "CASH").trim().toUpperCase(),
+  normalizePaymentMethod(props.method),
 );
 
-const isNonCash = computed(
-  () =>
-    normalizedMethod.value === "WALLET" ||
-    normalizedMethod.value === "INSTAPAY",
-);
+const isNonCash = computed(() => paymentMethodNeedsProof(normalizedMethod.value));
 
 const showImage = computed(() => {
   if (props.showImageWhen === "always") return true;
@@ -153,13 +157,11 @@ const clearImage = () => {
 };
 
 const onMethodChange = (value) => {
-  const method = String(value || "CASH").trim().toUpperCase();
+  const method = normalizePaymentMethod(value);
   emit("update:method", method);
 
   const keepsImage =
-    props.showImageWhen === "always" ||
-    method === "WALLET" ||
-    method === "INSTAPAY";
+    props.showImageWhen === "always" || paymentMethodNeedsProof(method);
 
   if (!keepsImage && (props.image || props.imageDataUrl)) {
     emit("update:image", null);

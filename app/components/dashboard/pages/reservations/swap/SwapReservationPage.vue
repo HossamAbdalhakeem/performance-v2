@@ -6,7 +6,7 @@
       </template>
       <template #content>
         <Form
-          v-slot="{ errors: fieldErrors }"
+          v-slot="{ errors: fieldErrors, meta }"
           :initial-values="initialValues"
           class="space-y-5"
           @submit="submitSwap"
@@ -61,7 +61,12 @@
           </div>
 
           <div class="flex justify-center">
-            <Button type="submit" label="تأكيد تبديل الحجز" :loading="saving" severity="info" class="min-w-[180px]" />
+            <FormSubmitButton
+              label="تأكيد تبديل الحجز"
+              :loading="saving"
+              :valid="meta.valid"
+              button-class="min-w-[180px]"
+            />
           </div>
         </Form>
       </template>
@@ -71,7 +76,7 @@
 
 <script setup>
 import Card from "primevue/card";
-import Button from "primevue/button";
+import FormSubmitButton from "~/components/shared/form-submit-button/index.vue";
 import Select from "primevue/select";
 import SearchInput from "~/components/shared/search-input/index.vue";
 import Skeleton from "primevue/skeleton";
@@ -105,7 +110,7 @@ const selectedReservation = computed(() =>
 const loadOptions = async () => {
   try {
     const [reservations, teachers] = await Promise.all([
-      reservationService.getReservations({ per_page: 200 }),
+      reservationService.getReservations({ per_page: 20 }),
       teacherService.getTeachers(),
     ]);
 

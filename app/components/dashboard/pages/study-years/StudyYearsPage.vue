@@ -40,9 +40,12 @@ import Button from "primevue/button";
 import EntityDrawer from "~/components/dashboard/EntityDrawer.vue";
 import SearchInput from "~/components/shared/search-input/index.vue";
 import StudyYearsTable from "~/components/dashboard/pages/study-years/StudyYearsTable.vue";
-import StudyYearForm from "~/components/dashboard/pages/study-years/StudyYearForm.vue";
 import { studyYearService } from "~/services/studyYearService";
 import { useAppToast } from "~/composables/useAppToast";
+
+const StudyYearForm = defineAsyncComponent(() =>
+  import("~/components/dashboard/pages/study-years/StudyYearForm.vue"),
+);
 
 const { showError, showSuccess } = useAppToast();
 const loading = ref(true);

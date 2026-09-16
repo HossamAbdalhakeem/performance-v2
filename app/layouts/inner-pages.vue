@@ -37,11 +37,14 @@
 <script setup>
 import { ref, computed } from "vue";
 import { useRouter } from "vue-router";
-
-// import SideMenu from "~/components/layout/side-menu/index.vue";
-import Navbar from "~/components/layout/navbar/index.vue";
-import Footer from "~/components/layout/footer/index.vue";
 import { useAuthStore } from "~/store/auth.js";
+
+const Navbar = defineAsyncComponent(() =>
+  import("~/components/layout/navbar/index.vue"),
+);
+const Footer = defineAsyncComponent(() =>
+  import("~/components/layout/footer/index.vue"),
+);
 
 const authStore = useAuthStore();
 const isLoggedIn = computed(() => authStore.isLoggedIn);

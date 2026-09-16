@@ -1,11 +1,5 @@
 import { apiFetch, firstRow, asList } from "~/utils/apiFetch";
-
-const PAYMENT_METHODS = new Set(["CASH", "WALLET", "INSTAPAY"]);
-
-const normalizeMethod = (value?: string) => {
-  const method = String(value || "CASH").toUpperCase();
-  return PAYMENT_METHODS.has(method) ? method : "CASH";
-};
+import { normalizePaymentMethod } from "~/utils/paymentMethods";
 
 export const exchangeService = {
   async getExchanges() {
@@ -25,13 +19,13 @@ export const exchangeService = {
     };
 
     if (payload.paymentMethod || payload.payment_method) {
-      body.paymentMethod = normalizeMethod(
+      body.paymentMethod = normalizePaymentMethod(
         payload.paymentMethod ?? payload.payment_method,
       );
     }
 
     if (payload.refundMethod || payload.refund_method) {
-      body.refundMethod = normalizeMethod(
+      body.refundMethod = normalizePaymentMethod(
         payload.refundMethod ?? payload.refund_method,
       );
     }

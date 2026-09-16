@@ -135,13 +135,13 @@
                 {{ isCustomerService ? "مدفوعات حجوزاتك" : "صافي المدفوعات" }}
               </p>
               <p class="mt-2 text-3xl font-extrabold tracking-tight text-white">
-                {{ formatMoney(summary.paymentsTotal) }}
+                {{ formatMoney(summary.paymentsTotal, "rtl") }}
               </p>
               <p
                 v-if="Number(summary.refundsTotal) > 0"
                 class="mt-2 text-xs text-rose-300"
               >
-                بعد خصم الاسترداد {{ formatMoney(summary.refundsTotal) }}
+                بعد خصم الاسترداد {{ formatMoney(summary.refundsTotal, "rtl") }}
               </p>
             </div>
             <span
@@ -154,7 +154,7 @@
             <div class="rounded-xl border border-white/5 bg-black/20 px-3 py-2">
               <p class="text-xs text-slate-400">المحصل</p>
               <p class="mt-1 font-bold text-sky-300">
-                {{ formatMoney(summary.paymentsCollected ?? summary.paymentsTotal) }}
+                {{ formatMoney(summary.paymentsCollected ?? summary.paymentsTotal, "rtl") }}
               </p>
             </div>
             <div
@@ -300,7 +300,7 @@
             <div class="mt-1 flex items-center justify-between gap-2 text-sm">
               <span class="text-slate-400">مدفوع</span>
               <span class="font-bold text-emerald-300">
-                {{ formatMoney(branch.paidTotal) }}
+                {{ formatMoney(branch.paidTotal, "rtl") }}
               </span>
             </div>
           </div>
@@ -371,7 +371,7 @@
       @hide="closeDetail"
     >
       <AppDataTable
-        v-if="activeDetail"
+        v-if="detailVisible && activeDetail"
         :value="activeDetail.rows"
         :columns="activeDetail.columns"
         :loading="detailLoading"
@@ -397,11 +397,15 @@ import { Doughnut, Bar } from "vue-chartjs";
 import Button from "primevue/button";
 import Dialog from "primevue/dialog";
 import Skeleton from "primevue/skeleton";
-import AppDataTable from "~/components/shared/app-data-table/index.vue";
 import PaymentMethodsReport from "~/components/shared/payment-methods-report/index.vue";
 import { reportService } from "~/services/reportService";
 import { useAppToast } from "~/composables/useAppToast";
 import { useAuthStore } from "~/store/auth";
+import { formatMoney, formatDateTime } from "~/utils/format";
+
+const AppDataTable = defineAsyncComponent(() =>
+  import("~/components/shared/app-data-table/index.vue"),
+);
 
 ChartJS.register(
   ArcElement,
@@ -497,19 +501,6 @@ const branchBreakdown = computed(() =>
   Array.isArray(summary.value.byBranch) ? summary.value.byBranch : [],
 );
 
-const formatMoney = (value) =>
-  `\u2066${Number(value || 0).toFixed(2)} ج.م\u2069`;
-
-const formatTime = (value) => {
-  if (!value) return "-";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "-";
-  return new Intl.DateTimeFormat("ar-EG", {
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(date);
-};
-
 const dateRangeParams = () => {
   const base = selectedDate.value || todayInputValue();
   const from = new Date(`${base}T00:00:00`);
@@ -521,7 +512,7 @@ const dateRangeParams = () => {
 };
 
 const mapMovement = (item) => ({
-  time: formatTime(item.createdAt),
+  time: formatDateTime(item.createdAt, "time"),
   product: item.product?.name || "-",
   type: MOVEMENT_LABELS[item.movementType] || item.movementType,
   qty:
@@ -594,12 +585,12 @@ const allMovementRows = computed(() =>
 
 const saleRows = computed(() =>
   (detailCache.value.sales || []).map((sale) => ({
-    time: formatTime(sale.createdAt),
+    time: formatDateTime(sale.createdAt, "time"),
     student: sale.student?.name || "-",
     products: (sale.items || [])
       .map((item) => `${item.product?.name || "-"} × ${item.quantity}`)
       .join("، "),
-    amount: formatMoney(sale.totalAmount),
+    amount: formatMoney(sale.totalAmount, "rtl"),
     method: (sale.payments || [])
       .map((p) => p.method)
       .filter(Boolean)
@@ -610,20 +601,20 @@ const saleRows = computed(() =>
 
 const reservationRows = computed(() =>
   (detailCache.value.reservations || []).map((item) => ({
-    time: formatTime(item.createdAt),
+    time: formatDateTime(item.createdAt, "time"),
     number: item.reservationNumber || "-",
     student: item.student?.name || "-",
     product: item.product?.name || "-",
     branch: item.branch?.name || "-",
     status: STATUS_LABELS[item.status] || item.status,
-    paid: formatMoney(item.paidAmount),
+    paid: formatMoney(item.paidAmount, "rtl"),
     by: item.createdBy?.fullName || "-",
   })),
 );
 
 const deliveredRows = computed(() =>
   (detailCache.value.delivered || []).map((item) => ({
-    time: formatTime(item.updatedAt),
+    time: formatDateTime(item.updatedAt, "time"),
     number: item.reservationNumber || "-",
     student: item.student?.name || "-",
     product: item.product?.name || "-",
@@ -639,13 +630,13 @@ const cancelledRows = computed(() =>
       0,
     );
     return {
-      time: formatTime(item.updatedAt),
+      time: formatDateTime(item.updatedAt, "time"),
       number: item.reservationNumber || "-",
       student: item.student?.name || "-",
       product: item.product?.name || "-",
       branch: item.branch?.name || "-",
-      paid: formatMoney(item.paidAmount),
-      refund: formatMoney(refundAmount || item.paidAmount),
+      paid: formatMoney(item.paidAmount, "rtl"),
+      refund: formatMoney(refundAmount || item.paidAmount, "rtl"),
       by: item.createdBy?.fullName || "-",
     };
   }),
