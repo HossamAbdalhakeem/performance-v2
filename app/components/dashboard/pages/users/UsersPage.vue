@@ -13,7 +13,11 @@
             <label class="text-sm font-medium text-slate-700">بحث</label>
             <IconField>
               <InputIcon class="pi pi-search" />
-              <InputText v-model="filters.search" class="w-full" placeholder="اسم / بريد" />
+              <InputText
+                v-model="filters.searchInput"
+                class="w-full"
+                placeholder="اسم / بريد"
+              />
             </IconField>
           </div>
           <div class="flex flex-col gap-2 text-right">
@@ -26,11 +30,12 @@
               placeholder="كل الأدوار"
               showClear
               class="w-full"
+              @update:modelValue="loadData"
             />
           </div>
         </div>
 
-        <UsersTable :users="filteredUsers" :loading="loading" @edit="openEdit" />
+        <UsersTable :users="users" :loading="loading" @edit="openEdit" />
       </template>
     </Card>
 
@@ -57,6 +62,7 @@ import UsersTable from "~/components/dashboard/pages/users/UsersTable.vue";
 import UserForm from "~/components/dashboard/pages/users/UserForm.vue";
 import { userService } from "~/services/userService";
 import { branchService } from "~/services/branchService";
+import { useThrottledCallback } from "~/composables/useThrottledCallback";
 import { useAppToast } from "~/composables/useAppToast";
 
 const { showError, showSuccess } = useAppToast();
@@ -71,7 +77,11 @@ const loading = ref(true);
 const drawerVisible = ref(false);
 const editingItem = ref(null);
 const users = ref([]);
-const filters = reactive({ search: "", role: null });
+const filters = reactive({
+  searchInput: "",
+  search: "",
+  role: null,
+});
 const roleOptions = [
   { label: "مدير", value: "ADMIN" },
   { label: "خدمة العملاء", value: "CUSTOMER_SERVICE" },
@@ -92,23 +102,18 @@ const normalizeUser = (user) => ({
   statusSeverity: user.status === "INACTIVE" ? "danger" : "success",
 });
 
-const filteredUsers = computed(() => {
-  const q = filters.search.trim().toLowerCase();
-  return users.value.filter((user) => {
-    if (filters.role && user.role !== filters.role) return false;
-    if (!q) return true;
-    return (
-      String(user.fullName || "").toLowerCase().includes(q) ||
-      String(user.email || "").toLowerCase().includes(q)
-    );
-  });
-});
+const buildQuery = () => {
+  const params = {};
+  if (filters.search?.trim()) params.search = filters.search.trim();
+  if (filters.role) params.role = filters.role;
+  return params;
+};
 
 const loadData = async () => {
   loading.value = true;
   try {
     const [items, branches] = await Promise.all([
-      userService.getUsers(),
+      userService.getUsers(buildQuery()),
       branchService.getBranches(),
     ]);
     const list = Array.isArray(items) ? items : items?.data || [];
@@ -121,7 +126,7 @@ const loadData = async () => {
       const normalized = normalizeUser(user);
       return {
         ...normalized,
-        branchName: branchNameById[user.branchId] || "-",
+        branchName: branchNameById[user.branchId] || normalized.branchName || "-",
       };
     });
   } catch (error) {
@@ -131,6 +136,18 @@ const loadData = async () => {
     loading.value = false;
   }
 };
+
+const { run: runThrottledSearch } = useThrottledCallback(() => {
+  filters.search = filters.searchInput;
+  loadData();
+}, 400);
+
+watch(
+  () => filters.searchInput,
+  () => {
+    runThrottledSearch();
+  },
+);
 
 const openCreate = () => {
   editingItem.value = null;

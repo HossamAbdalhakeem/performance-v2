@@ -13,13 +13,17 @@
             <label class="text-sm font-medium text-slate-700">بحث</label>
             <IconField>
               <InputIcon class="pi pi-search" />
-              <InputText v-model="searchInput" class="w-full" placeholder="اسم / هاتف" />
+              <InputText
+                v-model="filters.searchInput"
+                class="w-full"
+                placeholder="اسم / هاتف"
+              />
             </IconField>
           </div>
         </div>
 
         <StudentsTable
-          :students="filteredStudents"
+          :students="students"
           :loading="loading"
           @edit="openEdit"
           @deactivate="handleDeactivate"
@@ -48,6 +52,7 @@ import EntityDrawer from "~/components/dashboard/EntityDrawer.vue";
 import StudentsTable from "~/components/dashboard/pages/students/StudentsTable.vue";
 import StudentForm from "~/components/dashboard/pages/students/StudentForm.vue";
 import { studentService } from "~/services/studentService";
+import { useThrottledCallback } from "~/composables/useThrottledCallback";
 import { useAppToast } from "~/composables/useAppToast";
 
 const { showError, showSuccess } = useAppToast();
@@ -55,7 +60,10 @@ const loading = ref(true);
 const drawerVisible = ref(false);
 const editingItem = ref(null);
 const students = ref([]);
-const searchInput = ref("");
+const filters = reactive({
+  searchInput: "",
+  search: "",
+});
 const drawerTitle = computed(() =>
   editingItem.value?.id ? "تعديل الطالب" : "إضافة طالب",
 );
@@ -68,20 +76,10 @@ const normalizeStudent = (student) => ({
   statusSeverity: student.status === "INACTIVE" ? "danger" : "success",
 });
 
-const filteredStudents = computed(() => {
-  const q = searchInput.value.trim().toLowerCase();
-  if (!q) return students.value;
-  return students.value.filter(
-    (item) =>
-      String(item.name || "").toLowerCase().includes(q) ||
-      String(item.phone || "").toLowerCase().includes(q),
-  );
-});
-
 const loadData = async () => {
   loading.value = true;
   try {
-    const list = await studentService.getStudents();
+    const list = await studentService.searchStudents(filters.search);
     students.value = list.map(normalizeStudent);
   } catch (error) {
     showError(error?.message || "تعذر تحميل الطلاب.");
@@ -90,6 +88,18 @@ const loadData = async () => {
     loading.value = false;
   }
 };
+
+const { run: runThrottledSearch } = useThrottledCallback(() => {
+  filters.search = filters.searchInput;
+  loadData();
+}, 400);
+
+watch(
+  () => filters.searchInput,
+  () => {
+    runThrottledSearch();
+  },
+);
 
 const openCreate = () => {
   editingItem.value = null;
