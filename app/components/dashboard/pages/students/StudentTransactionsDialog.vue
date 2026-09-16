@@ -4,57 +4,38 @@
     modal
     dir="rtl"
     :header="dialogTitle"
-    :style="{ width: '960px', maxWidth: '96vw' }"
+    :style="{ width: '1280px', maxWidth: '98vw' }"
     :pt="{ header: { class: 'text-right' }, content: { class: 'text-right' } }"
     @update:visible="$emit('update:visible', $event)"
     @hide="$emit('hide')"
   >
     <div class="flex flex-col gap-4">
-      <div class="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-        <div class="flex flex-col gap-2 text-right">
-          <label class="text-sm font-medium text-slate-700">من تاريخ</label>
-          <input
-            v-model="filters.from"
-            type="date"
-            class="rounded-lg border border-slate-200 px-3 py-2 text-sm"
-          />
-        </div>
-        <div class="flex flex-col gap-2 text-right">
-          <label class="text-sm font-medium text-slate-700">إلى تاريخ</label>
-          <input
-            v-model="filters.to"
-            type="date"
-            class="rounded-lg border border-slate-200 px-3 py-2 text-sm"
-          />
-        </div>
-        <div class="flex flex-col gap-2 text-right">
-          <AppGlobalSelectTeacher
-            v-model="filters.teacherId"
-            label="المدرس"
-            placeholder="كل المدرسين"
-            show-clear
-            :exclude-inactive="false"
-          />
-        </div>
-        <div class="flex flex-col gap-2 text-right">
-          <ProductSelect
-            v-model="filters.productId"
-            source="catalog"
-            variant="simple"
-            label="المنتج"
-            placeholder="كل المنتجات"
-            show-clear
-          />
-        </div>
-      </div>
+      <div class="grid gap-3 md:grid-cols-3">
+        <DateRangePicker
+          v-model:from="filters.from"
+          v-model:to="filters.to"
+          label="من / إلى"
+          placeholder="اختر الفترة"
+          @change="onFiltersChange"
+        />
 
-      <div class="flex justify-end">
-        <Button
-          label="تطبيق الفلاتر"
-          icon="pi pi-filter"
-          severity="secondary"
-          :loading="loading"
-          @click="applyFilters"
+        <AppGlobalSelectTeacher
+          v-model="filters.teacherId"
+          label="المدرس"
+          placeholder="كل المدرسين"
+          show-clear
+          :exclude-inactive="false"
+          @update:model-value="onFiltersChange"
+        />
+
+        <ProductSelect
+          v-model="filters.productId"
+          source="catalog"
+          variant="simple"
+          label="المنتج"
+          placeholder="كل المنتجات"
+          show-clear
+          @update:model-value="onFiltersChange"
         />
       </div>
 
@@ -102,10 +83,10 @@
 </template>
 
 <script setup>
-import Button from "primevue/button";
 import Dialog from "primevue/dialog";
 import Tag from "primevue/tag";
 import AppDataTable from "~/components/shared/app-data-table/index.vue";
+import DateRangePicker from "~/components/shared/date-range-picker/index.vue";
 import PaymentProofThumb from "~/components/shared/payment-proof-thumb/index.vue";
 import ProductSelect from "~/components/shared/product-select/index.vue";
 import AppGlobalSelectTeacher from "~/components/shared/app-global-select-teacher/index.vue";
@@ -295,7 +276,7 @@ const resetPagination = () => {
   pagination.first = 0;
 };
 
-const applyFilters = () => {
+const onFiltersChange = () => {
   resetPagination();
   loadTransactions();
 };
