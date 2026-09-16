@@ -13,7 +13,11 @@
             <label class="text-sm font-medium text-slate-700">بحث</label>
             <IconField>
               <InputIcon class="pi pi-search" />
-              <InputText v-model="filters.search" class="w-full" placeholder="تصنيف / وصف / فرع" />
+              <InputText
+                v-model="filters.searchInput"
+                class="w-full"
+                placeholder="تصنيف / وصف / فرع"
+              />
             </IconField>
           </div>
           <div class="flex flex-col gap-2 text-right">
@@ -27,11 +31,12 @@
               showClear
               filter
               class="w-full"
+              @update:modelValue="loadData"
             />
           </div>
         </div>
 
-        <ExpensesTable :expenses="filteredExpenses" :loading="loading" @edit="openEdit" />
+        <ExpensesTable :expenses="expenses" :loading="loading" @edit="openEdit" />
       </template>
     </Card>
 
@@ -58,6 +63,7 @@ import ExpensesTable from "~/components/dashboard/pages/expenses/ExpensesTable.v
 import ExpenseForm from "~/components/dashboard/pages/expenses/ExpenseForm.vue";
 import { expenseService } from "~/services/expenseService";
 import { branchService } from "~/services/branchService";
+import { useThrottledCallback } from "~/composables/useThrottledCallback";
 import { useAppToast } from "~/composables/useAppToast";
 
 const { showError, showSuccess } = useAppToast();
@@ -66,7 +72,11 @@ const drawerVisible = ref(false);
 const editingItem = ref(null);
 const expenses = ref([]);
 const branchOptions = ref([]);
-const filters = reactive({ search: "", branchId: null });
+const filters = reactive({
+  searchInput: "",
+  search: "",
+  branchId: null,
+});
 const drawerTitle = computed(() =>
   editingItem.value?.id ? "تعديل المصروف" : "إضافة مصروف",
 );
@@ -89,32 +99,27 @@ const normalizeExpense = (expense) => ({
   description: expense.description || "-",
 });
 
-const filteredExpenses = computed(() => {
-  const q = filters.search.trim().toLowerCase();
-  return expenses.value.filter((item) => {
-    if (filters.branchId && item.branchId !== filters.branchId) return false;
-    if (!q) return true;
-    return (
-      String(item.categoryName || "").toLowerCase().includes(q) ||
-      String(item.branchName || "").toLowerCase().includes(q) ||
-      String(item.description || "").toLowerCase().includes(q)
-    );
-  });
-});
+const buildQuery = () => {
+  const params = {};
+  if (filters.search?.trim()) params.search = filters.search.trim();
+  if (filters.branchId) params.branchId = filters.branchId;
+  return params;
+};
+
+const loadBranches = async () => {
+  const branches = await branchService.getBranches();
+  const branchList = Array.isArray(branches) ? branches : branches?.data || [];
+  branchOptions.value = branchList.map((branch) => ({
+    label: branch.name,
+    value: branch.id,
+  }));
+};
 
 const loadData = async () => {
   loading.value = true;
   try {
-    const [items, branches] = await Promise.all([
-      expenseService.getExpenses(),
-      branchService.getBranches(),
-    ]);
-    const branchList = Array.isArray(branches) ? branches : branches?.data || [];
+    const items = await expenseService.getExpenses(buildQuery());
     expenses.value = (items || []).map(normalizeExpense);
-    branchOptions.value = branchList.map((branch) => ({
-      label: branch.name,
-      value: branch.id,
-    }));
   } catch (error) {
     showError(error?.message || "تعذر تحميل المصروفات.");
     expenses.value = [];
@@ -122,6 +127,18 @@ const loadData = async () => {
     loading.value = false;
   }
 };
+
+const { run: runThrottledSearch } = useThrottledCallback(() => {
+  filters.search = filters.searchInput;
+  loadData();
+}, 400);
+
+watch(
+  () => filters.searchInput,
+  () => {
+    runThrottledSearch();
+  },
+);
 
 const openCreate = () => {
   editingItem.value = null;
@@ -144,5 +161,12 @@ watch(drawerVisible, (visible) => {
   if (!visible) editingItem.value = null;
 });
 
-onMounted(loadData);
+onMounted(async () => {
+  try {
+    await loadBranches();
+  } catch (error) {
+    showError(error?.message || "تعذر تحميل الفروع.");
+  }
+  await loadData();
+});
 </script>
