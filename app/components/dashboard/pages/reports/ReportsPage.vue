@@ -383,20 +383,17 @@ onMounted(async () => {
 
 <style scoped>
 .reports-filters {
-  flex: 0 1 auto;
+  /* flex: 0 1 auto; */
+  justify-content: flex-end;
+  width: 75%;
 }
 
 .reports-filters :deep(.reports-filter-select.p-select),
 .reports-filters :deep(.p-select.reports-filter-select) {
-  width: 10rem !important;
-  min-width: 10rem;
-  max-width: 10rem;
+  width: 30% !important;
+  min-width: 30%;
+  max-width: 30%;
 }
 
-.reports-filters :deep(.reports-filter-select--branch.p-select),
-.reports-filters :deep(.p-select.reports-filter-select--branch) {
-  width: 11rem !important;
-  min-width: 11rem;
-  max-width: 11rem;
-}
+
 </style>
