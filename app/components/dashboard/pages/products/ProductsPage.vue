@@ -17,20 +17,13 @@
         <div class="mb-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
           <SearchInput placeholder="اسم المنتج / مدرس / نوع / سنة" @search="onSearch" />
 
-          <div class="flex flex-col gap-2 text-right">
-            <label class="text-sm font-medium text-slate-700">المدرس</label>
-            <Select
-              v-model="filters.teacherId"
-              :options="teacherOptions"
-              optionLabel="label"
-              optionValue="value"
-              placeholder="كل المدرسين"
-              showClear
-              filter
-              class="w-full"
-              @update:modelValue="reloadProducts"
-            />
-          </div>
+          <AppGlobalSelectTeacher
+            v-model="filters.teacherId"
+            label="المدرس"
+            placeholder="كل المدرسين"
+            show-clear
+            @change="reloadProducts"
+          />
 
           <div class="flex flex-col gap-2 text-right">
             <label class="text-sm font-medium text-slate-700">النوع</label>
@@ -46,19 +39,13 @@
             />
           </div>
 
-          <div class="flex flex-col gap-2 text-right">
-            <label class="text-sm font-medium text-slate-700">السنة الدراسية</label>
-            <Select
-              v-model="filters.studyYearId"
-              :options="studyYearOptions"
-              optionLabel="label"
-              optionValue="value"
-              placeholder="كل السنوات"
-              showClear
-              class="w-full"
-              @update:modelValue="reloadProducts"
-            />
-          </div>
+          <AppGlobalSelectStudyYear
+            v-model="filters.studyYearId"
+            label="السنة الدراسية"
+            placeholder="كل السنوات"
+            show-clear
+            @change="reloadProducts"
+          />
         </div>
 
         <ProductsTable
@@ -88,10 +75,10 @@ import Card from "primevue/card";
 import Button from "primevue/button";
 import Select from "primevue/select";
 import SearchInput from "~/components/shared/search-input/index.vue";
+import AppGlobalSelectTeacher from "~/components/shared/app-global-select-teacher/index.vue";
+import AppGlobalSelectStudyYear from "~/components/shared/app-global-select-study-year/index.vue";
 import ProductsTable from "~/components/dashboard/pages/products/ProductsTable.vue";
 import { productService } from "~/services/productService";
-import { teacherService } from "~/services/teacherService";
-import { studyYearService } from "~/services/studyYearService";
 import { useAppToast } from "~/composables/useAppToast";
 import { formatMoney } from "~/utils/format";
 
@@ -104,8 +91,6 @@ const loading = ref(true);
 const drawerVisible = ref(false);
 const editingProduct = ref(null);
 const products = ref([]);
-const teacherOptions = ref([]);
-const studyYearOptions = ref([]);
 const filters = reactive({
   search: "",
   teacherId: null,
@@ -182,32 +167,6 @@ const reloadProducts = () => {
   loadProducts();
 };
 
-const loadFilterOptions = async () => {
-  try {
-    const [teachers, years] = await Promise.all([
-      teacherService.getTeachers(),
-      studyYearService.getStudyYears(),
-    ]);
-
-    const teacherList = Array.isArray(teachers) ? teachers : teachers?.data || [];
-    const yearList = Array.isArray(years) ? years : years?.data || [];
-
-    teacherOptions.value = teacherList
-      .filter((teacher) => teacher.status !== "INACTIVE")
-      .map((teacher) => ({
-        label: teacher.name,
-        value: teacher.id,
-      }));
-
-    studyYearOptions.value = yearList.map((year) => ({
-      label: year.name,
-      value: year.id,
-    }));
-  } catch (error) {
-    console.error("Failed to load product filters", error);
-  }
-};
-
 const onSearch = (value) => {
   filters.search = value;
   resetPagination();
@@ -233,8 +192,5 @@ const handleSaved = async () => {
   await loadProducts();
 };
 
-onMounted(async () => {
-  await loadFilterOptions();
-  await loadProducts();
-});
+onMounted(loadProducts);
 </script>

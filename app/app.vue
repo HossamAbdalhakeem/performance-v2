@@ -15,11 +15,15 @@ const authStore = useAuthStore();
 
 const layoutName = computed(() => {
   // Only switch to login layout on the login route (avoids remount mid-logout)
-  if (route.path === "/login" ) return "login";
+  if (route.path === "/login") return "login";
 
-  const role = authStore.user?.role || "admin";
-  if (role === "branch") return "branch";
-  if (role === "social") return "social";
+  const role = String(authStore.user?.role || "admin").toLowerCase();
+  if (role === "branch" || role === "library_employee" || role === "branch_employee") {
+    return "branch";
+  }
+  if (role === "social" || role === "customer_service" || role === "customer-service") {
+    return "social";
+  }
   return "admin";
 });
 </script>

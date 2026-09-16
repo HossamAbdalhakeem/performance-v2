@@ -26,22 +26,19 @@
       </div>
     </Field>
 
-    <Field v-slot="{ errorMessage }" name="studyYearId" rules="required">
-      <div class="flex flex-col gap-2 text-right">
-        <label class="text-sm font-medium text-slate-700">السنة الدراسية</label>
-        <Select
-          v-model="form.studyYearId"
-          :options="studyYearOptions"
-          option-label="label"
-          option-value="value"
-          placeholder="اختر السنة الدراسية"
-          filter
-          :loading="loadingYears"
-          class="w-full"
-          :class="{ 'p-invalid': errorMessage || fieldErrors.studyYearId }"
-        />
-        <ErrorMessage name="studyYearId" class="text-xs text-red-500" />
-      </div>
+    <Field
+      v-slot="{ errorMessage }"
+      v-model="form.studyYearId"
+      name="studyYearId"
+      rules="required"
+    >
+      <AppGlobalSelectStudyYear
+        v-model="form.studyYearId"
+        label="السنة الدراسية"
+        placeholder="اختر السنة الدراسية"
+        :invalid="!!(errorMessage || fieldErrors.studyYearId)"
+      />
+      <ErrorMessage name="studyYearId" class="text-xs text-red-500" />
     </Field>
 
     <div class="flex justify-end gap-2">
@@ -58,11 +55,10 @@
 <script setup>
 import Button from "primevue/button";
 import FormSubmitButton from "~/components/shared/form-submit-button/index.vue";
+import AppGlobalSelectStudyYear from "~/components/shared/app-global-select-study-year/index.vue";
 import InputText from "primevue/inputtext";
-import Select from "primevue/select";
 import { Form, Field, ErrorMessage } from "vee-validate";
 import { studentService } from "~/services/studentService";
-import { studyYearService } from "~/services/studyYearService";
 import { useAppToast } from "~/composables/useAppToast";
 
 const { showError } = useAppToast();
@@ -74,9 +70,7 @@ const props = defineProps({
 const emit = defineEmits(["saved", "cancel"]);
 
 const saving = ref(false);
-const loadingYears = ref(false);
 const formKey = ref(0);
-const studyYearOptions = ref([]);
 const isEdit = computed(() => Boolean(props.student?.id));
 
 const form = reactive({
@@ -91,23 +85,6 @@ const initialValues = computed(() => ({
   studyYearId:
     props.student?.studyYearId || props.student?.studyYear?.id || null,
 }));
-
-const loadStudyYears = async () => {
-  loadingYears.value = true;
-  try {
-    const items = await studyYearService.getStudyYears();
-    const list = Array.isArray(items) ? items : items?.data || [];
-    studyYearOptions.value = list.map((year) => ({
-      label: year.name,
-      value: year.id,
-    }));
-  } catch (error) {
-    studyYearOptions.value = [];
-    showError(error?.message || "تعذر تحميل السنوات الدراسية.");
-  } finally {
-    loadingYears.value = false;
-  }
-};
 
 watch(
   () => props.student,
@@ -143,6 +120,4 @@ const submit = async () => {
     saving.value = false;
   }
 };
-
-onMounted(loadStudyYears);
 </script>

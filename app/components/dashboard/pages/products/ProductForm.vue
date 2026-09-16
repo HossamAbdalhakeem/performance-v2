@@ -35,51 +35,43 @@
         name="studyYearId"
         rules="required"
       >
-        <div class="flex flex-col gap-2 text-right">
-          <label class="text-sm font-medium">
-            السنة الدراسية
-            <span class="text-red-400">*</span>
-          </label>
-          <Select
-            :model-value="form.studyYearId || null"
-            :options="studyYearOptions"
-            optionLabel="label"
-            optionValue="value"
-            placeholder="اختر السنة الدراسية ▾"
-            :loading="loadingLookups"
-            :class="{ 'p-invalid': errorMessage || fieldErrors.studyYearId }"
-            @update:model-value="
-              (value) => {
-                form.studyYearId = value || '';
-                handleChange(value || '');
-              }
-            "
-          />
-          <ErrorMessage name="studyYearId" class="text-xs text-red-400" />
-        </div>
+        <AppGlobalSelectStudyYear
+          :model-value="form.studyYearId || null"
+          label="السنة الدراسية"
+          placeholder="اختر السنة الدراسية ▾"
+          :invalid="!!(errorMessage || fieldErrors.studyYearId)"
+          @update:model-value="
+            (value) => {
+              form.studyYearId = value || '';
+              handleChange(value || '');
+            }
+          "
+        />
+        <ErrorMessage name="studyYearId" class="text-xs text-red-400" />
       </Field>
 
-      <Field v-slot="{ field, errorMessage }" name="teacherId" rules="required">
+      <Field
+        v-slot="{ errorMessage }"
+        v-model="form.teacherId"
+        name="teacherId"
+        rules="required"
+      >
         <div class="flex flex-col gap-2 text-right">
-          <label class="text-sm font-medium">اختر المدرس</label>
-          <div class="flex gap-2">
-            <Select
-              v-bind="field"
+          <div class="flex items-end gap-2">
+            <AppGlobalSelectTeacher
+              ref="teacherSelectRef"
               v-model="form.teacherId"
-              :options="teacherOptions"
-              optionLabel="label"
-              optionValue="value"
+              label="اختر المدرس"
               placeholder="اختر المدرس ▾"
-              class="flex-1"
-              filter
-              :loading="loadingLookups"
-              :class="{ 'p-invalid': errorMessage || fieldErrors.teacherId }"
+              wrapper-class="min-w-0 flex-1"
+              :invalid="!!(errorMessage || fieldErrors.teacherId)"
             />
             <Button
               type="button"
               icon="pi pi-plus"
               severity="info"
               outlined
+              class="mb-0.5"
               aria-label="إضافة مدرس"
               @click="openTeacherDialog"
             />
@@ -212,61 +204,37 @@
       </div>
     </Form>
 
-    <Dialog
-      v-model:visible="showTeacherDialog"
+    <Drawer
+      v-model:visible="showTeacherDrawer"
       header="إضافة مدرس"
-      modal
-      class="w-full max-w-md"
+      position="right"
+      class="!w-[400px] max-w-[400px]"
+      :style="{ width: '400px' }"
+      :block-scroll="true"
       dir="rtl"
     >
-      <Form
-        v-slot="{ meta: teacherMeta }"
-        :initial-values="{ teacherName: '' }"
-        class="space-y-4"
-        @submit="submitTeacher"
-      >
-        <Field v-slot="{ field, errorMessage }" name="teacherName" rules="required">
-          <div class="flex flex-col gap-2 text-right">
-            <label class="text-sm font-medium">اسم المدرس</label>
-            <InputText
-              v-bind="field"
-              v-model="teacherName"
-              class="w-full"
-              :class="{ 'p-invalid': errorMessage }"
-            />
-            <ErrorMessage name="teacherName" class="text-xs text-red-400" />
-          </div>
-        </Field>
-
-        <p v-if="teacherError" class="rounded-xl bg-red-50 px-3 py-2 text-sm text-red-600">
-          {{ teacherError }}
-        </p>
-
-        <div class="flex justify-end gap-2">
-          <Button type="button" label="إلغاء" severity="secondary" text @click="showTeacherDialog = false" />
-          <FormSubmitButton
-            label="حفظ المدرس"
-            :loading="savingTeacher"
-            :valid="teacherMeta.valid"
-          />
-        </div>
-      </Form>
-    </Dialog>
+      <TeacherForm
+        v-if="showTeacherDrawer"
+        @saved="onTeacherSaved"
+        @cancel="showTeacherDrawer = false"
+      />
+    </Drawer>
   </div>
 </template>
 
 <script setup>
 import Button from "primevue/button";
 import FormSubmitButton from "~/components/shared/form-submit-button/index.vue";
+import AppGlobalSelectTeacher from "~/components/shared/app-global-select-teacher/index.vue";
+import AppGlobalSelectStudyYear from "~/components/shared/app-global-select-study-year/index.vue";
+import TeacherForm from "~/components/dashboard/pages/teachers/TeacherForm.vue";
 import InputText from "primevue/inputtext";
 import Select from "primevue/select";
-import Dialog from "primevue/dialog";
+import Drawer from "primevue/drawer";
 import ToggleSwitch from "primevue/toggleswitch";
 import AppInputNumber from "~/components/dashboard/AppInputNumber.vue";
 import { Form, Field, ErrorMessage } from "vee-validate";
 import { productService } from "~/services/productService";
-import { teacherService } from "~/services/teacherService";
-import { studyYearService } from "~/services/studyYearService";
 import { useAppToast } from "~/composables/useAppToast";
 
 const { showError } = useAppToast();
@@ -278,13 +246,8 @@ const props = defineProps({
 const emit = defineEmits(["saved", "cancel"]);
 
 const saving = ref(false);
-const savingTeacher = ref(false);
-const loadingLookups = ref(false);
-const showTeacherDialog = ref(false);
-const teacherName = ref("");
-const teacherError = ref("");
-const teacherOptions = ref([]);
-const studyYearOptions = ref([]);
+const showTeacherDrawer = ref(false);
+const teacherSelectRef = ref(null);
 const typeOptions = [
   { label: "كتاب", value: "BOOK" },
   { label: "كارت", value: "CARD" },
@@ -365,63 +328,22 @@ watch(
   },
 );
 
-const loadTeachers = async () => {
-  const teachers = await teacherService.getTeachers();
-  const list = Array.isArray(teachers) ? teachers : teachers?.data || [];
-  teacherOptions.value = list
-    .filter((teacher) => teacher.status !== "INACTIVE")
-    .map((teacher) => ({
-      label: teacher.name || `مدرس ${teacher.id}`,
-      value: teacher.id,
-    }));
-};
-
-const loadStudyYears = async () => {
-  const years = await studyYearService.getStudyYears();
-  const list = Array.isArray(years) ? years : years?.data || [];
-  studyYearOptions.value = list.map((year) => ({
-    label: year.name,
-    value: year.id,
-  }));
-};
-
-const loadLookups = async () => {
-  loadingLookups.value = true;
-  try {
-    await Promise.all([loadTeachers(), loadStudyYears()]);
-  } catch (error) {
-    showError(error?.message || "تعذر تحميل بيانات النموذج.");
-  } finally {
-    loadingLookups.value = false;
-  }
-};
-
 const openTeacherDialog = () => {
-  teacherName.value = "";
-  teacherError.value = "";
-  showTeacherDialog.value = true;
+  showTeacherDrawer.value = true;
 };
 
-const submitTeacher = async () => {
-  savingTeacher.value = true;
-  teacherError.value = "";
-
-  try {
-    const created = await teacherService.createTeacher({ name: teacherName.value.trim() });
-    if (!created?.id) throw new Error("تعذر إنشاء المدرس.");
-
-    teacherOptions.value = [
-      { label: created.name || teacherName.value, value: created.id },
-      ...teacherOptions.value.filter((item) => item.value !== created.id),
-    ];
-    form.teacherId = created.id;
-    teacherName.value = "";
-    showTeacherDialog.value = false;
-  } catch (error) {
-    teacherError.value = error?.message || "تعذر إضافة المدرس.";
-  } finally {
-    savingTeacher.value = false;
+const onTeacherSaved = (created) => {
+  if (!created?.id) {
+    showError("تعذر إنشاء المدرس.");
+    return;
   }
+
+  teacherSelectRef.value?.prependOption?.({
+    label: created.name || "-",
+    value: created.id,
+  });
+  form.teacherId = created.id;
+  showTeacherDrawer.value = false;
 };
 
 const buildPayload = () => {
@@ -482,8 +404,4 @@ const submit = async () => {
     saving.value = false;
   }
 };
-
-onMounted(() => {
-  loadLookups();
-});
 </script>

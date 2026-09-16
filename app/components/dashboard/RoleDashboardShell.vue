@@ -14,7 +14,7 @@
       <nav class="flex-1 space-y-5 overflow-y-auto px-4 py-5 pb-28">
         <template v-if="menuSections.length">
           <div v-for="section in menuSections" :key="section.label" class="space-y-1">
-            <p class="px-3 pb-1 text-[11px] font-semibold tracking-wide text-slate-500">
+            <p class="px-3 pb-2 text-xs font-bold tracking-wide text-sky-300/90">
               {{ section.label }}
             </p>
             <NuxtLink
@@ -155,7 +155,21 @@ const roleLabels = {
   social: { short: "SO", label: "اجتماعي" },
 };
 
-const roleMeta = roleLabels[props.role] || roleLabels.admin;
+const normalizedRole = computed(() => {
+  const raw = String(props.role || authStore.user?.role || "admin").toLowerCase();
+  if (raw === "admin" || raw === "administrator") return "admin";
+  if (raw === "branch" || raw === "library_employee" || raw === "branch_employee") {
+    return "branch";
+  }
+  if (raw === "social" || raw === "customer_service" || raw === "customer-service") {
+    return "social";
+  }
+  return "admin";
+});
+
+const roleMeta = computed(
+  () => roleLabels[normalizedRole.value] || roleLabels.admin,
+);
 
 const isActive = (to) => {
   if (to === "/reservations") return route.path === "/reservations";
@@ -174,7 +188,7 @@ const menuItem = (label, icon, to, active = isActive(to)) => ({
 
 /** Flat list for branch / social roles */
 const menuItems = computed(() => {
-  if (props.role === "branch") {
+  if (normalizedRole.value === "branch") {
     return [
       menuItem("البيع المباشر", "◫", "/sales/direct"),
       menuItem("حجز الكتب", "✓", "/reservations"),
@@ -183,7 +197,7 @@ const menuItems = computed(() => {
     ];
   }
 
-  if (props.role === "social") {
+  if (normalizedRole.value === "social") {
     return [
       menuItem("احجز كتاب", "📝", "/books/reserve", isActive("/books/reserve") || isActive("/books")),
       menuItem("تقرير اليوم", "▤", "/reports/daily"),
@@ -195,7 +209,7 @@ const menuItems = computed(() => {
 
 /** Categorized sections for admin */
 const menuSections = computed(() => {
-  if (props.role === "branch" || props.role === "social") return [];
+  if (normalizedRole.value !== "admin") return [];
 
   return [
     {
@@ -233,8 +247,8 @@ const menuSections = computed(() => {
 
 const userName = computed(() => authStore.user?.name || "مدير النظام");
 const userInitials = computed(() => userName.value?.slice(0, 2)?.toUpperCase() || "MN");
-const roleLabel = computed(() => roleMeta.label);
-const roleLabelShort = computed(() => roleMeta.short);
+const roleLabel = computed(() => roleMeta.value.label);
+const roleLabelShort = computed(() => roleMeta.value.short);
 
 const confirmLogout = async () => {
   loggingOut.value = true;

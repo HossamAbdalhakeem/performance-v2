@@ -40,20 +40,20 @@
             {{ selectedReservation.details }}
           </div>
 
-          <Field v-slot="{ field, errorMessage }" name="teacher" rules="required">
-            <div class="flex flex-col gap-2 text-right">
-              <label class="text-sm font-medium">المدرس الجديد</label>
-              <Select
-                v-bind="field"
-                v-model="form.teacher"
-                :options="teacherOptions"
-                optionLabel="label"
-                optionValue="value"
-                placeholder="اختار مدرس تاني ▾"
-                :class="{ 'p-invalid': errorMessage || fieldErrors.teacher }"
-              />
-              <ErrorMessage name="teacher" class="text-xs text-red-400" />
-            </div>
+          <Field
+            v-slot="{ errorMessage }"
+            v-model="form.teacher"
+            name="teacher"
+            rules="required"
+          >
+            <AppGlobalSelectTeacher
+              v-model="form.teacher"
+              label="المدرس الجديد"
+              placeholder="اختار مدرس تاني ▾"
+              :invalid="!!(errorMessage || fieldErrors.teacher)"
+              :exclude-inactive="false"
+            />
+            <ErrorMessage name="teacher" class="text-xs text-red-400" />
           </Field>
 
           <div class="rounded-2xl border border-dashed border-white/20 bg-slate-950/60 p-4 text-right text-sm text-slate-300">
@@ -77,18 +77,16 @@
 <script setup>
 import Card from "primevue/card";
 import FormSubmitButton from "~/components/shared/form-submit-button/index.vue";
-import Select from "primevue/select";
+import AppGlobalSelectTeacher from "~/components/shared/app-global-select-teacher/index.vue";
 import SearchInput from "~/components/shared/search-input/index.vue";
 import Skeleton from "primevue/skeleton";
 import { Form, Field, ErrorMessage } from "vee-validate";
 import { reservationService } from "~/services/reservationService";
-import { teacherService } from "~/services/teacherService";
 
 const saving = ref(false);
 const loadingOptions = ref(true);
 const reservationSearch = ref("");
 const reservationOptions = ref([]);
-const teacherOptions = ref([]);
 
 const form = reactive({ reservation: "", teacher: "" });
 const initialValues = { reservation: "", teacher: "" };
@@ -109,23 +107,13 @@ const selectedReservation = computed(() =>
 
 const loadOptions = async () => {
   try {
-    const [reservations, teachers] = await Promise.all([
-      reservationService.getReservations({ per_page: 20 }),
-      teacherService.getTeachers(),
-    ]);
-
+    const reservations = await reservationService.getReservations({ per_page: 20 });
     const reservationList = reservations.data || [];
-    const teacherList = Array.isArray(teachers) ? teachers : teachers?.data || [];
 
     reservationOptions.value = reservationList.map((item) => ({
       label: `حجز #${item.id}`,
       details: `طالب: ${item.student || item.student_name || ""} | المدرس الحالي: ${item.teacher || ""} | فرع: ${item.branch || item.branch_name || ""}`,
       phone: item.phone || "",
-      value: item.id,
-    }));
-
-    teacherOptions.value = teacherList.map((item) => ({
-      label: item.name || item.teacher_name || "مدرس",
       value: item.id,
     }));
 

@@ -28,16 +28,12 @@
           />
         </div>
         <div class="flex flex-col gap-2 text-right">
-          <label class="text-sm font-medium text-slate-700">المدرس</label>
-          <Select
+          <AppGlobalSelectTeacher
             v-model="filters.teacherId"
-            :options="teacherOptions"
-            option-label="label"
-            option-value="value"
+            label="المدرس"
             placeholder="كل المدرسين"
             show-clear
-            filter
-            class="w-full"
+            :exclude-inactive="false"
           />
         </div>
         <div class="flex flex-col gap-2 text-right">
@@ -90,12 +86,11 @@
 <script setup>
 import Button from "primevue/button";
 import Dialog from "primevue/dialog";
-import Select from "primevue/select";
 import Tag from "primevue/tag";
 import AppDataTable from "~/components/shared/app-data-table/index.vue";
 import ProductSelect from "~/components/shared/product-select/index.vue";
+import AppGlobalSelectTeacher from "~/components/shared/app-global-select-teacher/index.vue";
 import { studentService } from "~/services/studentService";
-import { teacherService } from "~/services/teacherService";
 import { useAppToast } from "~/composables/useAppToast";
 import { formatMoney, formatDateTime } from "~/utils/format";
 
@@ -110,7 +105,6 @@ const { showError } = useAppToast();
 
 const loading = ref(false);
 const rows = ref([]);
-const teacherOptions = ref([]);
 
 const today = () => {
   const d = new Date();
@@ -168,20 +162,6 @@ const buildParams = () => {
   return params;
 };
 
-const loadFilters = async () => {
-  try {
-    const teachers = await teacherService.getTeachers();
-    const teacherList = Array.isArray(teachers) ? teachers : teachers?.data || [];
-
-    teacherOptions.value = teacherList.map((item) => ({
-      label: item.name || item.id,
-      value: item.id,
-    }));
-  } catch (error) {
-    teacherOptions.value = [];
-  }
-};
-
 const loadTransactions = async () => {
   if (!props.student?.id) return;
   loading.value = true;
@@ -213,7 +193,6 @@ watch(
     filters.to = today();
     filters.teacherId = null;
     filters.productId = null;
-    await loadFilters();
     await loadTransactions();
   },
 );

@@ -9,9 +9,6 @@ export default defineNuxtConfig({
     '@nuxtjs/tailwindcss',
     '@primevue/nuxt-module',
     '@vee-validate/nuxt',
-    '@nuxtjs/robots',
-    '@nuxtjs/sitemap',
-    'nuxt-schema-org',
   ],
   css: ['primeicons/primeicons.css', '~/assets/css/tailwind.css'],
   vite: {
@@ -28,7 +25,6 @@ export default defineNuxtConfig({
         { rel: 'apple-touch-icon', href: '/favicon.ico' },
       ],
       meta: [
-        { name: 'google-site-verification', content: 'p8nu92PVNlSJHyCctN8Da3D6FhUDqxycWVSR15lqUl8' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },
       ],
     },
@@ -54,16 +50,11 @@ export default defineNuxtConfig({
   compatibilityDate: '2024-04-03',
   // Site config used by @nuxtjs/robots & @nuxtjs/sitemap
   // (NUXT_PUBLIC_SITE_URL comes from .env, set the real domain in production)
-  site: {
-    url: process.env.NUXT_PUBLIC_SITE_URL || process.env.SITE_URL || 'http://localhost:8000',
-  },
+ 
   devServer: {
     port: 8000,
   },
-  robots: {
-    // Only /login is blocked from crawlers
-    disallow: ['/login'],
-  },
+ 
   runtimeConfig: {
     public: {
       baseUrl: process.env.NUXT_ENV_BASE_URL || 'http://localhost:8000',
