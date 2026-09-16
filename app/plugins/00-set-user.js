@@ -1,9 +1,10 @@
 import { useAuthStore } from "~/store/auth.js";
+import { useLocalStorage } from "~/composables/useLocalStorage";
 
 export default defineNuxtPlugin(async () => {
   const nuxtApp = useNuxtApp();
   const authStore = useAuthStore(nuxtApp.$pinia);
-  const token = useCookie("token");
+  const token = useLocalStorage("token");
 
   // Restore cached session first for fast UI, then refresh from API.
   authStore.hydrateFromStorage();

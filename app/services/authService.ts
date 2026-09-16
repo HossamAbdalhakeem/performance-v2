@@ -1,4 +1,5 @@
 import { authFetch } from "~/utils/apiFetch";
+import { useLocalStorage } from "~/composables/useLocalStorage";
 
 const DASHBOARD_ROLES = {
   admin: "admin",
@@ -72,7 +73,7 @@ export const authService = {
       throw new Error("Login failed: no access token returned.");
     }
 
-    useCookie("token").value = token;
+    useLocalStorage("token").value = token;
     return normalizeAuth(session, token);
   },
 
@@ -87,7 +88,7 @@ export const authService = {
     const user = await authFetch<Record<string, any>>("/auth/me", {
       method: "GET",
     });
-    return normalizeAuth({ user }, useCookie("token").value);
+    return normalizeAuth({ user }, useLocalStorage("token").value);
   },
 
   async me() {

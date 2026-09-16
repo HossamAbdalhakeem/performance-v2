@@ -1,5 +1,6 @@
 import { defineStore } from "pinia";
 import { authService } from "~/services/authService";
+import { useLocalStorage } from "~/composables/useLocalStorage";
 
 export const useAuthStore = defineStore("authStore", {
   state: () => ({
@@ -34,7 +35,7 @@ export const useAuthStore = defineStore("authStore", {
       }
     },
     async fetchUser() {
-      const token = this.token || useCookie("token").value;
+      const token = this.token || useLocalStorage("token").value;
       if (!token) {
         this.removeUser();
         return null;
@@ -63,18 +64,18 @@ export const useAuthStore = defineStore("authStore", {
       this.token = token || this.token || null;
       this.loggedIn = Boolean(this.user?.id || this.user?.phone || this.user?.role);
 
-      useCookie("token").value = this.token;
-      useCookie("dashboard_role").value = this.user?.role || "admin";
-      useCookie("dashboard_user").value = JSON.stringify(this.user);
+      useLocalStorage("token").value = this.token;
+      useLocalStorage("dashboard_role").value = this.user?.role || "admin";
+      useLocalStorage("dashboard_user").value = JSON.stringify(this.user);
     },
     removeUser() {
       this.user = {};
       this.token = null;
       this.loggedIn = false;
-      useCookie("token").value = null;
-      useCookie("dashboard_role").value = null;
-      useCookie("dashboard_user").value = null;
-      useCookie("academicYearId").value = null;
+      useLocalStorage("token").value = null;
+      useLocalStorage("dashboard_role").value = null;
+      useLocalStorage("dashboard_user").value = null;
+      useLocalStorage("academicYearId").value = null;
     },
     async logout() {
       try {
@@ -87,16 +88,16 @@ export const useAuthStore = defineStore("authStore", {
       // does not remount the current page and re-fire its APIs.
       this.token = null;
       this.loggedIn = false;
-      useCookie("token").value = null;
-      useCookie("academicYearId").value = null;
+      useLocalStorage("token").value = null;
+      useLocalStorage("academicYearId").value = null;
 
       await navigateTo("/login");
       this.removeUser();
     },
     hydrateFromStorage() {
-      const dashboardRole = useCookie("dashboard_role");
-      const dashboardUser = useCookie("dashboard_user");
-      const token = useCookie("token");
+      const dashboardRole = useLocalStorage("dashboard_role");
+      const dashboardUser = useLocalStorage("dashboard_user");
+      const token = useLocalStorage("token");
 
       if (!dashboardRole.value || !dashboardUser.value) return;
 

@@ -1,3 +1,5 @@
+import { useLocalStorage } from "~/composables/useLocalStorage";
+
 type FetchOptions = Parameters<typeof $fetch>[1];
 
 export class ApiError extends Error {
@@ -20,7 +22,7 @@ export const getApiOrigin = () => {
 };
 
 const getAuthHeaders = (extra: Record<string, string> = {}) => {
-  const token = useCookie("token").value;
+  const token = useLocalStorage("token").value;
 
   return {
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -117,7 +119,7 @@ const shouldAttachAcademicYear = (path: string) => {
 
 const getAcademicYearId = () => {
   try {
-    return useCookie("academicYearId").value || null;
+    return useLocalStorage("academicYearId").value || null;
   } catch {
     return null;
   }

@@ -100,8 +100,8 @@ import { useAppToast } from "~/composables/useAppToast";
 
 defineOptions({ name: "AcademicYearSwitcher" });
 
-const COOKIE_KEY = "academicYearId";
-const yearCookie = useCookie(COOKIE_KEY);
+const STORAGE_KEY = "academicYearId";
+const yearStorage = useLocalStorage(STORAGE_KEY);
 
 const { showSuccess, showError } = useAppToast();
 
@@ -111,7 +111,7 @@ const dialogVisible = ref(false);
 const editingItem = ref(null);
 const loading = ref(false);
 const years = ref([]);
-const selectedId = ref(yearCookie.value || null);
+const selectedId = ref(yearStorage.value || null);
 
 const selectedYear = computed(
   () => years.value.find((y) => String(y.id) === String(selectedId.value)) || null,
@@ -135,27 +135,27 @@ const dialogTitle = computed(() =>
 const isActiveYear = (year) =>
   activeId.value && String(year.id) === String(activeId.value);
 
-const writeCookie = (id) => {
-  yearCookie.value = id ? String(id) : null;
-  selectedId.value = yearCookie.value;
+const writeStorage = (id) => {
+  yearStorage.value = id ? String(id) : null;
+  selectedId.value = yearStorage.value;
 };
 
 const loadYears = async () => {
   loading.value = true;
   try {
     years.value = await academicYearService.getAcademicYears();
-    const cookieId = yearCookie.value ? String(yearCookie.value) : null;
-    const cookieExists = cookieId
-      ? years.value.some((y) => String(y.id) === cookieId)
+    const storedId = yearStorage.value ? String(yearStorage.value) : null;
+    const storedExists = storedId
+      ? years.value.some((y) => String(y.id) === storedId)
       : false;
 
-    if (cookieExists) {
-      selectedId.value = cookieId;
+    if (storedExists) {
+      selectedId.value = storedId;
       return;
     }
 
-    // UI default: highlight ACTIVE, but do not write cookie until user selects
-    if (yearCookie.value) yearCookie.value = null;
+    // UI default: highlight ACTIVE, but do not write storage until user selects
+    if (yearStorage.value) yearStorage.value = null;
     selectedId.value =
       activeId.value || (years.value[0]?.id ? String(years.value[0].id) : null);
   } finally {
@@ -172,10 +172,10 @@ const onSelect = (year) => {
   const nextId = year?.id ? String(year.id) : null;
   if (!nextId) return;
 
-  const alreadySaved = yearCookie.value && String(yearCookie.value) === nextId;
+  const alreadySaved = yearStorage.value && String(yearStorage.value) === nextId;
   if (alreadySaved) return;
 
-  writeCookie(nextId);
+  writeStorage(nextId);
   if (import.meta.client) window.location.reload();
 };
 
