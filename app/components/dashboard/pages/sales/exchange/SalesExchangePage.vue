@@ -11,7 +11,7 @@
             <IconField>
               <InputIcon class="pi pi-search" />
               <InputText
-                v-model="filters.search"
+                v-model="filters.searchInput"
                 class="w-full"
                 placeholder="رقم العملية / طالب / منتج / موبايل"
               />
@@ -27,12 +27,13 @@
               placeholder="كل الحالات"
               show-clear
               class="w-full"
+              @update:modelValue="loadData"
             />
           </div>
         </div>
 
         <SalesExchangeTable
-          :sales="filteredSales"
+          :sales="sales"
           :loading="loading"
           @exchange="openExchangeDialog"
           @refund="openRefundDialog"
@@ -525,6 +526,7 @@ import { exchangeService } from "~/services/exchangeService";
 import { inventoryService } from "~/services/inventoryService";
 import { returnService } from "~/services/returnService";
 import { saleService } from "~/services/saleService";
+import { useThrottledCallback } from "~/composables/useThrottledCallback";
 import { useAppToast } from "~/composables/useAppToast";
 
 defineOptions({ name: "SalesExchangePage" });
@@ -553,7 +555,11 @@ const newProductId = ref(null);
 const exchangeError = ref("");
 const exchangePaymentError = ref("");
 const refundError = ref("");
-const filters = reactive({ search: "", status: null });
+const filters = reactive({
+  searchInput: "",
+  search: "",
+  status: null,
+});
 
 const refundMethod = ref("CASH");
 const refundImage = ref(null);
@@ -653,20 +659,6 @@ const expandSales = (list) =>
     return items.map((item) => normalizeSaleRow(sale, item));
   });
 
-const filteredSales = computed(() => {
-  const q = filters.search.trim().toLowerCase();
-  return sales.value.filter((item) => {
-    if (filters.status && item.status !== filters.status) return false;
-    if (!q) return true;
-    return (
-      String(item.saleNumber || "").toLowerCase().includes(q) ||
-      String(item.studentName || "").toLowerCase().includes(q) ||
-      String(item.productName || "").toLowerCase().includes(q) ||
-      String(item.phone || "").toLowerCase().includes(q)
-    );
-  });
-});
-
 const selectedNewProduct = computed(
   () =>
     productOptions.value.find((item) => item.value === newProductId.value) ||
@@ -757,10 +749,17 @@ const mapInventoryProductOption = (item) => {
   };
 };
 
+const buildQuery = () => {
+  const params = {};
+  if (filters.search?.trim()) params.search = filters.search.trim();
+  if (filters.status) params.status = filters.status;
+  return params;
+};
+
 const loadData = async () => {
   loading.value = true;
   try {
-    const items = await saleService.getSales();
+    const items = await saleService.getSales(buildQuery());
     sales.value = expandSales(items);
   } catch (error) {
     showError(error?.message || "تعذر تحميل المبيعات.");
@@ -769,6 +768,18 @@ const loadData = async () => {
     loading.value = false;
   }
 };
+
+const { run: runThrottledSearch } = useThrottledCallback(() => {
+  filters.search = filters.searchInput;
+  loadData();
+}, 400);
+
+watch(
+  () => filters.searchInput,
+  () => {
+    runThrottledSearch();
+  },
+);
 
 const loadProducts = async () => {
   loadingProducts.value = true;

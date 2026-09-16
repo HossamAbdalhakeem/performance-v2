@@ -11,7 +11,7 @@
             <IconField>
               <InputIcon class="pi pi-search" />
               <InputText
-                v-model="filters.search"
+                v-model="filters.searchInput"
                 class="w-full"
                 placeholder="رقم الحجز / طالب / منتج"
               />
@@ -27,12 +27,13 @@
               placeholder="كل الحالات"
               show-clear
               class="w-full"
+              @update:modelValue="loadData"
             />
           </div>
         </div>
 
         <ReservationsTable
-          :reservations="filteredReservations"
+          :reservations="reservations"
           :loading="loading"
           @change-product="openExchangeDialog"
           @cancel="openCancelDialog"
@@ -536,6 +537,7 @@ import ReservationsTable from "~/components/dashboard/pages/reservations/Reserva
 import PaymentFields from "~/components/shared/payment-fields/index.vue";
 import { inventoryService } from "~/services/inventoryService";
 import { reservationService } from "~/services/reservationService";
+import { useThrottledCallback } from "~/composables/useThrottledCallback";
 import { useAppToast } from "~/composables/useAppToast";
 
 defineOptions({ name: "ReservationsManagePage" });
@@ -562,7 +564,11 @@ const exchangePaymentError = ref("");
 const exchangeRefundMethod = ref("CASH");
 const exchangeImage = ref(null);
 const exchangeProofKey = ref("");
-const filters = reactive({ search: "", status: null });
+const filters = reactive({
+  searchInput: "",
+  search: "",
+  status: null,
+});
 
 const cancelDetailVisible = ref(false);
 const cancelConfirmVisible = ref(false);
@@ -648,19 +654,6 @@ const normalizeReservation = (item) => {
   };
 };
 
-const filteredReservations = computed(() => {
-  const q = filters.search.trim().toLowerCase();
-  return reservations.value.filter((item) => {
-    if (filters.status && item.status !== filters.status) return false;
-    if (!q) return true;
-    return (
-      String(item.reservationNumber || "").toLowerCase().includes(q) ||
-      String(item.studentName || "").toLowerCase().includes(q) ||
-      String(item.productName || "").toLowerCase().includes(q)
-    );
-  });
-});
-
 const selectedNewProduct = computed(() =>
   productOptions.value.find((item) => item.value === newProductId.value) || null,
 );
@@ -735,10 +728,17 @@ const mapInventoryProductOption = (item) => {
   };
 };
 
+const buildQuery = () => {
+  const params = {};
+  if (filters.search?.trim()) params.search = filters.search.trim();
+  if (filters.status) params.status = filters.status;
+  return params;
+};
+
 const loadData = async () => {
   loading.value = true;
   try {
-    const items = await reservationService.getReservations();
+    const items = await reservationService.getReservations(buildQuery());
     reservations.value = (items || []).map(normalizeReservation);
   } catch (error) {
     showError(error?.message || "تعذر تحميل الحجوزات.");
@@ -747,6 +747,18 @@ const loadData = async () => {
     loading.value = false;
   }
 };
+
+const { run: runThrottledSearch } = useThrottledCallback(() => {
+  filters.search = filters.searchInput;
+  loadData();
+}, 400);
+
+watch(
+  () => filters.searchInput,
+  () => {
+    runThrottledSearch();
+  },
+);
 
 const loadProducts = async () => {
   loadingProducts.value = true;
