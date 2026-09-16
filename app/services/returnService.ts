@@ -30,6 +30,12 @@ export const returnService = {
           saleId: payload.saleId ?? payload.sale_id,
           items,
           method: normalizePaymentMethod(payload.method ?? payload.refundMethod),
+          ...(payload.proofReference || payload.proof_reference
+            ? {
+                proofReference:
+                  payload.proofReference ?? payload.proof_reference,
+              }
+            : {}),
         },
       }),
     );

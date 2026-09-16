@@ -89,6 +89,7 @@ import { useAppToast } from "~/composables/useAppToast";
 import {
   PAYMENT_METHOD_LABELS,
   PaymentMethod,
+  paymentMethodNeedsProof,
 } from "~/utils/paymentMethods";
 
 const RefundDetailContent = defineAsyncComponent(() =>
@@ -151,6 +152,13 @@ const requestConfirm = () => {
     refundError.value = "اختر طريقة الاسترداد.";
     return;
   }
+  if (
+    paymentMethodNeedsProof(refundMethod.value) &&
+    !String(refundProofKey.value || "").trim()
+  ) {
+    refundError.value = "صورة إثبات الاسترداد مطلوبة لطريقة الاسترداد المحددة.";
+    return;
+  }
   confirmVisible.value = true;
 };
 
@@ -158,12 +166,16 @@ const confirm = async () => {
   if (!props.sale?.saleId || !props.sale?.saleItemId) return;
   busy.value = true;
   try {
-    await returnService.createReturn({
+    const payload = {
       saleId: props.sale.saleId,
       saleItemId: props.sale.saleItemId,
       quantity: props.sale.remainingQuantity,
       method: refundMethod.value,
-    });
+    };
+    if (refundProofKey.value) {
+      payload.proofReference = refundProofKey.value;
+    }
+    await returnService.createReturn(payload);
     confirmVisible.value = false;
     detailVisible.value = false;
     resetFields();
