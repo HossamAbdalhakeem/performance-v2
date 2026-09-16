@@ -31,7 +31,7 @@ export const studentService = {
   async searchStudents(search = "", params: Record<string, any> = {}) {
     const term = String(search || "").trim();
     const result = await this.getStudents({
-      per_page: term ? 50 : 100,
+      per_page: term ? 20 : 20,
       ...params,
       ...(term ? { search: term } : {}),
     });

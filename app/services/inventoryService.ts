@@ -13,19 +13,33 @@ const resolveId = (value: unknown) => {
 
 export const inventoryService = {
   async getInventory(params: Record<string, any> = {}) {
-    return asList(await apiFetch("/inventory", { method: "GET", params }));
+    const response = await apiFetch("/inventory", { method: "GET", params });
+    if (params.inventory_summary) {
+      return Array.isArray(response) ? response : asList(response);
+    }
+    return asList(response);
   },
 
   async getBranchInventory(
     branchId: string,
     params: Record<string, any> = {},
   ) {
-    return asList(
-      await apiFetch(`/inventory/${branchId}`, {
-        method: "GET",
-        params,
-      }),
-    );
+    const response = await apiFetch(`/inventory/${branchId}`, {
+      method: "GET",
+      params,
+    });
+    if (params.inventory_summary) {
+      return response;
+    }
+    return asList(response);
+  },
+
+  async getBranchInventorySummary(branchId: string) {
+    return this.getBranchInventory(branchId, { inventory_summary: true });
+  },
+
+  async getInventorySummaries(params: Record<string, any> = {}) {
+    return this.getInventory({ ...params, inventory_summary: true });
   },
 
   async getStockItem(branchId: string, productId: string) {

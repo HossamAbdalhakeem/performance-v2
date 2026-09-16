@@ -25,6 +25,7 @@
       size="small"
       striped-rows
       @page="onPage"
+      @row-expand="onRowExpand"
     >
       <template #empty>
         <div class="app-data-table-empty">
@@ -94,10 +95,14 @@ const props = defineProps({
   skeletonRows: { type: Number, default: 5 },
 });
 
-const emit = defineEmits(["page"]);
+const emit = defineEmits(["page", "row-expand"]);
 
 const onPage = (event) => {
   emit("page", event);
+};
+
+const onRowExpand = (event) => {
+  emit("row-expand", event);
 };
 
 const attrs = useAttrs();

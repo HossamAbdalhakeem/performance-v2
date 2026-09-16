@@ -205,7 +205,7 @@ const loadCatalogOptions = async () => {
   internalLoading.value = true;
   emit("loading", true);
   try {
-    const result = await productService.getProducts({ per_page: 200 });
+    const result = await productService.getProducts({ per_page: 20 });
     const list = result?.data || result || [];
     const mapped = list
       .map((product) =>

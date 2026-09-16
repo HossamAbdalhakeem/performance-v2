@@ -14,37 +14,39 @@
     </template>
 
     <template #inventory="{ data }">
-      <span v-if="!data.inventoryItems?.length" class="text-slate-400">لا توجد منتجات</span>
+      <span v-if="!data.productsCount" class="text-slate-400">لا توجد منتجات</span>
       <div v-else class="flex flex-col gap-1 text-right text-sm">
         <span
-          v-for="item in data.inventoryItems.slice(0, 3)"
+          v-for="item in (data.inventoryPreview || []).slice(0, 3)"
           :key="item.productId"
         >
           {{ item.productName }}:
           <strong>{{ item.physicalQuantity }}</strong>
         </span>
-        <span v-if="data.inventoryItems.length > 3" class="text-xs text-slate-400">
-          +{{ data.inventoryItems.length - 3 }} منتج آخر (افتح الصف)
-        </span>
+      
       </div>
     </template>
 
     <template #actions="{ data }">
       <div class="flex flex-wrap justify-center gap-1">
         <Button
-          label="إضافة منتج"
-          icon="pi pi-plus"
+          icon="pi pi-box"
+          rounded
           text
           size="small"
           severity="info"
+          title="إضافة منتج"
+          aria-label="إضافة منتج"
           @click="$emit('add-stock', data)"
         />
         <Button
-          label="سحب منتج"
-          icon="pi pi-minus"
+          icon="pi pi-arrow-circle-up"
+          rounded
           text
           size="small"
           severity="warning"
+          title="سحب منتج"
+          aria-label="سحب منتج"
           @click="$emit('remove-stock', data)"
         />
       </div>
@@ -57,7 +59,20 @@
           :value="data.inventoryItems || []"
           :columns="inventoryColumns"
           empty-message="لا توجد كميات مسجلة لهذا الفرع."
-        />
+        >
+          <template #reservedQuantity="{ data: item }">
+            <Tag
+              :value="String(item.reservedQuantity ?? 0)"
+              severity="warn"
+            />
+          </template>
+          <template #availableQuantity="{ data: item }">
+            <Tag
+              :value="String(item.availableQuantity ?? 0)"
+              severity="success"
+            />
+          </template>
+        </AppDataTable>
       </div>
     </template>
   </AppDataTable>
@@ -88,7 +103,15 @@ const columns = [
 const inventoryColumns = [
   { field: "productName", header: "المنتج" },
   { field: "physicalQuantity", header: "الكمية الفعلية" },
-  { field: "reservedQuantity", header: "المحجوز" },
-  { field: "availableQuantity", header: "المتاح" },
+  {
+    field: "reservedQuantity",
+    header: "المحجوز",
+    slot: "reservedQuantity",
+  },
+  {
+    field: "availableQuantity",
+    header: "المتاح",
+    slot: "availableQuantity",
+  },
 ];
 </script>

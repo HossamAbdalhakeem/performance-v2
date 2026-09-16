@@ -74,7 +74,6 @@ import Card from "primevue/card";
 import Drawer from "primevue/drawer";
 import BranchesTable from "~/components/dashboard/pages/branches/BranchesTable.vue";
 import { branchService } from "~/services/branchService";
-import { inventoryService } from "~/services/inventoryService";
 import { useAppToast } from "~/composables/useAppToast";
 
 const AddStockForm = defineAsyncComponent(() =>
@@ -99,46 +98,53 @@ const statusMeta = (status) => {
 };
 
 const normalizeInventoryItem = (item) => ({
-  productId: item.productId,
-  productName: item.product?.name || "-",
+  productId: item.productId || item.product?.id,
+  productName: item.productName || item.product?.name || "-",
   physicalQuantity: item.physicalQuantity ?? 0,
   reservedQuantity: item.reservedQuantity ?? 0,
-  availableQuantity: item.availableQuantity ?? Math.max(0, (item.physicalQuantity || 0) - (item.reservedQuantity || 0)),
+  availableQuantity:
+    item.availableQuantity ??
+    Math.max(
+      0,
+      (item.physicalQuantity || 0) - (item.reservedQuantity || 0),
+    ),
 });
-
-const buildBranchRows = (branchList, inventoryList) => {
-  const byBranch = inventoryList.reduce((acc, item) => {
-    const key = item.branchId;
-    if (!acc[key]) acc[key] = [];
-    acc[key].push(normalizeInventoryItem(item));
-    return acc;
-  }, {});
-
-  return branchList.map((branch) => {
-    const meta = statusMeta(branch.status);
-    return {
-      id: branch.id,
-      name: branch.name || "-",
-      status: branch.status,
-      statusLabel: meta.label,
-      statusSeverity: meta.severity,
-      inventoryItems: byBranch[branch.id] || [],
-    };
-  });
-};
 
 const loadData = async () => {
   loading.value = true;
   try {
-    const [branchResult, inventoryResult] = await Promise.all([
-      branchService.getBranches(),
-      inventoryService.getInventory(),
-    ]);
+    const branchResult = await branchService.getBranches({
+      inventory_summary: true,
+    });
 
-    const branchList = Array.isArray(branchResult) ? branchResult : branchResult?.data || [];
-    const inventoryList = Array.isArray(inventoryResult) ? inventoryResult : [];
+    const branchList = Array.isArray(branchResult)
+      ? branchResult
+      : branchResult?.data || [];
 
-    branches.value = buildBranchRows(branchList, inventoryList);
+    branches.value = branchList.map((branch) => {
+      const meta = statusMeta(branch.status);
+      const summary = branch.inventorySummary || {
+        productsCount: 0,
+        preview: [],
+        items: [],
+      };
+      const items = (summary.items || summary.preview || []).map(
+        normalizeInventoryItem,
+      );
+
+      return {
+        id: branch.id,
+        name: branch.name || "-",
+        status: branch.status,
+        statusLabel: meta.label,
+        statusSeverity: meta.severity,
+        productsCount: Number(summary.productsCount ?? items.length),
+        inventoryPreview: (summary.preview || items.slice(0, 3)).map(
+          normalizeInventoryItem,
+        ),
+        inventoryItems: items,
+      };
+    });
   } catch (error) {
     showError(error?.message || "تعذر تحميل الفروع.");
     branches.value = [];
