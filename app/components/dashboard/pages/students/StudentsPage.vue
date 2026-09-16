@@ -24,6 +24,7 @@
         <StudentsTable
           :students="students"
           :loading="loading"
+          :deactivating="deactivating"
           :rows="pagination.perPage"
           :first="pagination.first"
           :total-records="pagination.total"
@@ -71,6 +72,7 @@ const StudentTransactionsDialog = defineAsyncComponent(() =>
 
 const { showError, showSuccess } = useAppToast();
 const loading = ref(true);
+const deactivating = ref(false);
 const drawerVisible = ref(false);
 const transactionsVisible = ref(false);
 const editingItem = ref(null);
@@ -160,13 +162,16 @@ const handleSaved = async () => {
 };
 
 const handleDeactivate = async (item) => {
-  if (!item?.id) return;
+  if (!item?.id || deactivating.value) return;
+  deactivating.value = true;
   try {
     await studentService.deleteStudent(item.id);
     showSuccess("تم تعطيل الطالب بنجاح.");
     await loadData();
   } catch (error) {
     showError(error?.message || "تعذر تعطيل الطالب.");
+  } finally {
+    deactivating.value = false;
   }
 };
 

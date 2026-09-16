@@ -17,6 +17,7 @@
     <template #actions="{ data }">
       <StudentsTableActions
         :student="data"
+        :loading="deactivating"
         @transactions="$emit('transactions', $event)"
         @edit="$emit('edit', $event)"
         @deactivate="$emit('deactivate', $event)"
@@ -33,6 +34,7 @@ import StudentsTableActions from "~/components/dashboard/pages/students/Students
 defineProps({
   students: { type: Array, default: () => [] },
   loading: { type: Boolean, default: false },
+  deactivating: { type: Boolean, default: false },
   rows: { type: Number, default: 20 },
   first: { type: Number, default: 0 },
   totalRecords: { type: Number, default: 0 },

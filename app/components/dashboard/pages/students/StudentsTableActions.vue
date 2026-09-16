@@ -30,20 +30,71 @@
         size="small"
         severity="danger"
         aria-label="تعطيل"
-        @click="$emit('deactivate', student)"
+        :disabled="loading"
+        @click="confirmVisible = true"
       />
     </span>
+
+    <Dialog
+      v-model:visible="confirmVisible"
+      modal
+      header="تأكيد التعطيل"
+      :style="{ width: '28rem' }"
+      :dismissableMask="!loading"
+      :closable="!loading"
+      dir="rtl"
+    >
+      <p class="text-right text-sm text-slate-600">
+        هل أنت متأكد من تعطيل الطالب
+        <span class="font-semibold text-slate-900">{{ student?.name || "" }}</span>
+        ؟
+      </p>
+      <template #footer>
+        <div class="flex justify-end gap-2">
+          <Button
+            label="إلغاء"
+            severity="secondary"
+            text
+            :disabled="loading"
+            @click="confirmVisible = false"
+          />
+          <Button
+            label="تعطيل"
+            severity="danger"
+            :loading="loading"
+            @click="confirmDeactivate"
+          />
+        </div>
+      </template>
+    </Dialog>
   </div>
 </template>
 
 <script setup>
 import Button from "primevue/button";
+import Dialog from "primevue/dialog";
 
 defineOptions({ name: "StudentsTableActions" });
 
-defineProps({
+const props = defineProps({
   student: { type: Object, required: true },
+  loading: { type: Boolean, default: false },
 });
 
-defineEmits(["edit", "deactivate", "transactions"]);
+const emit = defineEmits(["edit", "deactivate", "transactions"]);
+
+const confirmVisible = ref(false);
+
+const confirmDeactivate = () => {
+  emit("deactivate", props.student);
+};
+
+watch(
+  () => props.loading,
+  (isLoading, wasLoading) => {
+    if (wasLoading && !isLoading && confirmVisible.value) {
+      confirmVisible.value = false;
+    }
+  },
+);
 </script>
