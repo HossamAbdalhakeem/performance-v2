@@ -74,6 +74,7 @@ export const useAuthStore = defineStore("authStore", {
       useCookie("token").value = null;
       useCookie("dashboard_role").value = null;
       useCookie("dashboard_user").value = null;
+      useCookie("academicYearId").value = null;
     },
     async logout() {
       try {
@@ -87,6 +88,7 @@ export const useAuthStore = defineStore("authStore", {
       this.token = null;
       this.loggedIn = false;
       useCookie("token").value = null;
+      useCookie("academicYearId").value = null;
 
       await navigateTo("/login");
       this.removeUser();
