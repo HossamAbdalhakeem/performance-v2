@@ -84,14 +84,19 @@
 <script setup>
 import Button from "primevue/button";
 import Dialog from "primevue/dialog";
-import RefundDetailContent from "~/components/dashboard/pages/sales/exchange/manage/RefundDetailContent.vue";
-import RefundConfirmContent from "~/components/dashboard/pages/sales/exchange/manage/RefundConfirmContent.vue";
 import { returnService } from "~/services/returnService";
 import { useAppToast } from "~/composables/useAppToast";
 import {
   PAYMENT_METHOD_LABELS,
   PaymentMethod,
 } from "~/utils/paymentMethods";
+
+const RefundDetailContent = defineAsyncComponent(() =>
+  import("~/components/dashboard/pages/sales/exchange/manage/RefundDetailContent.vue"),
+);
+const RefundConfirmContent = defineAsyncComponent(() =>
+  import("~/components/dashboard/pages/sales/exchange/manage/RefundConfirmContent.vue"),
+);
 
 defineOptions({ name: "SalesExchangeRefundFlow" });
 

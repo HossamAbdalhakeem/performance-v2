@@ -172,9 +172,14 @@
 <script setup>
 import Dialog from "primevue/dialog";
 import Button from "primevue/button";
-import NotificationBell from "~/components/dashboard/NotificationBell.vue";
-import AcademicYearSwitcher from "~/components/dashboard/AcademicYearSwitcher.vue";
 import { useAuthStore } from "~/store/auth.js";
+
+const NotificationBell = defineAsyncComponent(() =>
+  import("~/components/dashboard/NotificationBell.vue"),
+);
+const AcademicYearSwitcher = defineAsyncComponent(() =>
+  import("~/components/dashboard/AcademicYearSwitcher.vue"),
+);
 
 const props = defineProps({
   role: { type: String, default: "admin" },

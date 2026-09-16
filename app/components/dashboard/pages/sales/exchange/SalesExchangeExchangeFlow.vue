@@ -97,14 +97,19 @@
 <script setup>
 import Button from "primevue/button";
 import Dialog from "primevue/dialog";
-import ExchangeDetailContent from "~/components/dashboard/pages/sales/exchange/manage/ExchangeDetailContent.vue";
-import ExchangeConfirmContent from "~/components/dashboard/pages/sales/exchange/manage/ExchangeConfirmContent.vue";
 import { exchangeService } from "~/services/exchangeService";
 import { useAppToast } from "~/composables/useAppToast";
 import {
   PaymentMethod,
   paymentMethodNeedsProof,
 } from "~/utils/paymentMethods";
+
+const ExchangeDetailContent = defineAsyncComponent(() =>
+  import("~/components/dashboard/pages/sales/exchange/manage/ExchangeDetailContent.vue"),
+);
+const ExchangeConfirmContent = defineAsyncComponent(() =>
+  import("~/components/dashboard/pages/sales/exchange/manage/ExchangeConfirmContent.vue"),
+);
 
 defineOptions({ name: "SalesExchangeExchangeFlow" });
 

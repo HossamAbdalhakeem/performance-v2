@@ -254,8 +254,6 @@ import FormSubmitButton from "~/components/shared/form-submit-button/index.vue";
 import AppGlobalSelectTeacher from "~/components/shared/app-global-select-teacher/index.vue";
 import AppGlobalSelectStudyYear from "~/components/shared/app-global-select-study-year/index.vue";
 import AppGlobalSelectProductType from "~/components/shared/app-global-select-product-type/index.vue";
-import TeacherForm from "~/components/dashboard/pages/teachers/TeacherForm.vue";
-import StudyYearForm from "~/components/dashboard/pages/study-years/StudyYearForm.vue";
 import InputText from "primevue/inputtext";
 import Drawer from "primevue/drawer";
 import ToggleSwitch from "primevue/toggleswitch";
@@ -271,6 +269,13 @@ import {
   normalizeProductType,
   productTypeRequiresStudyYear,
 } from "~/enums/productType";
+
+const TeacherForm = defineAsyncComponent(() =>
+  import("~/components/dashboard/pages/teachers/TeacherForm.vue"),
+);
+const StudyYearForm = defineAsyncComponent(() =>
+  import("~/components/dashboard/pages/study-years/StudyYearForm.vue"),
+);
 
 const { showError } = useAppToast();
 

@@ -94,9 +94,12 @@
 
 <script setup>
 import Dialog from "primevue/dialog";
-import AcademicYearForm from "~/components/dashboard/AcademicYearForm.vue";
 import { academicYearService } from "~/services/academicYearService";
 import { useAppToast } from "~/composables/useAppToast";
+
+const AcademicYearForm = defineAsyncComponent(() =>
+  import("~/components/dashboard/AcademicYearForm.vue"),
+);
 
 defineOptions({ name: "AcademicYearSwitcher" });
 

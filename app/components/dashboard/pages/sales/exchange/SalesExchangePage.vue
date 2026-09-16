@@ -22,6 +22,7 @@
     </Card>
 
     <SalesExchangeRefundFlow
+      v-if="refundOpen"
       v-model:open="refundOpen"
       :sale="selectedSale"
       @done="onFlowDone"
@@ -29,6 +30,7 @@
     />
 
     <SalesExchangeExchangeFlow
+      v-if="exchangeOpen"
       v-model:open="exchangeOpen"
       :sale="selectedSale"
       @done="onFlowDone"
@@ -40,13 +42,17 @@
 <script setup>
 import Card from "primevue/card";
 import SalesExchangeTable from "~/components/dashboard/pages/sales/exchange/SalesExchangeTable.vue";
-import SalesExchangeRefundFlow from "~/components/dashboard/pages/sales/exchange/SalesExchangeRefundFlow.vue";
-import SalesExchangeExchangeFlow from "~/components/dashboard/pages/sales/exchange/SalesExchangeExchangeFlow.vue";
 import SearchInput from "~/components/shared/search-input/index.vue";
 import { exchangeService } from "~/services/exchangeService";
 import { useAppToast } from "~/composables/useAppToast";
 import { formatMoney, formatDateTime } from "~/utils/format";
 
+const SalesExchangeRefundFlow = defineAsyncComponent(() =>
+  import("~/components/dashboard/pages/sales/exchange/SalesExchangeRefundFlow.vue"),
+);
+const SalesExchangeExchangeFlow = defineAsyncComponent(() =>
+  import("~/components/dashboard/pages/sales/exchange/SalesExchangeExchangeFlow.vue"),
+);
 defineOptions({ name: "SalesExchangePage" });
 
 const { showError } = useAppToast();

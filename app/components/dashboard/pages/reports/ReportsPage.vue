@@ -52,15 +52,23 @@
 <script setup>
 import Button from "primevue/button";
 import ReportsFilters from "~/components/dashboard/pages/reports/summary/ReportsFilters.vue";
-import ReportsLoadingSkeleton from "~/components/dashboard/pages/reports/summary/ReportsLoadingSkeleton.vue";
-import ReportsSummaryCards from "~/components/dashboard/pages/reports/summary/ReportsSummaryCards.vue";
-import ReportsSalesBreakdown from "~/components/dashboard/pages/reports/summary/ReportsSalesBreakdown.vue";
-import ReportsCustomersSection from "~/components/dashboard/pages/reports/summary/ReportsCustomersSection.vue";
 import { reportService } from "~/services/reportService";
 import { useAppToast } from "~/composables/useAppToast";
 
+const ReportsLoadingSkeleton = defineAsyncComponent(() =>
+  import("~/components/dashboard/pages/reports/summary/ReportsLoadingSkeleton.vue"),
+);
+const ReportsSummaryCards = defineAsyncComponent(() =>
+  import("~/components/dashboard/pages/reports/summary/ReportsSummaryCards.vue"),
+);
+const ReportsSalesBreakdown = defineAsyncComponent(() =>
+  import("~/components/dashboard/pages/reports/summary/ReportsSalesBreakdown.vue"),
+);
 const PaymentMethodsReport = defineAsyncComponent(() =>
   import("~/components/shared/payment-methods-report/index.vue"),
+);
+const ReportsCustomersSection = defineAsyncComponent(() =>
+  import("~/components/dashboard/pages/reports/summary/ReportsCustomersSection.vue"),
 );
 
 defineOptions({ name: "ReportsPage" });
