@@ -19,7 +19,9 @@ export type DailyReportSection =
   | "cancelled"
   | "received"
   | "stockOut"
-  | "allMovements";
+  | "allMovements"
+  | "returns"
+  | "exchanges";
 
 const SECTION_HEADER: Record<DailyReportSection, string> = {
   summary: "summary",
@@ -30,6 +32,8 @@ const SECTION_HEADER: Record<DailyReportSection, string> = {
   received: "received",
   stockOut: "stockOut",
   allMovements: "allMovements",
+  returns: "returns",
+  exchanges: "exchanges",
 };
 
 export const reportService = {

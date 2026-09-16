@@ -8,15 +8,8 @@
         </div>
       </template>
       <template #content>
-        <div class="mb-5 grid gap-3 md:grid-cols-2">
+        <div class="mb-5">
           <SearchInput placeholder="اسم / بريد" @search="onSearch" />
-          <AppGlobalSelectUserRole
-            v-model="filters.role"
-            label="الدور"
-            placeholder="كل الأدوار"
-            show-clear
-            @change="loadData"
-          />
         </div>
 
         <UsersTable :users="users" :loading="loading" @edit="openEdit" />
@@ -39,7 +32,6 @@ import Card from "primevue/card";
 import Button from "primevue/button";
 import EntityDrawer from "~/components/dashboard/EntityDrawer.vue";
 import SearchInput from "~/components/shared/search-input/index.vue";
-import AppGlobalSelectUserRole from "~/components/shared/app-global-select-user-role/index.vue";
 import UsersTable from "~/components/dashboard/pages/users/UsersTable.vue";
 import { userService } from "~/services/userService";
 import { branchService } from "~/services/branchService";
@@ -58,7 +50,6 @@ const editingItem = ref(null);
 const users = ref([]);
 const filters = reactive({
   search: "",
-  role: null,
 });
 
 const drawerTitle = computed(() =>
@@ -78,7 +69,6 @@ const normalizeUser = (user) => ({
 const buildQuery = () => {
   const params = {};
   if (filters.search?.trim()) params.search = filters.search.trim();
-  if (filters.role) params.role = filters.role;
   return params;
 };
 

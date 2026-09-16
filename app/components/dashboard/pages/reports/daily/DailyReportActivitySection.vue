@@ -3,7 +3,9 @@
     <div class="mb-4 flex flex-wrap items-center justify-between gap-2">
       <div>
         <p class="font-bold text-white">توزيع نشاط اليوم</p>
-        <p class="mt-0.5 text-xs text-slate-400">{{ subtitle }}</p>
+        <p class="mt-0.5 text-xs text-slate-400">
+          {{ subtitle }} — اضغط عنصرًا لعرض التفاصيل
+        </p>
       </div>
     </div>
     <div class="grid gap-4 md:grid-cols-2 md:items-center">
@@ -28,10 +30,14 @@
         </div>
       </div>
       <div class="space-y-2.5">
-        <div
+        <button
           v-for="item in legend"
           :key="item.key"
-          class="flex items-center justify-between gap-3 rounded-xl border border-white/5 bg-slate-950/40 px-3 py-2.5"
+          type="button"
+          class="flex w-full items-center justify-between gap-3 rounded-xl border border-white/5 bg-slate-950/40 px-3 py-2.5 text-right transition hover:border-white/20 hover:bg-slate-950/70"
+          :disabled="!item.sectionKey"
+          :class="item.sectionKey ? 'cursor-pointer' : 'cursor-default opacity-80'"
+          @click="item.sectionKey && $emit('open-detail', item.sectionKey)"
         >
           <div class="flex items-center gap-2">
             <span
@@ -44,7 +50,7 @@
             <span class="text-sm font-bold text-white">{{ item.value }}</span>
             <span class="text-xs text-slate-500">{{ item.percent }}%</span>
           </div>
-        </div>
+        </button>
       </div>
     </div>
   </div>
@@ -58,6 +64,17 @@ ChartJS.register(ArcElement, Tooltip, Legend);
 
 defineOptions({ name: "DailyReportActivitySection" });
 
+/** Map activity legend keys → report detail sections */
+const ACTIVITY_SECTION_MAP = {
+  sales: "sales",
+  delivered: "delivered",
+  undelivered: "reservations",
+  cancelled: "cancelled",
+  movements: "allMovements",
+  ready: "reservations",
+  waiting: "reservations",
+};
+
 const props = defineProps({
   isCustomerService: { type: Boolean, default: false },
   activity: {
@@ -66,6 +83,8 @@ const props = defineProps({
   },
 });
 
+defineEmits(["open-detail"]);
+
 const subtitle = computed(() =>
   props.isCustomerService
     ? "توزيع حالات حجوزاتك عبر كل الفروع"
@@ -73,7 +92,12 @@ const subtitle = computed(() =>
 );
 
 const legend = computed(() =>
-  Array.isArray(props.activity?.items) ? props.activity.items : [],
+  (Array.isArray(props.activity?.items) ? props.activity.items : []).map(
+    (item) => ({
+      ...item,
+      sectionKey: ACTIVITY_SECTION_MAP[item.key] || null,
+    }),
+  ),
 );
 
 const total = computed(() => Number(props.activity?.total ?? 0));

@@ -123,6 +123,25 @@ const cancelledColumns = computed(() => {
   return cols;
 });
 
+const returnColumns = [
+  { field: "time", header: "الوقت" },
+  { field: "student", header: "الطالب" },
+  { field: "products", header: "المنتجات" },
+  { field: "quantity", header: "الكمية" },
+  { field: "refund", header: "المسترد" },
+  { field: "by", header: "بواسطة" },
+];
+
+const exchangeColumns = [
+  { field: "time", header: "الوقت" },
+  { field: "student", header: "الطالب" },
+  { field: "fromProduct", header: "من منتج" },
+  { field: "toProduct", header: "إلى منتج" },
+  { field: "quantity", header: "الكمية" },
+  { field: "difference", header: "فرق السعر" },
+  { field: "by", header: "بواسطة" },
+];
+
 const SECTION_META = computed(() => ({
   sales: {
     title: "المبيعات",
@@ -165,6 +184,18 @@ const SECTION_META = computed(() => ({
     columns: movementColumns,
     emptyMessage: "لا توجد حركات مخزن في هذا اليوم.",
     kind: "movement",
+  },
+  returns: {
+    title: "المرتجعات",
+    columns: returnColumns,
+    emptyMessage: "لا توجد مرتجعات في هذا اليوم.",
+    kind: "returns",
+  },
+  exchanges: {
+    title: "الاستبدالات",
+    columns: exchangeColumns,
+    emptyMessage: "لا توجد استبدالات في هذا اليوم.",
+    kind: "exchanges",
   },
 }));
 
@@ -241,6 +272,29 @@ const displayRows = computed(() => {
       qty: row.quantityLabel ?? String(row.quantityChange ?? 0),
       by: row.by || "-",
       note: row.note || "-",
+    }));
+  }
+
+  if (kind === "returns") {
+    return rows.map((row) => ({
+      time: formatDateTime(row.time, "time"),
+      student: row.student || "-",
+      products: row.products || "-",
+      quantity: row.quantity ?? 0,
+      refund: formatMoney(row.refund, "rtl"),
+      by: row.by || "-",
+    }));
+  }
+
+  if (kind === "exchanges") {
+    return rows.map((row) => ({
+      time: formatDateTime(row.time, "time"),
+      student: row.student || "-",
+      fromProduct: row.fromProduct || "-",
+      toProduct: row.toProduct || "-",
+      quantity: row.quantity ?? 0,
+      difference: formatMoney(row.difference, "rtl"),
+      by: row.by || "-",
     }));
   }
 

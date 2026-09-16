@@ -44,6 +44,7 @@
           class="xl:col-span-2"
           :is-customer-service="isCustomerService"
           :activity="summary.activity"
+          @open-detail="openDetail"
         />
       </div>
 
@@ -55,6 +56,7 @@
       <DailyReportInventorySection
         v-if="!isCustomerService"
         :inventory="summary.inventory"
+        @open-detail="openDetail"
       />
       <DailyReportBranchesSection
         v-else
@@ -69,6 +71,7 @@
     </template>
 
     <DailyReportDetailDialog
+      v-if="detailVisible"
       v-model:visible="detailVisible"
       :loading="detailLoading"
       :section-key="activeDetailKey"
@@ -81,19 +84,36 @@
 
 <script setup>
 import Button from "primevue/button";
-import PaymentMethodsReport from "~/components/shared/payment-methods-report/index.vue";
-import DailyReportActivitySection from "~/components/dashboard/pages/reports/daily/DailyReportActivitySection.vue";
-import DailyReportBranchesSection from "~/components/dashboard/pages/reports/daily/DailyReportBranchesSection.vue";
-import DailyReportDetailDialog from "~/components/dashboard/pages/reports/daily/DailyReportDetailDialog.vue";
-import DailyReportHero from "~/components/dashboard/pages/reports/daily/DailyReportHero.vue";
-import DailyReportInventorySection from "~/components/dashboard/pages/reports/daily/DailyReportInventorySection.vue";
-import DailyReportKpiGrid from "~/components/dashboard/pages/reports/daily/DailyReportKpiGrid.vue";
-import DailyReportSkeleton from "~/components/dashboard/pages/reports/daily/DailyReportSkeleton.vue";
 import { reportService } from "~/services/reportService";
 import { useAppToast } from "~/composables/useAppToast";
 import { useAuthStore } from "~/store/auth";
 
 defineOptions({ name: "BranchDailyReportPage" });
+
+const DailyReportSkeleton = defineAsyncComponent(() =>
+  import("~/components/dashboard/pages/reports/daily/DailyReportSkeleton.vue"),
+);
+const DailyReportHero = defineAsyncComponent(() =>
+  import("~/components/dashboard/pages/reports/daily/DailyReportHero.vue"),
+);
+const DailyReportActivitySection = defineAsyncComponent(() =>
+  import("~/components/dashboard/pages/reports/daily/DailyReportActivitySection.vue"),
+);
+const PaymentMethodsReport = defineAsyncComponent(() =>
+  import("~/components/shared/payment-methods-report/index.vue"),
+);
+const DailyReportInventorySection = defineAsyncComponent(() =>
+  import("~/components/dashboard/pages/reports/daily/DailyReportInventorySection.vue"),
+);
+const DailyReportBranchesSection = defineAsyncComponent(() =>
+  import("~/components/dashboard/pages/reports/daily/DailyReportBranchesSection.vue"),
+);
+const DailyReportKpiGrid = defineAsyncComponent(() =>
+  import("~/components/dashboard/pages/reports/daily/DailyReportKpiGrid.vue"),
+);
+const DailyReportDetailDialog = defineAsyncComponent(() =>
+  import("~/components/dashboard/pages/reports/daily/DailyReportDetailDialog.vue"),
+);
 
 const DETAIL_SECTIONS = new Set([
   "sales",
@@ -103,6 +123,8 @@ const DETAIL_SECTIONS = new Set([
   "received",
   "stockOut",
   "allMovements",
+  "returns",
+  "exchanges",
 ]);
 
 const { showError } = useAppToast();
