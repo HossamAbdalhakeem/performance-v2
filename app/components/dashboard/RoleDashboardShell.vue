@@ -1,13 +1,14 @@
 <template>
   <div class="min-h-screen bg-[#111827] text-slate-100" dir="rtl">
-    <aside class="fixed inset-y-0 right-0 z-20 flex w-72 flex-col border-l border-white/10 bg-[#0b1220] text-slate-100 shadow-xl">
-      <div class="flex shrink-0 items-center justify-between border-b border-white/10 px-6 py-5">
+    <aside
+      class="fixed inset-y-0 right-0 z-20 flex w-72 flex-col border-l border-white/10 bg-[#0b1220] text-slate-100 shadow-xl"
+    >
+      <div
+        class="flex shrink-0 items-center justify-between border-b border-white/10 px-6 py-5"
+      >
         <div>
           <p class="text-xs tracking-[0.28em] text-sky-200/80">مكتبة</p>
           <h2 class="mt-1 text-xl font-bold">لوحة التحكم</h2>
-        </div>
-        <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-sky-500/20 text-sm font-bold text-sky-200">
-          {{ roleLabelShort }}
         </div>
       </div>
 
@@ -65,7 +66,9 @@
         </div>
       </nav>
 
-      <div class="absolute bottom-0 left-0 right-0 space-y-3 border-t border-white/10 bg-[#0b1220] p-4">
+      <div
+        class="absolute bottom-0 left-0 right-0 space-y-3 border-t border-white/10 bg-[#0b1220] p-4"
+      >
         <AcademicYearSwitcher v-if="normalizedRole === 'admin'" />
         <button
           type="button"
@@ -79,7 +82,9 @@
     </aside>
 
     <div class="mr-72 min-h-screen">
-      <header class="border-b border-white/10 bg-[#0f172a]/90 px-6 py-5 backdrop-blur-sm">
+      <header
+        class="border-b border-white/10 bg-[#0f172a]/90 px-6 py-5 backdrop-blur-sm"
+      >
         <div class="flex flex-wrap items-center justify-between gap-4">
           <div>
             <p class="text-sm text-slate-400">{{ title }}</p>
@@ -88,8 +93,12 @@
 
           <div class="flex items-center gap-3">
             <NotificationBell v-if="normalizedRole !== 'social'" />
-            <div class="flex items-center gap-3 rounded-2xl border border-white/10 bg-slate-900 px-3 py-2 shadow-sm">
-              <div class="flex h-10 w-10 items-center justify-center rounded-full bg-sky-500/20 font-bold text-sky-200">
+            <div
+              class="flex items-center gap-3 rounded-2xl border border-white/10 bg-slate-900 px-3 py-2 shadow-sm"
+            >
+              <div
+                class="flex h-10 w-10 items-center justify-center rounded-full bg-sky-500/20 font-bold text-sky-200"
+              >
                 {{ userInitials }}
               </div>
               <div class="text-right">
@@ -102,7 +111,10 @@
       </header>
 
       <main class="p-6">
-        <div v-if="stats.length" class="mb-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <div
+          v-if="stats.length"
+          class="mb-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4"
+        >
           <div
             v-for="stat in stats"
             :key="stat.label"
@@ -110,7 +122,10 @@
           >
             <div class="flex items-center justify-between">
               <p class="text-sm text-slate-400">{{ stat.label }}</p>
-              <span class="rounded-lg bg-sky-500/15 px-2 py-1 text-xs font-semibold text-sky-200">{{ stat.tag }}</span>
+              <span
+                class="rounded-lg bg-sky-500/15 px-2 py-1 text-xs font-semibold text-sky-200"
+                >{{ stat.tag }}</span
+              >
             </div>
             <p class="mt-4 text-3xl font-bold text-white">{{ stat.value }}</p>
             <p class="mt-2 text-xs text-slate-400">{{ stat.note }}</p>
@@ -130,7 +145,8 @@
       dir="rtl"
     >
       <p class="text-right text-sm text-slate-600">
-        هل أنت متأكد من تسجيل الخروج؟ سيتم إنهاء الجلسة وإبطال رمز الدخول الحالي.
+        هل أنت متأكد من تسجيل الخروج؟ سيتم إنهاء الجلسة وإبطال رمز الدخول
+        الحالي.
       </p>
       <template #footer>
         <div class="flex justify-end gap-2">
@@ -181,19 +197,29 @@ const roleLabels = {
 };
 
 const normalizedRole = computed(() => {
-  const raw = String(props.role || authStore.user?.role || "admin").toLowerCase();
+  const raw = String(
+    props.role || authStore.user?.role || "admin"
+  ).toLowerCase();
   if (raw === "admin" || raw === "administrator") return "admin";
-  if (raw === "branch" || raw === "library_employee" || raw === "branch_employee") {
+  if (
+    raw === "branch" ||
+    raw === "library_employee" ||
+    raw === "branch_employee"
+  ) {
     return "branch";
   }
-  if (raw === "social" || raw === "customer_service" || raw === "customer-service") {
+  if (
+    raw === "social" ||
+    raw === "customer_service" ||
+    raw === "customer-service"
+  ) {
     return "social";
   }
   return "admin";
 });
 
 const roleMeta = computed(
-  () => roleLabels[normalizedRole.value] || roleLabels.admin,
+  () => roleLabels[normalizedRole.value] || roleLabels.admin
 );
 
 const isActive = (to) => {
@@ -217,9 +243,10 @@ const sectionHasActiveItem = (section) =>
 
 const openActiveSection = () => {
   const active = navigation.value.find(
-    (section) => section.label && sectionHasActiveItem(section),
+    (section) => section.label && sectionHasActiveItem(section)
   );
-  openSectionId.value = active?.id || navigation.value.find((s) => s.label)?.id || null;
+  openSectionId.value =
+    active?.id || navigation.value.find((s) => s.label)?.id || null;
 };
 
 /** Single menu source — admin uses labeled groups; other roles use one unlabeled group */
@@ -294,7 +321,17 @@ const navigation = computed(() => {
 });
 
 const userName = computed(() => authStore.user?.name || "مدير النظام");
-const userInitials = computed(() => userName.value?.slice(0, 2)?.toUpperCase() || "MN");
+const userInitials = computed(() => {
+  const parts = String(userName.value || "")
+    ?.trim()
+    ?.split(/\s+/)
+    ?.filter(Boolean);
+  if (!parts.length) return "MN";
+  return parts
+    ?.map((part) => part?.charAt(0))
+    ?.join("")
+    ?.toUpperCase();
+});
 const roleLabel = computed(() => roleMeta.value.label);
 const roleLabelShort = computed(() => roleMeta.value.short);
 
@@ -303,7 +340,7 @@ watch(
   () => {
     openActiveSection();
   },
-  { immediate: true },
+  { immediate: true }
 );
 
 const confirmLogout = async () => {
