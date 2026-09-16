@@ -11,37 +11,54 @@
         </div>
       </div>
 
-      <nav class="flex-1 space-y-5 overflow-y-auto px-4 py-5 pb-28">
-        <template v-if="menuSections.length">
-          <div v-for="section in menuSections" :key="section.label" class="space-y-1">
-            <p class="px-3 pb-2 text-xs font-bold tracking-wide text-sky-300/90">
+      <nav class="flex-1 space-y-2 overflow-y-auto px-4 py-5 pb-28" aria-label="القائمة الرئيسية">
+        <div
+          v-for="section in navigation"
+          :key="section.id"
+          class="overflow-hidden rounded-xl border border-white/10 bg-white/[0.02]"
+        >
+          <!-- Accordion header (admin groups) -->
+          <button
+            v-if="section.label"
+            type="button"
+            class="flex w-full items-center justify-between gap-2 px-3 py-3 text-right transition hover:bg-white/5"
+            :aria-expanded="openSectionId === section.id"
+            @click="toggleSection(section.id)"
+          >
+            <span class="text-xs font-bold tracking-wide text-sky-300">
               {{ section.label }}
-            </p>
+            </span>
+            <span
+              class="text-sm text-slate-400 transition-transform duration-200"
+              :class="openSectionId === section.id ? 'rotate-180' : ''"
+              aria-hidden="true"
+            >
+              ▾
+            </span>
+          </button>
+
+          <!-- Links: always open for unlabeled sections; accordion for labeled -->
+          <div
+            v-show="!section.label || openSectionId === section.id"
+            class="space-y-1 px-2 pb-2"
+            :class="section.label ? 'border-t border-white/5 pt-1' : 'pt-2'"
+          >
             <NuxtLink
               v-for="item in section.items"
               :key="item.to"
               :to="item.to"
-              class="flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-right text-sm font-medium transition hover:bg-white/5"
-              :class="item.active ? 'bg-slate-800 text-sky-200 ring-1 ring-sky-500/40' : 'text-slate-300'"
+              class="flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-right text-sm font-medium transition hover:bg-white/5"
+              :class="
+                isActive(item.to)
+                  ? 'bg-slate-800 text-sky-200 ring-1 ring-sky-500/40'
+                  : 'text-slate-300'
+              "
             >
               <span>{{ item.label }}</span>
-              <span class="text-lg">{{ item.icon }}</span>
+              <span class="text-lg" aria-hidden="true">{{ item.icon }}</span>
             </NuxtLink>
           </div>
-        </template>
-
-        <template v-else>
-          <NuxtLink
-            v-for="item in menuItems"
-            :key="item.to"
-            :to="item.to"
-            class="flex w-full items-center justify-between rounded-xl px-3 py-3 text-right text-sm font-medium transition hover:bg-white/5"
-            :class="item.active ? 'bg-slate-800 text-sky-200 ring-1 ring-sky-500/40' : 'text-slate-300'"
-          >
-            <span>{{ item.label }}</span>
-            <span class="text-lg">{{ item.icon }}</span>
-          </NuxtLink>
-        </template>
+        </div>
       </nav>
 
       <div class="absolute bottom-0 left-0 right-0 border-t border-white/10 bg-[#0b1220] p-4">
@@ -148,6 +165,8 @@ const authStore = useAuthStore();
 const route = useRoute();
 const confirmLogoutVisible = ref(false);
 const loggingOut = ref(false);
+/** Accordion: only one labeled section open at a time (null = all closed) */
+const openSectionId = ref(null);
 
 const roleLabels = {
   admin: { short: "AD", label: "مدير" },
@@ -172,74 +191,97 @@ const roleMeta = computed(
 );
 
 const isActive = (to) => {
-  if (to === "/reservations") return route.path === "/reservations";
+  const path = route.path;
+  if (to === "/reservations") return path === "/reservations";
   if (to === "/reports") {
-    return route.path === "/reports" || (route.path.startsWith("/reports/") && !route.path.startsWith("/reports/daily"));
+    return (
+      path === "/reports" ||
+      (path.startsWith("/reports/") && !path.startsWith("/reports/daily"))
+    );
   }
-  return route.path === to || route.path.startsWith(`${to}/`);
+  return path === to || path.startsWith(`${to}/`);
 };
 
-const menuItem = (label, icon, to, active = isActive(to)) => ({
-  label,
-  icon,
-  to,
-  active,
-});
+const toggleSection = (sectionId) => {
+  openSectionId.value = openSectionId.value === sectionId ? null : sectionId;
+};
 
-/** Flat list for branch / social roles */
-const menuItems = computed(() => {
-  if (normalizedRole.value === "branch") {
+const sectionHasActiveItem = (section) =>
+  (section.items || []).some((item) => isActive(item.to));
+
+const openActiveSection = () => {
+  const active = navigation.value.find(
+    (section) => section.label && sectionHasActiveItem(section),
+  );
+  openSectionId.value = active?.id || navigation.value.find((s) => s.label)?.id || null;
+};
+
+/** Single menu source — admin uses labeled groups; other roles use one unlabeled group */
+const navigation = computed(() => {
+  // Track role + path explicitly so active state and groups stay reactive
+  const role = normalizedRole.value;
+  void route.path;
+
+  if (role === "branch") {
     return [
-      menuItem("البيع المباشر", "◫", "/sales/direct"),
-      menuItem("حجز الكتب", "✓", "/reservations"),
-      menuItem("تسليم الحجز", "📝", "/reservations/deliver"),
-      menuItem("تقرير اليوم", "▤", "/reports/daily"),
+      {
+        id: "branch-main",
+        label: "",
+        items: [
+          { label: "البيع المباشر", icon: "◫", to: "/sales/direct" },
+          { label: "حجز الكتب", icon: "✓", to: "/reservations" },
+          { label: "تسليم الحجز", icon: "📝", to: "/reservations/deliver" },
+          { label: "تقرير اليوم", icon: "▤", to: "/reports/daily" },
+        ],
+      },
     ];
   }
 
-  if (normalizedRole.value === "social") {
+  if (role === "social") {
     return [
-      menuItem("احجز كتاب", "📝", "/books/reserve", isActive("/books/reserve") || isActive("/books")),
-      menuItem("تقرير اليوم", "▤", "/reports/daily"),
+      {
+        id: "social-main",
+        label: "",
+        items: [
+          { label: "احجز كتاب", icon: "📝", to: "/books/reserve" },
+          { label: "تقرير اليوم", icon: "▤", to: "/reports/daily" },
+        ],
+      },
     ];
   }
 
-  return [];
-});
-
-/** Categorized sections for admin */
-const menuSections = computed(() => {
-  if (normalizedRole.value !== "admin") return [];
-
+  // admin (default)
   return [
     {
+      id: "base",
       label: "البيانات الأساسية",
       items: [
-        menuItem("المنتجات", "＋", "/products"),
-        menuItem("المدرسون", "◉", "/teachers"),
-        menuItem("السنوات الدراسية", "▦", "/study-years"),
-        menuItem("الفروع", "⌂", "/branches"),
-        menuItem("الطلاب", "◎", "/students"),
+        { label: "المنتجات", icon: "＋", to: "/products" },
+        { label: "المدرسون", icon: "◉", to: "/teachers" },
+        { label: "السنوات الدراسية", icon: "▦", to: "/study-years" },
+        { label: "الفروع", icon: "⌂", to: "/branches" },
+        { label: "الطلاب", icon: "◎", to: "/students" },
       ],
     },
     {
+      id: "operations",
       label: "العمليات",
       items: [
-        menuItem("الحجوزات", "✓", "/reservations/manage"),
-        menuItem("استبدال واسترداد", "⇄", "/sales/exchange"),
+        { label: "الحجوزات", icon: "✓", to: "/reservations/manage" },
+        { label: "استبدال واسترداد", icon: "⇄", to: "/sales/exchange" },
       ],
     },
     {
+      id: "people",
       label: "الأشخاص",
-      items: [
-        menuItem("الموظفون", "♟", "/users"),
-      ],
+      items: [{ label: "الموظفون", icon: "♟", to: "/users" }],
     },
     {
+      id: "finance",
       label: "المالية والتقارير",
       items: [
-        menuItem("المصروفات", "﷼", "/expenses"),
-        menuItem("التقارير", "▤", "/reports"),
+        { label: "المصروفات", icon: "﷼", to: "/expenses" },
+        { label: "التقارير", icon: "▤", to: "/reports" },
       ],
     },
   ];
@@ -249,6 +291,14 @@ const userName = computed(() => authStore.user?.name || "مدير النظام")
 const userInitials = computed(() => userName.value?.slice(0, 2)?.toUpperCase() || "MN");
 const roleLabel = computed(() => roleMeta.value.label);
 const roleLabelShort = computed(() => roleMeta.value.short);
+
+watch(
+  () => [route.path, normalizedRole.value],
+  () => {
+    openActiveSection();
+  },
+  { immediate: true },
+);
 
 const confirmLogout = async () => {
   loggingOut.value = true;

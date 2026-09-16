@@ -16,30 +16,39 @@
     </template>
     <template #actions="{ data }">
       <div class="flex flex-wrap justify-center gap-1">
-        <Button
-          label="المعاملات"
-          icon="pi pi-list"
-          text
-          size="small"
-          severity="secondary"
-          @click="$emit('transactions', data)"
-        />
-        <Button
-          label="تعديل"
-          icon="pi pi-pencil"
-          text
-          size="small"
-          severity="info"
-          @click="$emit('edit', data)"
-        />
-        <Button
-          label="تعطيل"
-          icon="pi pi-trash"
-          text
-          size="small"
-          severity="danger"
-          @click="$emit('deactivate', data)"
-        />
+        <span title="المعاملات" class="inline-flex">
+          <Button
+            icon="pi pi-list"
+            text
+            rounded
+            size="small"
+            severity="secondary"
+            aria-label="المعاملات"
+            @click="$emit('transactions', data)"
+          />
+        </span>
+        <span title="تعديل" class="inline-flex">
+          <Button
+            icon="pi pi-pencil"
+            text
+            rounded
+            size="small"
+            severity="info"
+            aria-label="تعديل"
+            @click="$emit('edit', data)"
+          />
+        </span>
+        <span title="تعطيل" class="inline-flex">
+          <Button
+            icon="pi pi-ban"
+            text
+            rounded
+            size="small"
+            severity="danger"
+            aria-label="تعطيل"
+            @click="$emit('deactivate', data)"
+          />
+        </span>
       </div>
     </template>
   </AppDataTable>
@@ -65,6 +74,6 @@ const columns = [
   { field: "phone", header: "الهاتف" },
   { field: "studyYearName", header: "السنة الدراسية" },
   { field: "statusLabel", header: "الحالة", slot: "status" },
-  { field: "actions", header: "إجراء", slot: "actions", style: "width: 16rem" },
+  { field: "actions", header: "إجراء", slot: "actions", style: "width: 8rem" },
 ];
 </script>

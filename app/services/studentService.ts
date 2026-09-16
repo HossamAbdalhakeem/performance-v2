@@ -1,8 +1,6 @@
 import {
   apiFetch,
   firstRow,
-  asList,
-  asData,
   asPaginated,
   type PaginatedResponse,
 } from "~/utils/apiFetch";
@@ -47,8 +45,8 @@ export const studentService = {
   async getStudentTransactions(
     id: string,
     params: Record<string, any> = {},
-  ) {
-    return asData(
+  ): Promise<PaginatedResponse> {
+    return asPaginated(
       await apiFetch(`/students/${id}/transactions`, {
         method: "GET",
         params,

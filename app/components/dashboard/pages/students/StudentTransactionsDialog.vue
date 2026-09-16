@@ -54,7 +54,7 @@
           icon="pi pi-filter"
           severity="secondary"
           :loading="loading"
-          @click="loadTransactions"
+          @click="applyFilters"
         />
       </div>
 
@@ -63,17 +63,26 @@
         :columns="columns"
         :loading="loading"
         paginator
-        :rows="20"
+        lazy
+        :rows="pagination.perPage"
+        :first="pagination.first"
+        :total-records="pagination.total"
         empty-message="لا توجد معاملات لهذا الطالب."
+        @page="onPage"
       >
         <template #typeLabel="{ data }">
           <Tag
             :value="data.typeLabel"
-            :severity="data.type === 'SALE' ? 'info' : 'warn'"
+            :severity="typeSeverity(data.type)"
           />
         </template>
         <template #amountLabel="{ data }">
-          <span class="font-semibold text-emerald-700">{{ data.amountLabel }}</span>
+          <span
+            class="font-semibold"
+            :class="data.type === 'RETURN' ? 'text-rose-600' : 'text-emerald-700'"
+          >
+            {{ data.amountLabel }}
+          </span>
         </template>
         <template #statusLabel="{ data }">
           <Tag :value="data.statusLabel" :severity="data.statusSeverity" />
@@ -106,6 +115,20 @@ const { showError } = useAppToast();
 const loading = ref(false);
 const rows = ref([]);
 
+const pagination = reactive({
+  page: 1,
+  perPage: 20,
+  total: 0,
+  first: 0,
+});
+
+const TYPE_META = {
+  SALE: { label: "بيع", severity: "info" },
+  RESERVATION: { label: "حجز", severity: "warn" },
+  RETURN: { label: "مرتجع", severity: "danger" },
+  EXCHANGE: { label: "استبدال", severity: "secondary" },
+};
+
 const today = () => {
   const d = new Date();
   return d.toISOString().slice(0, 10);
@@ -130,11 +153,18 @@ const dialogTitle = computed(() =>
     : "معاملات الطالب",
 );
 
+const typeSeverity = (type) =>
+  TYPE_META[String(type || "").toUpperCase()]?.severity || "warn";
+
 const statusSeverity = (status, type) => {
-  if (type === "SALE") return "success";
-  if (status === "CANCELLED") return "danger";
-  if (status === "DELIVERED") return "success";
-  if (status === "READY") return "info";
+  const normalizedType = String(type || "").toUpperCase();
+  const normalizedStatus = String(status || "").toUpperCase();
+
+  if (normalizedType === "SALE") return "success";
+  if (normalizedType === "RETURN") return "danger";
+  if (normalizedStatus === "CANCELLED") return "danger";
+  if (normalizedStatus === "DELIVERED") return "success";
+  if (normalizedStatus === "READY") return "info";
   return "warn";
 };
 
@@ -150,7 +180,10 @@ const columns = [
 ];
 
 const buildParams = () => {
-  const params = {};
+  const params = {
+    page: pagination.page,
+    per_page: pagination.perPage,
+  };
   if (filters.from) {
     params.from = new Date(`${filters.from}T00:00:00`).toISOString();
   }
@@ -162,38 +195,107 @@ const buildParams = () => {
   return params;
 };
 
+const normalizeTransaction = (item) => {
+  const type = String(item.type || item.transactionType || "").toUpperCase();
+  const typeMeta = TYPE_META[type] || {
+    label: item.typeLabel || type || "—",
+    severity: "warn",
+  };
+  const dateValue = item.date || item.createdAt || item.created_at;
+  const amount = item.amount ?? item.totalAmount ?? item.paidAmount ?? 0;
+  const productName =
+    item.productName ||
+    item.product?.name ||
+    item.product_name ||
+    "—";
+  const teacherName =
+    item.teacherName ||
+    item.teacher?.name ||
+    item.teacher_name ||
+    "";
+  const branchName =
+    item.branchName ||
+    item.branch?.name ||
+    item.branch_name ||
+    "—";
+  const status = item.status || item.statusLabel || "";
+  const statusLabel =
+    item.statusLabel ||
+    status ||
+    (type === "RETURN" ? "مرتجع" : "—");
+
+  return {
+    ...item,
+    type,
+    typeLabel: typeMeta.label,
+    dateLabel: formatDateTime(dateValue, { empty: "—" }),
+    amountLabel: formatMoney(amount),
+    productName,
+    teacherName: teacherName ? `أ. ${teacherName}` : "—",
+    branchName,
+    quantity: item.quantity ?? item.qty ?? "—",
+    statusLabel,
+    statusSeverity: statusSeverity(status, type),
+  };
+};
+
+/** Support both `{ data, pagination }` and legacy `{ transactions }` shapes */
+const extractRows = (result) => {
+  if (Array.isArray(result?.data)) return result.data;
+  if (Array.isArray(result?.transactions)) return result.transactions;
+  if (Array.isArray(result)) return result;
+  return [];
+};
+
 const loadTransactions = async () => {
   if (!props.student?.id) return;
   loading.value = true;
   try {
-    const payload = await studentService.getStudentTransactions(
+    const result = await studentService.getStudentTransactions(
       props.student.id,
       buildParams(),
     );
-    rows.value = (payload?.transactions || []).map((item) => ({
-      ...item,
-      dateLabel: formatDateTime(item.date, { empty: "—" }),
-      amountLabel: formatMoney(item.amount),
-      teacherName: item.teacherName ? `أ. ${item.teacherName}` : "—",
-      statusSeverity: statusSeverity(item.status, item.type),
-    }));
+    rows.value = extractRows(result).map(normalizeTransaction);
+    pagination.total = Number(
+      result?.pagination?.total ?? extractRows(result).length,
+    );
   } catch (error) {
     rows.value = [];
+    pagination.total = 0;
     showError(error?.message || "تعذر تحميل معاملات الطالب.");
   } finally {
     loading.value = false;
   }
 };
 
+const resetPagination = () => {
+  pagination.page = 1;
+  pagination.first = 0;
+};
+
+const applyFilters = () => {
+  resetPagination();
+  loadTransactions();
+};
+
+const onPage = (event) => {
+  pagination.page = event.page + 1;
+  pagination.perPage = event.rows;
+  pagination.first = event.first;
+  loadTransactions();
+};
+
 watch(
-  () => props.visible,
-  async (open) => {
-    if (!open) return;
+  () => [props.visible, props.student?.id],
+  async ([open]) => {
+    if (!open || !props.student?.id) return;
     filters.from = monthStart();
     filters.to = today();
     filters.teacherId = null;
     filters.productId = null;
+    resetPagination();
     await loadTransactions();
   },
+  { immediate: true },
 );
 </script>
