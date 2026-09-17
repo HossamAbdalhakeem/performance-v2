@@ -30,51 +30,29 @@
     <DailyReportSkeleton v-if="loading" />
 
     <template v-else>
-      <div class="grid gap-4 xl:grid-cols-3">
-        <DailyReportHero
-          class="xl:col-span-1"
-          :is-customer-service="isCustomerService"
-          :payments-total="summary.paymentsTotal"
-          :payments-collected="summary.paymentsCollected ?? summary.paymentsTotal"
-          :refunds-total="Number(summary.refundsTotal || 0)"
-          :cancelled-reservations="summary.cancelledReservations"
-          :ready-reservations="summary.readyReservations"
-        />
+      <div class="grid gap-4 xl:grid-cols-3 xl:items-start">
+        <div class="flex flex-col gap-4 xl:col-span-1">
+          <DailyReportHero
+            :is-customer-service="isCustomerService"
+            :payments-total="summary.paymentsTotal"
+            :payments-collected="summary.paymentsCollected ?? summary.paymentsTotal"
+            :refunds-total="Number(summary.refundsTotal || 0)"
+            :cancelled-reservations="summary.cancelledReservations"
+            :ready-reservations="summary.readyReservations"
+          />
+          <PaymentMethodsReport
+            :items="paymentMethodItems"
+            total-label="إجمالي المحصل"
+          />
+        </div>
         <DailyReportActivitySection
           class="xl:col-span-2"
           :is-customer-service="isCustomerService"
           :activity="summary.activity"
+          :summary="summary"
           @open-detail="openDetail"
         />
       </div>
-
-      <PaymentMethodsReport
-        :items="paymentMethodItems"
-        total-label="إجمالي المحصل"
-      />
-
-      <ReportsFinancialsSection
-        v-if="!isCustomerService && hasFinancials"
-        :financials="summary.financials"
-        :reservation-deposits="summary.reservationDeposits"
-        is-branch-scoped
-      />
-
-      <DailyReportInventorySection
-        v-if="!isCustomerService"
-        :inventory="summary.inventory"
-        @open-detail="openDetail"
-      />
-      <DailyReportBranchesSection
-        v-else
-        :branches="branchBreakdown"
-      />
-
-      <DailyReportKpiGrid
-        :is-customer-service="isCustomerService"
-        :summary="summary"
-        @open-detail="openDetail"
-      />
     </template>
 
     <DailyReportDetailDialog
@@ -109,18 +87,6 @@ const DailyReportActivitySection = defineAsyncComponent(() =>
 const PaymentMethodsReport = defineAsyncComponent(() =>
   import("~/components/shared/payment-methods-report/index.vue"),
 );
-const ReportsFinancialsSection = defineAsyncComponent(() =>
-  import("~/components/dashboard/pages/reports/summary/ReportsFinancialsSection.vue"),
-);
-const DailyReportInventorySection = defineAsyncComponent(() =>
-  import("~/components/dashboard/pages/reports/daily/DailyReportInventorySection.vue"),
-);
-const DailyReportBranchesSection = defineAsyncComponent(() =>
-  import("~/components/dashboard/pages/reports/daily/DailyReportBranchesSection.vue"),
-);
-const DailyReportKpiGrid = defineAsyncComponent(() =>
-  import("~/components/dashboard/pages/reports/daily/DailyReportKpiGrid.vue"),
-);
 const DailyReportDetailDialog = defineAsyncComponent(() =>
   import("~/components/dashboard/pages/reports/daily/DailyReportDetailDialog.vue"),
 );
@@ -128,6 +94,7 @@ const DailyReportDetailDialog = defineAsyncComponent(() =>
 const DETAIL_SECTIONS = new Set([
   "sales",
   "reservations",
+  "undelivered",
   "delivered",
   "cancelled",
   "received",
@@ -158,13 +125,6 @@ const selectedDate = ref(todayInputValue());
 
 const summary = computed(() => report.value?.summary || {});
 
-const hasFinancials = computed(
-  () =>
-    summary.value.financials &&
-    typeof summary.value.financials === "object" &&
-    Object.keys(summary.value.financials).length > 0,
-);
-
 const isCustomerService = computed(() => {
   if (report.value?.scope === "customer_service") return true;
   if (report.value?.scope === "branch") return false;
@@ -189,10 +149,6 @@ const paymentMethodItems = computed(() =>
     : [],
 );
 
-const branchBreakdown = computed(() =>
-  Array.isArray(summary.value.byBranch) ? summary.value.byBranch : [],
-);
-
 const activeDetailRows = computed(() => {
   if (!activeDetailKey.value) return [];
   return detailCache.value[activeDetailKey.value] || [];
@@ -214,17 +170,40 @@ const openDetail = async (key) => {
   activeDetailKey.value = key;
   detailVisible.value = true;
 
-  if (detailCache.value[key]) return;
+  if (Object.hasOwn(detailCache.value, key)) return;
 
   detailLoading.value = true;
   try {
+    const apiSection = key === "undelivered" ? "reservations" : key;
     const sectionPayload = await reportService.getDailyReportSection(
-      key,
+      apiSection,
       dateRangeParams(),
     );
+    const rows = Array.isArray(sectionPayload?.rows)
+      ? sectionPayload.rows
+      : Array.isArray(sectionPayload?.reservations)
+        ? sectionPayload.reservations.map((item) => ({
+            time: item.createdAt || item.created_at,
+            number: item.reservationNumber || item.reservation_number || item.id,
+            student: item.student?.name || "-",
+            product: item.product?.name || "-",
+            status: item.status,
+            statusLabel: item.statusLabel || item.status || "-",
+            paid: item.paidAmount ?? item.paid_amount ?? 0,
+            by: item.createdBy?.fullName || item.createdBy?.name || "-",
+            paymentId: item.payments?.[0]?.id || null,
+            paymentMethod: item.payments?.[0]?.method || "",
+            paymentMethodLabel: item.payments?.[0]?.method || "",
+            proofReference: item.payments?.[0]?.proofReference || null,
+            hasProof: Boolean(item.payments?.[0]?.proofReference),
+            proofUrl: item.payments?.[0]?.proofUrl || null,
+            branch: item.branch?.name || "-",
+          }))
+        : [];
+
     detailCache.value = {
       ...detailCache.value,
-      [key]: Array.isArray(sectionPayload?.rows) ? sectionPayload.rows : [],
+      [key]: rows,
     };
   } catch (error) {
     showError(error?.message || "تعذر تحميل تفاصيل التقرير.");
@@ -245,8 +224,10 @@ const loadReport = async () => {
   activeDetailKey.value = null;
   try {
     report.value = await reportService.getDailyReport(
-      dateRangeParams(),
-      "summary",
+      {
+        ...dateRangeParams(),
+        section: "summary",
+      },
     );
   } catch (error) {
     report.value = null;

@@ -29,6 +29,14 @@
           :has-proof="data.hasProof"
         />
       </template>
+      <template #type="{ data }">
+        <span
+          class="inline-flex rounded-md px-2 py-1 text-xs font-bold"
+          :class="movementTypeClass(data.typeKey)"
+        >
+          {{ data.type }}
+        </span>
+      </template>
     </AppDataTable>
   </Dialog>
 </template>
@@ -57,11 +65,26 @@ const emit = defineEmits(["update:visible", "close"]);
 const movementColumns = [
   { field: "time", header: "الوقت" },
   { field: "product", header: "المنتج" },
-  { field: "type", header: "النوع" },
+  { field: "type", header: "النوع", slot: "type" },
   { field: "qty", header: "الكمية" },
   { field: "by", header: "بواسطة" },
-  { field: "note", header: "ملاحظة" },
 ];
+
+const MOVEMENT_TYPE_CLASS = {
+  STOCK_IN: "bg-teal-500/20 text-teal-300",
+  STOCK_OUT: "bg-orange-500/20 text-orange-300",
+  SALE: "bg-sky-500/20 text-sky-300",
+  RESERVATION: "bg-amber-500/20 text-amber-300",
+  RESERVATION_RELEASE: "bg-rose-500/20 text-rose-300",
+  RETURN: "bg-fuchsia-500/20 text-fuchsia-300",
+  DAMAGED: "bg-red-500/20 text-red-300",
+  ADJUSTMENT: "bg-violet-500/20 text-violet-300",
+  EXCHANGE: "bg-indigo-500/20 text-indigo-300",
+};
+
+const movementTypeClass = (typeKey) =>
+  MOVEMENT_TYPE_CLASS[String(typeKey || "").toUpperCase()] ||
+  "bg-slate-500/20 text-slate-300";
 
 const saleColumns = [
   { field: "time", header: "الوقت" },
@@ -153,6 +176,12 @@ const SECTION_META = computed(() => ({
     title: "الحجوزات الجديدة",
     columns: reservationColumns.value,
     emptyMessage: "لا توجد حجوزات جديدة في هذا اليوم.",
+    kind: "reservations",
+  },
+  undelivered: {
+    title: "حجوزات لم تستلم",
+    columns: reservationColumns.value,
+    emptyMessage: "لا توجد حجوزات غير مستلمة في هذا اليوم.",
     kind: "reservations",
   },
   delivered: {
@@ -269,9 +298,9 @@ const displayRows = computed(() => {
       time: formatDateTime(row.time, "time"),
       product: row.product || "-",
       type: row.typeLabel || row.type || "-",
+      typeKey: row.type || row.typeKey || "",
       qty: row.quantityLabel ?? String(row.quantityChange ?? 0),
       by: row.by || "-",
-      note: row.note || "-",
     }));
   }
 

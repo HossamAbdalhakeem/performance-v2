@@ -195,7 +195,7 @@ import {
   PaymentMethod,
   paymentMethodNeedsProof,
 } from "~/utils/paymentMethods";
-import { formatMoney } from "~/utils/format";
+import { formatMoney, formatDateTime } from "~/utils/format";
 import { getUserRoleLabel } from "~/enums/userRole";
 import PaymentProofThumb from "~/components/shared/payment-proof-thumb/index.vue";
 
@@ -245,6 +245,7 @@ const emptyMessage = computed(() =>
 
 const tableColumns = [
   { field: "reservationNumber", header: "رقم الحجز" },
+  { field: "createdAtLabel", header: "التاريخ والوقت" },
   { field: "studentName", header: "اسم الطالب" },
   { field: "phone", header: "الموبايل", fallback: "-" },
   { field: "productName", header: "المنتج" },
@@ -328,12 +329,15 @@ const normalizeReservation = (item) => {
   const paymentMethodValue = String(
     item.paymentMethod || item.payments?.[0]?.method || "CASH",
   ).toUpperCase();
+  const createdAt = item.createdAt || item.created_at || null;
 
   return {
     ...item,
     id: item.id,
     reservationNumber:
       item.reservationNumber || item.reservation_number || item.code || item.id,
+    createdAt,
+    createdAtLabel: formatDateTime(createdAt),
     studentName: item.student?.name || item.student_name || "-",
     phone: item.student?.phone || item.phone || "",
     teacherName:

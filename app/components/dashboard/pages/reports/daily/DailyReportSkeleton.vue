@@ -1,9 +1,7 @@
 <template>
-  <div class="space-y-6">
-    <div class="grid gap-4 xl:grid-cols-3">
-      <div
-        class="rounded-2xl border border-white/10 bg-slate-900 p-5 xl:col-span-1"
-      >
+  <div class="grid gap-4 xl:grid-cols-3 xl:items-start">
+    <div class="flex flex-col gap-4 xl:col-span-1">
+      <div class="rounded-2xl border border-white/10 bg-slate-900 p-5">
         <div class="flex items-start justify-between gap-3">
           <div class="w-full space-y-3">
             <Skeleton width="8rem" height="0.9rem" border-radius="6px" />
@@ -17,69 +15,46 @@
         </div>
       </div>
 
-      <div
-        class="rounded-2xl border border-white/10 bg-slate-900 p-5 xl:col-span-2"
-      >
+      <div class="rounded-2xl border border-white/10 bg-slate-900 p-5">
         <div class="mb-4 space-y-2">
-          <Skeleton width="10rem" height="1.1rem" border-radius="6px" />
-          <Skeleton width="16rem" height="0.75rem" border-radius="6px" />
+          <Skeleton width="8rem" height="1.1rem" border-radius="6px" />
+          <Skeleton width="14rem" height="0.75rem" border-radius="6px" />
         </div>
-        <div class="grid gap-4 md:grid-cols-2 md:items-center">
-          <div
-            class="mx-auto flex h-52 w-full max-w-[240px] items-center justify-center"
-          >
-            <Skeleton shape="circle" size="11rem" />
-          </div>
-          <div class="space-y-2.5">
+        <div class="flex flex-col items-center gap-4">
+          <Skeleton shape="circle" size="8rem" />
+          <div class="w-full space-y-2">
             <Skeleton
-              v-for="i in 4"
-              :key="`legend-skel-${i}`"
+              v-for="i in 3"
+              :key="`pay-skel-${i}`"
               width="100%"
-              height="2.75rem"
-              border-radius="12px"
+              height="1rem"
+              border-radius="6px"
             />
           </div>
         </div>
       </div>
     </div>
 
-    <div class="rounded-2xl border border-white/10 bg-slate-900 p-5">
+    <div
+      class="rounded-2xl border border-white/10 bg-slate-900 p-5 xl:col-span-2"
+    >
       <div class="mb-4 space-y-2">
-        <Skeleton width="8rem" height="1.1rem" border-radius="6px" />
-        <Skeleton width="18rem" height="0.75rem" border-radius="6px" />
+        <Skeleton width="10rem" height="1.1rem" border-radius="6px" />
+        <Skeleton width="16rem" height="0.75rem" border-radius="6px" />
       </div>
-      <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <Skeleton
-          v-for="i in 4"
-          :key="`inv-skel-${i}`"
-          width="100%"
-          height="5.5rem"
-          border-radius="12px"
-        />
-      </div>
-    </div>
-
-    <div>
-      <Skeleton class="mb-3" width="7rem" height="1rem" border-radius="6px" />
-      <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+      <div class="flex flex-col gap-5">
         <div
-          v-for="i in 8"
-          :key="`card-skel-${i}`"
-          class="rounded-2xl border border-white/10 bg-slate-900 p-4"
+          class="mx-auto flex h-52 w-full max-w-[240px] items-center justify-center"
         >
-          <div class="flex items-start justify-between gap-3">
-            <div class="w-full space-y-3">
-              <Skeleton width="55%" height="0.85rem" border-radius="6px" />
-              <Skeleton width="40%" height="1.75rem" border-radius="8px" />
-              <Skeleton width="70%" height="0.7rem" border-radius="6px" />
-            </div>
-            <Skeleton width="2.5rem" height="2.5rem" border-radius="12px" />
-          </div>
+          <Skeleton shape="circle" size="11rem" />
+        </div>
+        <div class="grid gap-2.5 sm:grid-cols-2 xl:grid-cols-3">
           <Skeleton
-            class="mt-3"
-            width="5.5rem"
-            height="0.7rem"
-            border-radius="6px"
+            v-for="i in 9"
+            :key="`legend-skel-${i}`"
+            width="100%"
+            height="2.75rem"
+            border-radius="12px"
           />
         </div>
       </div>

@@ -84,10 +84,20 @@ const ReportsCustomersSection = defineAsyncComponent(() =>
 
 defineOptions({ name: "ReportsPage" });
 
+const route = useRoute();
+const router = useRouter();
 const { showError } = useAppToast();
 
-const selectedDate = ref("today");
-const selectedBranch = ref("all");
+const DATE_PRESETS = new Set(["today", "week", "month"]);
+
+const selectedDate = ref(
+  DATE_PRESETS.has(String(route.query.date || ""))
+    ? String(route.query.date)
+    : "today",
+);
+const selectedBranch = ref(
+  route.query.branchId ? String(route.query.branchId) : "all",
+);
 const loading = ref(true);
 const report = ref(null);
 
@@ -139,18 +149,44 @@ const dateRangeParams = () => {
   };
 };
 
+/** API query params: from, to, branchId?, section */
 const reportParams = () => {
-  const params = { ...dateRangeParams() };
+  const params = {
+    ...dateRangeParams(),
+    section: "summary",
+  };
   if (selectedBranch.value && selectedBranch.value !== "all") {
     params.branchId = selectedBranch.value;
   }
   return params;
 };
 
+/** Keep the page URL in sync: /reports?date=today&branchId=...&section=summary */
+const syncRouteQuery = () => {
+  const query = {
+    date: selectedDate.value || "today",
+    section: "summary",
+  };
+  if (selectedBranch.value && selectedBranch.value !== "all") {
+    query.branchId = selectedBranch.value;
+  }
+
+  const current = route.query;
+  const same =
+    String(current.date || "today") === query.date &&
+    String(current.section || "summary") === query.section &&
+    String(current.branchId || "") === String(query.branchId || "");
+
+  if (!same) {
+    router.replace({ query });
+  }
+};
+
 const loadReport = async () => {
   loading.value = true;
+  syncRouteQuery();
   try {
-    report.value = await reportService.getDailyReport(reportParams(), "summary");
+    report.value = await reportService.getDailyReport(reportParams());
   } catch (error) {
     report.value = null;
     showError(error?.message || "تعذر تحميل التقارير.");

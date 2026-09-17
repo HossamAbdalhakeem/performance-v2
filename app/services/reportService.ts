@@ -23,35 +23,22 @@ export type DailyReportSection =
   | "returns"
   | "exchanges";
 
-const SECTION_HEADER: Record<DailyReportSection, string> = {
-  summary: "summary",
-  sales: "sales",
-  reservations: "reservations",
-  delivered: "delivered",
-  cancelled: "cancelled",
-  received: "received",
-  stockOut: "stockOut",
-  allMovements: "allMovements",
-  returns: "returns",
-  exchanges: "exchanges",
-};
-
 export const reportService = {
+  /**
+   * Daily report — all filters go as query params:
+   * ?from=&to=&branchId=&productId=&section=
+   */
   async getDailyReport(
     params: Record<string, any> = {},
     section: DailyReportSection = "summary",
   ) {
-    const range = {
-      ...todayRange(),
-      ...params,
-      section: SECTION_HEADER[section] || "summary",
-    };
     return asData(
       await apiFetch("/reports/daily", {
         method: "GET",
-        params: range,
-        headers: {
-          "X-Report-Section": SECTION_HEADER[section] || "summary",
+        params: {
+          ...todayRange(),
+          ...params,
+          section: section || "summary",
         },
       }),
     );
