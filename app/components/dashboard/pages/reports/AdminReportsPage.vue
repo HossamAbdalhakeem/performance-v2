@@ -22,7 +22,7 @@
     <ReportsLoadingSkeleton v-if="loading" />
 
     <template v-else>
-      <ReportsSummaryCards :summary="summary" :books="books" />
+      <ReportsSummaryCards :summary="summary" :books="books" :cards="cards" />
 
       <ReportsFinancialsSection
         :financials="financials"
@@ -122,6 +122,7 @@ const report = ref(null);
 
 const summary = computed(() => report.value?.summary || {});
 const books = computed(() => summary.value.books || {});
+const cards = computed(() => summary.value.cards || {});
 const salesBreakdown = computed(() => summary.value.salesBreakdown || {});
 const financials = computed(() => summary.value.financials || {});
 const isBranchScoped = computed(
