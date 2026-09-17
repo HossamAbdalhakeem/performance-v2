@@ -138,7 +138,7 @@ const bookColumns = [
 const emptyMessage = computed(() =>
   search.value.trim()
     ? "لا توجد منتجات مطابقة"
-    : "ابحث عن منتج لعرض النتائج.",
+    : "لا توجد منتجات متاحة.",
 );
 
 const normalizeBook = (item) => {
@@ -194,14 +194,10 @@ const searchBooks = async (term = search.value) => {
   const query = String(term ?? "").trim();
   search.value = query;
 
-  if (!query) {
-    books.value = [];
-    return;
-  }
-
   pending.value = true;
   try {
-    const result = await productService.searchProducts({ product: query });
+    const params = query ? { product: query } : {};
+    const result = await productService.searchProducts(params);
     books.value = (result?.data || []).map(normalizeBook);
   } catch (error) {
     books.value = [];
@@ -213,6 +209,6 @@ const searchBooks = async (term = search.value) => {
 
 const onShow = () => {
   search.value = "";
-  books.value = [];
+  searchBooks("");
 };
 </script>

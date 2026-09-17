@@ -86,10 +86,12 @@ export const useDailyReportPage = () => {
 
     activeDetailKey.value = key;
     detailVisible.value = true;
-
-    if (Object.hasOwn(detailCache.value, key)) return;
-
     detailLoading.value = true;
+    detailCache.value = {
+      ...detailCache.value,
+      [key]: [],
+    };
+
     try {
       const apiSection = key === "undelivered" ? "reservations" : key;
       const sectionPayload = await reportService.getDailyReportSection(
@@ -115,6 +117,10 @@ export const useDailyReportPage = () => {
         [key]: filteredRows,
       };
     } catch (error) {
+      detailCache.value = {
+        ...detailCache.value,
+        [key]: [],
+      };
       showError(error?.message || "تعذر تحميل تفاصيل التقرير.");
     } finally {
       detailLoading.value = false;

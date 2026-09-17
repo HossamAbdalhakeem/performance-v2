@@ -145,7 +145,7 @@ export const buildBranchHeroChips = (summary = {}) => {
     {
       key: "expenses",
       label: "المصروفات",
-      value: s.financials?.branchExpenses ?? 0,
+      value: s.branchExpenses ?? s.financials?.branchExpenses ?? 0,
       format: "money",
       valueClass: "text-amber-300",
     },
@@ -179,7 +179,7 @@ export const buildCustomerServiceHeroChips = (summary = {}) => {
     {
       key: "net",
       label: "الصافي",
-      value: s.paymentsTotal ?? s.activePaymentsCollected ?? 0,
+      value: s.paymentsTotal ?? 0,
       format: "money",
       valueClass: "text-emerald-300",
     },

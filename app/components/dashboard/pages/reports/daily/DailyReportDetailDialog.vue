@@ -321,14 +321,30 @@ const displayRows = computed(() => {
   }
 
   if (kind === "movement") {
-    return rows.map((row) => ({
-      time: formatDateTime(row.time, "time"),
-      product: row.product || "-",
-      type: getStockMovementLabel(row.type || row.typeKey),
-      typeKey: row.type || row.typeKey || "",
-      qty: row.quantityLabel ?? String(row.quantityChange ?? 0),
-      by: row.by || "-",
-    }));
+    const sectionTypeOverride =
+      props.sectionKey === "received"
+        ? "STOCK_IN"
+        : props.sectionKey === "stockOut"
+          ? "STOCK_OUT"
+          : null;
+
+    return rows.map((row) => {
+      const rawType = String(row.type || row.typeKey || "").toUpperCase();
+      const qtyChange = Number(row.quantityChange ?? 0);
+      const inferredType =
+        sectionTypeOverride ||
+        rawType ||
+        (qtyChange > 0 ? "STOCK_IN" : qtyChange < 0 ? "STOCK_OUT" : "");
+
+      return {
+        time: formatDateTime(row.time, "time"),
+        product: row.product || "-",
+        type: getStockMovementLabel(inferredType),
+        typeKey: inferredType,
+        qty: row.quantityLabel ?? String(row.quantityChange ?? 0),
+        by: row.by || "-",
+      };
+    });
   }
 
   if (kind === "returns") {

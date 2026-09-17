@@ -8,7 +8,7 @@
     :loading="loading"
     :date-from="dateFrom"
     :date-to="dateTo"
-    :payments-total="summary.paymentsTotal ?? summary.activePaymentsCollected ?? summary.paymentsCollected"
+    :payments-total="summary.paymentsTotal ?? 0"
     :refunds-total="Number(summary.refundsTotal || 0)"
     :hero-chips="heroChips"
     :payment-method-items="paymentMethodItems"
