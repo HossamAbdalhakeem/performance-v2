@@ -1,6 +1,6 @@
 <template>
   <div
-    class="reports-filters flex w-full flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end"
+    class="reports-filters flex w-full flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-end sm:justify-end"
   >
     <AppGlobalSelectBranch
       :model-value="branch"
@@ -13,14 +13,15 @@
       select-class="w-full"
       @update:model-value="onBranchChange"
     />
-    <Select
-      :model-value="date"
-      :options="dateOptions"
-      optionLabel="label"
-      optionValue="value"
-      placeholder="اختيار التاريخ"
-      class="reports-filter-item w-full"
-      @update:model-value="onDateChange"
+    <DateRangePicker
+      class="reports-filter-item"
+      label=""
+      placeholder="اختر الفترة"
+      :from="from"
+      :to="to"
+      @update:from="onFromChange"
+      @update:to="onToChange"
+      @change="onRangeChange"
     />
     <Button
       icon="pi pi-refresh"
@@ -33,34 +34,42 @@
 </template>
 
 <script setup>
-import Select from "primevue/select";
 import Button from "primevue/button";
 import AppGlobalSelectBranch from "~/components/shared/app-global-select-branch/index.vue";
+import DateRangePicker from "~/components/shared/date-range-picker/index.vue";
 
 defineOptions({ name: "ReportsFilters" });
 
 defineProps({
   branch: { type: [String, Number], default: "all" },
-  date: { type: String, default: "today" },
+  from: { type: String, default: null },
+  to: { type: String, default: null },
   loading: { type: Boolean, default: false },
 });
 
-const emit = defineEmits(["update:branch", "update:date", "change", "refresh"]);
-
-const dateOptions = [
-  { label: "اليوم", value: "today" },
-  { label: "الأسبوع", value: "week" },
-  { label: "الشهر", value: "month" },
-];
+const emit = defineEmits([
+  "update:branch",
+  "update:from",
+  "update:to",
+  "change",
+  "refresh",
+]);
 
 const onBranchChange = (value) => {
   emit("update:branch", value);
   emit("change");
 };
 
-const onDateChange = (value) => {
-  emit("update:date", value);
-  emit("change");
+const onFromChange = (value) => {
+  emit("update:from", value);
+};
+
+const onToChange = (value) => {
+  emit("update:to", value);
+};
+
+const onRangeChange = (payload) => {
+  emit("change", payload);
 };
 </script>
 
@@ -72,9 +81,9 @@ const onDateChange = (value) => {
 
 @media (min-width: 640px) {
   .reports-filters :deep(.reports-filter-item) {
-    width: 12rem;
-    flex: 1 1 12rem;
-    max-width: 16rem;
+    width: 14rem;
+    flex: 1 1 14rem;
+    max-width: 18rem;
   }
 }
 

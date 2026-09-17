@@ -11,7 +11,7 @@
         <p class="mt-2 text-3xl font-extrabold tracking-tight text-white">
           {{ formatMoney(paymentsTotal, "rtl") }}
         </p>
-        <p v-if="refundsTotal > 0" class="mt-2 text-xs text-rose-300">
+        <p v-if="Number(refundsTotal) > 0" class="mt-2 text-xs text-rose-300">
           بعد خصم الاسترداد {{ formatMoney(refundsTotal, "rtl") }}
         </p>
       </div>
@@ -22,28 +22,18 @@
       </span>
     </div>
     <div
+      v-if="chips.length"
       class="mt-5 grid gap-3 text-sm"
-      :class="showExpenses ? 'grid-cols-3' : 'grid-cols-2'"
+      :class="chipGridClass"
     >
-      <div class="rounded-xl border border-white/5 bg-black/20 px-3 py-2">
-        <p class="text-xs text-slate-400">المحصل</p>
-        <p class="mt-1 font-bold text-sky-300">
-          {{ formatMoney(paymentsCollected, "rtl") }}
-        </p>
-      </div>
       <div
-        v-if="showExpenses"
+        v-for="chip in chips"
+        :key="chip.key || chip.label"
         class="rounded-xl border border-white/5 bg-black/20 px-3 py-2"
       >
-        <p class="text-xs text-slate-400">المصروفات</p>
-        <p class="mt-1 font-bold text-amber-300">
-          {{ formatMoney(expenses, "rtl") }}
-        </p>
-      </div>
-      <div class="rounded-xl border border-white/5 bg-black/20 px-3 py-2">
-        <p class="text-xs text-slate-400">{{ secondaryLabel }}</p>
-        <p class="mt-1 font-bold" :class="secondaryValueClass">
-          {{ secondaryValue }}
+        <p class="text-xs text-slate-400">{{ chip.label }}</p>
+        <p class="mt-1 font-bold" :class="chip.valueClass || 'text-white'">
+          {{ formatChipValue(chip) }}
         </p>
       </div>
     </div>
@@ -56,32 +46,22 @@ import { formatMoney } from "~/utils/format";
 defineOptions({ name: "DailyReportHero" });
 
 const props = defineProps({
-  isCustomerService: { type: Boolean, default: false },
+  title: { type: String, default: "صافي المدفوعات" },
   paymentsTotal: { type: [Number, String], default: 0 },
-  paymentsCollected: { type: [Number, String], default: 0 },
   refundsTotal: { type: [Number, String], default: 0 },
-  expenses: { type: [Number, String], default: 0 },
-  cancelledReservations: { type: [Number, String], default: 0 },
-  readyReservations: { type: [Number, String], default: 0 },
+  /** @type {{ key?: string, label: string, value: number|string, format?: 'money'|'number', valueClass?: string }[]} */
+  chips: { type: Array, default: () => [] },
 });
 
-const showExpenses = computed(() => !props.isCustomerService);
+const chipGridClass = computed(() => {
+  const count = props.chips.length;
+  if (count <= 1) return "grid-cols-1";
+  if (count === 2) return "grid-cols-2";
+  return "grid-cols-3";
+});
 
-const title = computed(() =>
-  props.isCustomerService ? "مدفوعات حجوزاتك" : "صافي المدفوعات",
-);
-
-const secondaryLabel = computed(() =>
-  props.isCustomerService ? "جاهزة للتسليم" : "حجوزات ملغاة",
-);
-
-const secondaryValue = computed(() =>
-  props.isCustomerService
-    ? Number(props.readyReservations || 0)
-    : Number(props.cancelledReservations || 0),
-);
-
-const secondaryValueClass = computed(() =>
-  props.isCustomerService ? "text-emerald-300" : "text-rose-300",
-);
+const formatChipValue = (chip) => {
+  if (chip.format === "money") return formatMoney(chip.value, "rtl");
+  return Number(chip.value || 0);
+};
 </script>

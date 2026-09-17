@@ -71,6 +71,7 @@ export const REPORT_ACTIVITY_KEY_LABELS = {
   stockOut: "سحب",
   returns: "مرتجعات",
   exchanges: "استبدالات",
+  refunds: "عمليات الاسترداد",
   reservations: "الحجوزات",
   allMovements: "حركات المخزن",
 };
@@ -88,6 +89,7 @@ export const REPORT_METRIC_COLORS = {
   stockMovements: "#8b5cf6",
   returns: "#d946ef",
   exchanges: "#6366f1",
+  refunds: "#f43f5e",
   reservations: "#f59e0b",
   ready: "#10b981",
   waiting: "#06b6d4",

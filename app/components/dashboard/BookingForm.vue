@@ -10,18 +10,21 @@
       >
         {{ title }}
       </h2>
-      <NuxtLink
-        v-if="backTo"
-        :to="backTo"
-        class="rounded-xl border px-4 py-2 text-sm transition"
-        :class="
-          isCustomerService
-            ? 'border-white/10 text-slate-300 hover:bg-white/5'
-            : 'border-slate-200 text-slate-600 hover:bg-slate-50'
-        "
-      >
-        ← رجوع للكتب
-      </NuxtLink>
+      <div class="flex flex-wrap items-center gap-2">
+        <slot name="header-actions" />
+        <NuxtLink
+          v-if="backTo"
+          :to="backTo"
+          class="rounded-xl border px-4 py-2 text-sm transition"
+          :class="
+            isCustomerService
+              ? 'border-white/10 text-slate-300 hover:bg-white/5'
+              : 'border-slate-200 text-slate-600 hover:bg-slate-50'
+          "
+        >
+          ← رجوع للكتب
+        </NuxtLink>
+      </div>
     </div>
 
     <div class="grid gap-4">
@@ -291,6 +294,8 @@ const props = defineProps({
   showReceipt: { type: Boolean, default: false },
   backTo: { type: String, default: "" },
   initialProduct: { type: [String, Number], default: "" },
+  /** Prefill from CS product search (product + optional branch). */
+  initialSelection: { type: Object, default: null },
   /** API role e.g. CUSTOMER_SERVICE, or dashboard role "social" */
   role: { type: String, default: "" },
   submitFn: { type: Function, required: true },
@@ -533,7 +538,28 @@ const onProductTypeChange = async (value) => {
   await loadProducts();
 };
 
+const hydrateFromInitialSelection = async () => {
+  const selection = props.initialSelection;
+  if (!selection?.productId) return;
+
+  if (selection.branchId) {
+    form.branchId = selection.branchId;
+  }
+  form.studyYearId = selection.studyYearId || null;
+  form.teacherId = selection.teacherId || null;
+  form.productType = String(selection.type || "").toUpperCase() || null;
+  form.productId = selection.productId;
+
+  if (canSelectProduct.value) {
+    await loadProducts();
+  }
+};
+
 const hydrateFromInitialProduct = async () => {
+  if (props.initialSelection?.productId) {
+    await hydrateFromInitialSelection();
+    return;
+  }
   if (!props.initialProduct) return;
 
   try {
@@ -737,8 +763,17 @@ watch(
 watch(
   () => props.initialProduct,
   async (value) => {
+    if (props.initialSelection?.productId) return;
     if (value) await hydrateFromInitialProduct();
   },
+);
+
+watch(
+  () => props.initialSelection,
+  async (value) => {
+    if (value?.productId) await hydrateFromInitialSelection();
+  },
+  { deep: true },
 );
 
 watch(isCustomerService, async (value) => {
@@ -758,7 +793,7 @@ onMounted(async () => {
     if (isCustomerService.value && form.paymentMethod === PaymentMethod.CASH) {
       form.paymentMethod = defaultPaymentMethod.value;
     }
-    if (props.initialProduct) {
+    if (props.initialSelection?.productId || props.initialProduct) {
       await hydrateFromInitialProduct();
     }
   } catch (error) {

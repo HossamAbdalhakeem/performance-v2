@@ -70,6 +70,13 @@ export const productService = {
     return asPaginated(await apiFetch("/products", { method: "GET", params }));
   },
 
+  /** Customer-service product search with per-branch availability. */
+  async searchProducts(params: Record<string, any> = {}): Promise<PaginatedResponse> {
+    return asPaginated(
+      await apiFetch("/products/search", { method: "GET", params }),
+    );
+  },
+
   async getProduct(id: string) {
     return firstRow(await apiFetch(`/products/${id}`, { method: "GET" }));
   },

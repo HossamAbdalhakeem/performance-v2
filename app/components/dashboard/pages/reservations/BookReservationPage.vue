@@ -9,9 +9,14 @@
           :show-receipt="showReceipt"
           :back-to="backTo"
           :initial-product="initialProduct"
+          :initial-selection="initialSelection"
           :role="bookingRole"
           :submit-fn="submitReservation"
-        />
+        >
+          <template v-if="$slots['header-actions']" #header-actions>
+            <slot name="header-actions" />
+          </template>
+        </BookingForm>
       </template>
     </Card>
   </div>
@@ -30,6 +35,7 @@ defineProps({
   showReceipt: { type: Boolean, default: false },
   backTo: { type: String, default: "" },
   initialProduct: { type: [String, Number], default: "" },
+  initialSelection: { type: Object, default: null },
 });
 
 const { bookingRole, isCustomerService } = useBookingRole();

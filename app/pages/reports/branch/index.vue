@@ -3,8 +3,7 @@
 </template>
 
 <script setup>
-/** @deprecated Prefer BranchEmployeeReportsPage / CustomerServiceReportsPage */
 import BranchEmployeeReportsPage from "~/components/dashboard/pages/reports/BranchEmployeeReportsPage.vue";
 
-defineOptions({ name: "BranchDailyReportPage" });
+definePageMeta({ middleware: ["local-pages"] });
 </script>

@@ -268,10 +268,7 @@ const isActive = (to) => {
   const path = route.path;
   if (to === "/reservations") return path === "/reservations";
   if (to === "/reports") {
-    return (
-      path === "/reports" ||
-      (path.startsWith("/reports/") && !path.startsWith("/reports/daily"))
-    );
+    return path === "/reports";
   }
   return path === to || path.startsWith(`${to}/`);
 };
@@ -305,7 +302,7 @@ const navigation = computed(() => {
           { label: "البيع المباشر", icon: "◫", to: "/sales/direct" },
           { label: "حجز الكتب", icon: "✓", to: "/reservations" },
           { label: "تسليم الحجز", icon: "📝", to: "/reservations/deliver" },
-          { label: "تقرير اليوم", icon: "▤", to: "/reports/daily" },
+          { label: "تقرير اليوم", icon: "▤", to: "/reports/branch" },
         ],
       },
     ];
@@ -318,7 +315,7 @@ const navigation = computed(() => {
         label: "",
         items: [
           { label: "احجز كتاب", icon: "📝", to: "/books/reserve" },
-          { label: "تقرير اليوم", icon: "▤", to: "/reports/daily" },
+          { label: "تقرير اليوم", icon: "▤", to: "/reports/customer-service" },
         ],
       },
     ];

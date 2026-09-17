@@ -151,15 +151,39 @@ const returnColumns = [
   { field: "by", header: "بواسطة" },
 ];
 
-const exchangeColumns = [
-  { field: "time", header: "الوقت" },
-  { field: "student", header: "الطالب" },
-  { field: "fromProduct", header: "من منتج" },
-  { field: "toProduct", header: "إلى منتج" },
-  { field: "quantity", header: "الكمية" },
-  { field: "difference", header: "فرق السعر" },
-  { field: "by", header: "بواسطة" },
-];
+const exchangeColumns = computed(() => {
+  const cols = [
+    { field: "time", header: "الوقت" },
+    { field: "student", header: "الطالب" },
+    { field: "fromProduct", header: "من منتج" },
+    { field: "toProduct", header: "إلى منتج" },
+    { field: "quantity", header: "الكمية" },
+    { field: "difference", header: "فرق السعر" },
+  ];
+  if (props.isCustomerService) {
+    cols.push({ field: "branch", header: "الفرع" });
+  }
+  cols.push({ field: "by", header: "بواسطة" });
+  return cols;
+});
+
+const refundColumns = computed(() => {
+  const cols = [
+    { field: "time", header: "الوقت" },
+    { field: "number", header: "رقم الحجز" },
+    { field: "student", header: "الطالب" },
+    { field: "product", header: "المنتج" },
+  ];
+  if (props.isCustomerService) {
+    cols.push({ field: "branch", header: "الفرع" });
+  }
+  cols.push(
+    { field: "amount", header: "المبلغ" },
+    { field: "method", header: "طريقة الاسترداد" },
+    { field: "by", header: "بواسطة" },
+  );
+  return cols;
+});
 
 const SECTION_META = computed(() => ({
   sales: {
@@ -218,9 +242,15 @@ const SECTION_META = computed(() => ({
   },
   exchanges: {
     title: "الاستبدالات",
-    columns: exchangeColumns,
+    columns: exchangeColumns.value,
     emptyMessage: "لا توجد استبدالات في هذا اليوم.",
     kind: "exchanges",
+  },
+  refunds: {
+    title: "عمليات الاسترداد",
+    columns: refundColumns.value,
+    emptyMessage: "لا توجد عمليات استرداد في هذه الفترة.",
+    kind: "refunds",
   },
 }));
 
@@ -320,6 +350,20 @@ const displayRows = computed(() => {
       toProduct: row.toProduct || "-",
       quantity: row.quantity ?? 0,
       difference: formatMoney(row.difference, "rtl"),
+      branch: row.branch || "-",
+      by: row.by || "-",
+    }));
+  }
+
+  if (kind === "refunds") {
+    return rows.map((row) => ({
+      time: formatDateTime(row.time, "time"),
+      number: row.number || "-",
+      student: row.student || "-",
+      product: row.product || "-",
+      branch: row.branch || "-",
+      amount: formatMoney(row.amount, "rtl"),
+      method: getPaymentMethodLabel(row.method),
       by: row.by || "-",
     }));
   }

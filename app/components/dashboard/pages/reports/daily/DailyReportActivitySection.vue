@@ -2,8 +2,7 @@
   <div class="rounded-2xl border border-white/10 bg-slate-900/90 p-5">
     <div class="mb-4 flex flex-wrap items-center justify-between gap-2">
       <div>
-        <p class="font-bold text-white">توزيع نشاط اليوم</p>
-    
+        <p class="font-bold text-white">{{ title }}</p>
       </div>
     </div>
     <div class="flex flex-col gap-5">
@@ -50,20 +49,28 @@
               v-for="item in group.items"
               :key="item.key"
               type="button"
-              class="flex w-full items-center justify-between gap-3 rounded-xl border border-white/5 bg-slate-950/40 px-3 py-2.5 text-right transition hover:border-white/20 hover:bg-slate-950/70"
-              :disabled="!item.sectionKey"
-              :class="item.sectionKey ? 'cursor-pointer' : 'cursor-default opacity-80'"
-              @click="item.sectionKey && $emit('open-detail', item.sectionKey)"
+              class="flex w-full items-center justify-between gap-3 rounded-xl border border-white/5 bg-slate-950/40 px-3 py-2.5 text-right transition"
+              :disabled="!isClickable(item)"
+              :class="
+                isClickable(item)
+                  ? 'cursor-pointer hover:border-white/20 hover:bg-slate-950/70'
+                  : 'cursor-default opacity-80'
+              "
+              @click="isClickable(item) && $emit('open-detail', item.sectionKey)"
             >
               <div class="flex min-w-0 items-center gap-2">
                 <span
                   class="h-2.5 w-2.5 shrink-0 rounded-full"
                   :style="{ backgroundColor: item.color }"
                 />
-                <span class="truncate text-sm text-slate-300">{{ item.label }}</span>
+                <span class="truncate text-sm text-slate-300">{{
+                  item.label
+                }}</span>
               </div>
               <div class="flex shrink-0 items-baseline gap-2">
-                <span class="text-sm font-bold text-white">{{ item.value }}</span>
+                <span class="text-sm font-bold text-white">{{
+                  item.value
+                }}</span>
               </div>
             </button>
           </div>
@@ -76,7 +83,10 @@
 <script setup>
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 import { Doughnut } from "vue-chartjs";
-import { REPORT_ACTIVITY_KEY_LABELS, getReportMetricColor } from "~/utils/domainLabels";
+import {
+  REPORT_ACTIVITY_KEY_LABELS,
+  getReportMetricColor,
+} from "~/utils/domainLabels";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
@@ -92,6 +102,7 @@ const SECTION_MAP = {
   allMovements: "allMovements",
   returns: "returns",
   exchanges: "exchanges",
+  refunds: "refunds",
   reservations: "reservations",
   ready: null,
   waiting: null,
@@ -99,140 +110,35 @@ const SECTION_MAP = {
 };
 
 const props = defineProps({
-  isCustomerService: { type: Boolean, default: false },
+  title: { type: String, default: "توزيع نشاط اليوم" },
+  /** Metric definitions built by the parent page */
+  metrics: {
+    type: Array,
+    default: () => [],
+  },
   activity: {
     type: Object,
     default: () => ({ items: [], total: 0 }),
   },
-  summary: { type: Object, default: () => ({}) },
 });
 
 defineEmits(["open-detail"]);
 
-
-
-const metricDefs = computed(() => {
-  const s = props.summary || {};
-  const undelivered = Number(
-    s.undeliveredReservations ??
-      Math.max(
-        0,
-        Number(s.reservations ?? 0) -
-          Number(s.deliveredReservations ?? 0) -
-          Number(s.cancelledReservations ?? 0),
-      ),
-  );
-
-  if (props.isCustomerService) {
-    return [
-      {
-        group: "reservations",
-        groupLabel: "الحجوزات",
-        key: "reservations",
-        label: "الحجوزات الجديدة",
-        value: Number(s.reservations ?? 0),
-      },
-      {
-        group: "reservations",
-        groupLabel: "الحجوزات",
-        key: "ready",
-        label: "جاهزة للتسليم",
-        value: Number(s.readyReservations ?? 0),
-      },
-      {
-        group: "reservations",
-        groupLabel: "الحجوزات",
-        key: "waiting",
-        label: "بانتظار المخزون",
-        value: Number(s.waitingReservations ?? 0),
-      },
-      {
-        group: "branches",
-        groupLabel: "الفروع",
-        key: "branches",
-        label: "الفروع",
-        value: Number(s.branchesCount ?? 0),
-      },
-    ];
-  }
-
-  return [
-    {
-      group: "sales",
-      groupLabel: "المبيعات",
-      key: "sales",
-      label: "المبيعات",
-      value: Number(s.sales ?? 0),
-    },
-    {
-      group: "reservations",
-      groupLabel: "الحجوزات",
-      key: "delivered",
-      label: "حجوزات مسلّمة",
-      value: Number(s.deliveredReservations ?? 0),
-    },
-    {
-      group: "reservations",
-      groupLabel: "الحجوزات",
-      key: "undelivered",
-      label: "حجوزات لم تستلم",
-      value: undelivered,
-    },
-    {
-      group: "reservations",
-      groupLabel: "الحجوزات",
-      key: "cancelled",
-      label: "حجوزات ملغاة",
-      value: Number(s.cancelledReservations ?? 0),
-    },
-    {
-      group: "inventory",
-      groupLabel: "المخزن",
-      key: "received",
-      label: "المنتجات المستلمة",
-      value: Number(s.receivedQty ?? 0),
-    },
-    {
-      group: "inventory",
-      groupLabel: "المخزن",
-      key: "stockOut",
-      label: "المنتجات المسحوبة",
-      value: Number(s.stockOutQty ?? 0),
-    },
-    {
-      group: "inventory",
-      groupLabel: "المخزن",
-      key: "allMovements",
-      label: "حركات المخزن",
-      value: Number(s.stockMovements ?? 0),
-    },
-    {
-      group: "returns",
-      groupLabel: "المرتجعات والاستبدال",
-      key: "returns",
-      label: "المرتجعات",
-      value: Number(s.returns ?? 0),
-    },
-    {
-      group: "returns",
-      groupLabel: "المرتجعات والاستبدال",
-      key: "exchanges",
-      label: "الاستبدالات",
-      value: Number(s.exchanges ?? 0),
-    },
-  ];
-});
+const isClickable = (item) =>
+  Boolean(item?.sectionKey) && Number(item?.value || 0) > 0;
 
 const activityByKey = computed(() => {
   const map = {};
-  for (const item of Array.isArray(props.activity?.items) ? props.activity.items : []) {
+  for (const item of Array.isArray(props.activity?.items)
+    ? props.activity.items
+    : []) {
     map[item.key] = item;
   }
   return map;
 });
 
 const legend = computed(() => {
-  const defs = metricDefs.value;
+  const defs = Array.isArray(props.metrics) ? props.metrics : [];
   const sum = defs.reduce((acc, item) => acc + Number(item.value || 0), 0);
 
   return defs.map((def) => {
@@ -255,7 +161,10 @@ const legend = computed(() => {
       value,
       percent,
       color: getReportMetricColor(def.key),
-      sectionKey: SECTION_MAP[def.key] ?? null,
+      sectionKey:
+        def.sectionKey !== undefined
+          ? def.sectionKey
+          : (SECTION_MAP[def.key] ?? null),
     };
   });
 });
@@ -285,7 +194,9 @@ const total = computed(() => {
   return legend.value.reduce((acc, item) => acc + Number(item.value || 0), 0);
 });
 
-const hasData = computed(() => total.value > 0 || legend.value.some((item) => item.value > 0));
+const hasData = computed(
+  () => total.value > 0 || legend.value.some((item) => item.value > 0),
+);
 
 const chartData = computed(() => ({
   labels: legend.value.map((item) => item.label),
