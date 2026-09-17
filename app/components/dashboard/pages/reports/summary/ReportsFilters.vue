@@ -1,6 +1,6 @@
 <template>
   <div
-    class="reports-filters relative flex w-full flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-end sm:justify-end"
+    class="reports-filters relative flex w-full min-w-0 flex-col gap-2 lg:flex-row lg:flex-wrap lg:items-center lg:justify-end"
   >
     <ProductSelect
       :model-value="book"
@@ -9,7 +9,7 @@
       label=""
       placeholder="اختيار الكتاب"
       show-clear
-      wrapper-class="reports-filter-item"
+      wrapper-class="w-full min-w-0 lg:w-52 lg:shrink-0"
       @update:model-value="onBookChange"
     />
     <AppGlobalSelectBranch
@@ -19,7 +19,7 @@
       include-all-option
       all-option-label="كل الفروع"
       all-option-value="all"
-      wrapper-class="reports-filter-item"
+      wrapper-class="w-full min-w-0 lg:w-52 lg:shrink-0"
       select-class="w-full"
       @update:model-value="onBranchChange"
     />
@@ -30,11 +30,11 @@
       option-label="label"
       option-value="value"
       placeholder="الفترة"
-      class="reports-filter-item w-full"
+      class="w-full min-w-0 lg:w-52 lg:shrink-0"
       @update:model-value="onPeriodChange"
     >
       <template #value="{ placeholder: valuePlaceholder }">
-        <span>{{ selectedPeriodLabel || valuePlaceholder }}</span>
+        <span class="truncate">{{ selectedPeriodLabel || valuePlaceholder }}</span>
       </template>
     </Select>
 
@@ -55,7 +55,7 @@
     <Button
       icon="pi pi-refresh"
       severity="secondary"
-      class="reports-refresh-btn w-full shrink-0 sm:w-auto"
+      class="h-11 w-11 shrink-0 self-end"
       :loading="loading"
       @click="$emit('refresh')"
     />
@@ -239,38 +239,6 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.reports-filters :deep(.reports-filter-item) {
-  width: 100%;
-  min-width: 0;
-}
-
-@media (min-width: 640px) {
-  .reports-filters :deep(.reports-filter-item) {
-    width: 14rem;
-    flex: 1 1 14rem;
-    max-width: 18rem;
-  }
-}
-
-.reports-filters :deep(.reports-filter-item .p-select),
-.reports-filters :deep(.p-select.reports-filter-item) {
-  width: 100% !important;
-}
-
-.reports-filters :deep(.reports-refresh-btn.p-button) {
-  width: 100%;
-  min-height: 2.75rem;
-  height: 2.75rem;
-  padding-inline: 0.9rem;
-}
-
-@media (min-width: 640px) {
-  .reports-filters :deep(.reports-refresh-btn.p-button) {
-    width: 2.75rem;
-    min-width: 2.75rem;
-  }
-}
-
 .reports-custom-range-host {
   position: absolute;
   width: 0;

@@ -1,6 +1,6 @@
 <template>
-  <div class="flex flex-col gap-3">
-    <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+  <div class="flex w-full min-w-0 flex-col gap-3">
+    <div class="grid w-full min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
       <ReportKpiCard
         compact
         label="إجمالي المبيعات"
@@ -26,36 +26,48 @@
       />
     </div>
 
-    <div class="grid gap-3 sm:grid-cols-2">
+    <div class="grid w-full min-w-0 grid-cols-1 gap-3 sm:grid-cols-2">
       <ReportKpiCard label="الكتب">
-        <div class="mt-2 grid grid-cols-3 gap-2 text-center">
-          <div>
-            <p class="text-xs text-slate-400">كل</p>
-            <p class="text-lg font-bold text-white">{{ books.total ?? 0 }}</p>
+        <div class="mt-2 grid grid-cols-3 gap-1 text-center sm:gap-2">
+          <div class="min-w-0">
+            <p class="truncate text-xs text-slate-400">كل</p>
+            <p class="truncate text-base font-bold text-white sm:text-lg">
+              {{ books.total ?? 0 }}
+            </p>
           </div>
-          <div>
-            <p class="text-xs text-slate-400">محجوز</p>
-            <p class="text-lg font-bold text-white">{{ books.reserved ?? 0 }}</p>
+          <div class="min-w-0">
+            <p class="truncate text-xs text-slate-400">محجوز</p>
+            <p class="truncate text-base font-bold text-white sm:text-lg">
+              {{ books.reserved ?? 0 }}
+            </p>
           </div>
-          <div>
-            <p class="text-[11px] text-slate-400">متاح بيع مباشر</p>
-            <p class="text-lg font-bold text-white">{{ books.available ?? 0 }}</p>
+          <div class="min-w-0">
+            <p class="truncate text-[11px] text-slate-400">متاح بيع مباشر</p>
+            <p class="truncate text-base font-bold text-white sm:text-lg">
+              {{ books.available ?? 0 }}
+            </p>
           </div>
         </div>
       </ReportKpiCard>
       <ReportKpiCard label="الكروت">
-        <div class="mt-2 grid grid-cols-3 gap-2 text-center">
-          <div>
-            <p class="text-xs text-slate-400">كل</p>
-            <p class="text-lg font-bold text-white">{{ cards.total ?? 0 }}</p>
+        <div class="mt-2 grid grid-cols-3 gap-1 text-center sm:gap-2">
+          <div class="min-w-0">
+            <p class="truncate text-xs text-slate-400">كل</p>
+            <p class="truncate text-base font-bold text-white sm:text-lg">
+              {{ cards.total ?? 0 }}
+            </p>
           </div>
-          <div>
-            <p class="text-xs text-slate-400">محجوز</p>
-            <p class="text-lg font-bold text-white">{{ cards.reserved ?? 0 }}</p>
+          <div class="min-w-0">
+            <p class="truncate text-xs text-slate-400">محجوز</p>
+            <p class="truncate text-base font-bold text-white sm:text-lg">
+              {{ cards.reserved ?? 0 }}
+            </p>
           </div>
-          <div>
-            <p class="text-[11px] text-slate-400">متاح بيع مباشر</p>
-            <p class="text-lg font-bold text-white">{{ cards.available ?? 0 }}</p>
+          <div class="min-w-0">
+            <p class="truncate text-[11px] text-slate-400">متاح بيع مباشر</p>
+            <p class="truncate text-base font-bold text-white sm:text-lg">
+              {{ cards.available ?? 0 }}
+            </p>
           </div>
         </div>
       </ReportKpiCard>

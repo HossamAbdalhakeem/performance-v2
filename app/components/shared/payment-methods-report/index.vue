@@ -1,5 +1,8 @@
 <template>
-  <div class="rounded-xl border border-white/10 bg-slate-900 p-4" dir="rtl">
+  <div
+    class="w-full min-w-0 overflow-hidden rounded-xl border border-white/10 bg-slate-900 p-4"
+    dir="rtl"
+  >
     <p class="mb-4 text-center font-bold text-white">{{ title }}</p>
 
     <div
@@ -9,20 +12,24 @@
       {{ emptyMessage }}
     </div>
 
-    <div v-else class="flex flex-wrap items-center justify-center gap-8">
+    <div
+      v-else
+      class="flex flex-col items-center justify-center gap-6 sm:flex-row sm:flex-wrap sm:gap-8"
+    >
       <div
         class="h-32 w-32 shrink-0 rounded-full"
         :style="{ background: conicGradient }"
       />
-      <div class="space-y-2 text-sm">
+      <div class="min-w-0 space-y-2 text-sm">
         <p
           v-for="item in resolvedItems"
           :key="item.method"
+          class="break-words"
           :style="{ color: item.color }"
         >
           ● {{ item.label }}: {{ formatMoney(item.amount, "locale") }} — {{ item.percent }}%
         </p>
-        <p class="pt-1 font-bold text-white">
+        <p class="break-words pt-1 font-bold text-white">
           {{ totalLabel }}: {{ formatMoney(totalAmount, "locale") }}
         </p>
       </div>

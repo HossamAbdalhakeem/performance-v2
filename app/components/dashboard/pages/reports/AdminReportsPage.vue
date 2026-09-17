@@ -1,8 +1,8 @@
 <template>
-  <div class="space-y-6 text-right" dir="rtl">
-    <div class="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between">
+  <div class="w-full min-w-0 space-y-6 overflow-x-hidden text-right" dir="rtl">
+    <div class="flex w-full min-w-0 flex-col gap-3">
       <div class="min-w-0">
-        <h2 class="shrink-0 text-xl font-bold text-white">التقارير</h2>
+        <h2 class="text-xl font-bold text-white">التقارير</h2>
         <p class="mt-1 text-sm text-slate-400">
           ملخص المبيعات والأرباح والمصروفات والحجوزات حسب الفلاتر
         </p>
@@ -13,7 +13,7 @@
         v-model:from="dateFrom"
         v-model:to="dateTo"
         :loading="loading"
-        class="w-full sm:w-auto sm:max-w-full sm:flex-1"
+        class="w-full min-w-0"
         @change="onFiltersChange"
         @refresh="loadReport"
       />

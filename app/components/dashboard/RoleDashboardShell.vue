@@ -9,12 +9,8 @@
     />
 
     <aside
-      class="fixed inset-y-0 right-0 z-40 flex w-[min(18rem,88vw)] flex-col border-l border-white/10 bg-[#0b1220] text-slate-100 shadow-xl transition-transform duration-200 lg:w-72"
-      :class="
-        mobileNavOpen
-          ? 'translate-x-0'
-          : 'translate-x-full lg:translate-x-0'
-      "
+      class="fixed inset-y-0 z-40 flex w-72 max-w-[85vw] flex-col border-l border-white/10 bg-[#0b1220] text-slate-100 shadow-xl transition-[right] duration-200"
+      :class="mobileNavOpen ? 'right-0' : '-right-72 lg:right-0'"
     >
       <div
         class="flex shrink-0 items-center justify-between border-b border-white/10 px-4 py-4 sm:px-6 sm:py-5"

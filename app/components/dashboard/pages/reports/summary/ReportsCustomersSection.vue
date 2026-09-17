@@ -1,15 +1,15 @@
 <template>
-  <div class="rounded-xl border border-white/10 bg-slate-900 p-4">
+  <div class="w-full min-w-0 overflow-hidden rounded-xl border border-white/10 bg-slate-900 p-4">
     <p class="mb-4 font-bold text-white">طلاب وعملاء</p>
-    <div class="grid gap-6 xl:grid-cols-2">
-      <div>
+    <div class="grid w-full min-w-0 gap-6 xl:grid-cols-2">
+      <div class="min-w-0 overflow-x-auto">
         <p class="mb-3 text-center text-sm font-semibold text-white">
           عدد العملاء لكل سنة دراسية
         </p>
         <CustomersByYearChart :labels="yearLabels" :values="yearValues" />
       </div>
 
-      <div>
+      <div class="min-w-0 overflow-x-auto">
         <p class="mb-3 text-center text-sm font-semibold text-white">
           طلاب كل مدرس
         </p>
