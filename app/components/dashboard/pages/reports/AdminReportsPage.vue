@@ -98,11 +98,13 @@ const todayInputValue = () => {
   return `${now.getFullYear()}-${month}-${day}`;
 };
 
+const yearStartInputValue = () => `${new Date().getFullYear()}-01-01`;
+
 const today = todayInputValue();
 const dateFrom = ref(
   typeof route.query.from === "string" && route.query.from
     ? route.query.from
-    : today,
+    : yearStartInputValue(),
 );
 const dateTo = ref(
   typeof route.query.to === "string" && route.query.to
@@ -212,9 +214,8 @@ const onFiltersChange = (payload) => {
   }
 
   if (!dateFrom.value && !dateTo.value) {
-    const fallback = todayInputValue();
-    dateFrom.value = fallback;
-    dateTo.value = fallback;
+    dateFrom.value = yearStartInputValue();
+    dateTo.value = todayInputValue();
   }
 
   loadReport();

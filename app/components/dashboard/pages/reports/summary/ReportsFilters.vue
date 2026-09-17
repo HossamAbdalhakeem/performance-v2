@@ -89,7 +89,7 @@ const emit = defineEmits([
 ]);
 
 const customRangeRef = ref(null);
-const period = ref("day");
+const period = ref("year");
 
 const periodOptions = [
   { label: "يوم", value: "day" },
@@ -187,7 +187,7 @@ const onBranchChange = (value) => {
 };
 
 const onPeriodChange = async (value) => {
-  period.value = value || "day";
+  period.value = value || "year";
 
   if (period.value === "custom") {
     await openCustomPicker();
@@ -214,7 +214,7 @@ const detectPeriodFromProps = () => {
   const from = props.from;
   const to = props.to;
   if (!from || !to) {
-    period.value = "day";
+    period.value = "year";
     return;
   }
 
@@ -231,7 +231,8 @@ const detectPeriodFromProps = () => {
 
 onMounted(() => {
   detectPeriodFromProps();
-  if (period.value !== "custom" && (!props.from || !props.to)) {
+  if (period.value === "custom") return;
+  if (!props.from || !props.to) {
     applyPreset(period.value);
   }
 });
