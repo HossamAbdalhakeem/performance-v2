@@ -8,6 +8,7 @@
         </p>
       </div>
       <ReportsFilters
+        v-model:book="selectedBook"
         v-model:branch="selectedBranch"
         v-model:from="dateFrom"
         v-model:to="dateTo"
@@ -111,6 +112,9 @@ const dateTo = ref(
 const selectedBranch = ref(
   route.query.branchId ? String(route.query.branchId) : "all",
 );
+const selectedBook = ref(
+  route.query.productId ? String(route.query.productId) : null,
+);
 const loading = ref(true);
 const report = ref(null);
 
@@ -155,7 +159,7 @@ const dateRangeParams = () => {
   };
 };
 
-/** API query params: from, to, branchId?, section */
+/** API query params: from, to, branchId?, productId?, section */
 const reportParams = () => {
   const params = {
     ...dateRangeParams(),
@@ -164,10 +168,13 @@ const reportParams = () => {
   if (selectedBranch.value && selectedBranch.value !== "all") {
     params.branchId = selectedBranch.value;
   }
+  if (selectedBook.value) {
+    params.productId = selectedBook.value;
+  }
   return params;
 };
 
-/** Keep the page URL in sync: /reports?from=...&to=...&branchId=...&section=summary */
+/** Keep the page URL in sync: /reports?from=...&to=...&branchId=...&productId=...&section=summary */
 const syncRouteQuery = () => {
   const query = {
     from: dateFrom.value || todayInputValue(),
@@ -177,13 +184,17 @@ const syncRouteQuery = () => {
   if (selectedBranch.value && selectedBranch.value !== "all") {
     query.branchId = selectedBranch.value;
   }
+  if (selectedBook.value) {
+    query.productId = String(selectedBook.value);
+  }
 
   const current = route.query;
   const same =
     String(current.from || "") === query.from &&
     String(current.to || "") === query.to &&
     String(current.section || "summary") === query.section &&
-    String(current.branchId || "") === String(query.branchId || "");
+    String(current.branchId || "") === String(query.branchId || "") &&
+    String(current.productId || "") === String(query.productId || "");
 
   if (!same) {
     router.replace({ query });

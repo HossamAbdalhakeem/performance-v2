@@ -2,6 +2,16 @@
   <div
     class="reports-filters relative flex w-full flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-end sm:justify-end"
   >
+    <ProductSelect
+      :model-value="book"
+      source="catalog"
+      variant="simple"
+      label=""
+      placeholder="اختيار الكتاب"
+      show-clear
+      wrapper-class="reports-filter-item"
+      @update:model-value="onBookChange"
+    />
     <AppGlobalSelectBranch
       :model-value="branch"
       label=""
@@ -55,12 +65,14 @@
 <script setup>
 import Select from "primevue/select";
 import Button from "primevue/button";
+import ProductSelect from "~/components/shared/product-select/index.vue";
 import AppGlobalSelectBranch from "~/components/shared/app-global-select-branch/index.vue";
 import DateRangePicker from "~/components/shared/date-range-picker/index.vue";
 
 defineOptions({ name: "ReportsFilters" });
 
 const props = defineProps({
+  book: { type: [String, Number], default: null },
   branch: { type: [String, Number], default: "all" },
   from: { type: String, default: null },
   to: { type: String, default: null },
@@ -68,6 +80,7 @@ const props = defineProps({
 });
 
 const emit = defineEmits([
+  "update:book",
   "update:branch",
   "update:from",
   "update:to",
@@ -161,6 +174,11 @@ const applyPreset = (value) => {
 const openCustomPicker = async () => {
   await nextTick();
   customRangeRef.value?.open?.();
+};
+
+const onBookChange = (value) => {
+  emit("update:book", value ?? null);
+  emit("change");
 };
 
 const onBranchChange = (value) => {
