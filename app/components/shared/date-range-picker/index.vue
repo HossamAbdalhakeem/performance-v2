@@ -147,4 +147,18 @@ onMounted(() => {
 onBeforeUnmount(() => {
   window.removeEventListener("resize", updateMonthCount);
 });
+
+const open = () => {
+  const picker = pickerRef.value;
+  if (!picker) return;
+  if (typeof picker.show === "function") {
+    picker.show();
+    return;
+  }
+  if ("overlayVisible" in picker) {
+    picker.overlayVisible = true;
+  }
+};
+
+defineExpose({ open });
 </script>
