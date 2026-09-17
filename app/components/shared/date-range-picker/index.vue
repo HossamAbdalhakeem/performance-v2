@@ -14,7 +14,7 @@
       :show-button-bar="true"
       class="w-full"
       input-class="w-full"
-      :number-of-months="2"
+      :number-of-months="monthCount"
       @date-select="onDateSelect"
       @clear="onClear"
       @hide="onHide"
@@ -40,6 +40,12 @@ const emit = defineEmits(["update:from", "update:to", "change"]);
 
 const pickerRef = ref(null);
 const suppressingWatch = ref(false);
+const monthCount = ref(1);
+
+const updateMonthCount = () => {
+  if (!import.meta.client) return;
+  monthCount.value = window.matchMedia("(min-width: 768px)").matches ? 2 : 1;
+};
 
 const toDate = (value) => {
   if (!value) return null;
@@ -131,5 +137,14 @@ watch(rangeModel, async (value, oldValue) => {
   const isEmpty = !value || (Array.isArray(value) && !value.some(Boolean));
   if (!hadValue || !isEmpty) return;
   await emitRange({ from: null, to: null });
+});
+
+onMounted(() => {
+  updateMonthCount();
+  window.addEventListener("resize", updateMonthCount);
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener("resize", updateMonthCount);
 });
 </script>

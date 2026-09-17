@@ -11,7 +11,7 @@
     :pt="{
       root: {
         class: 'entity-form-drawer-panel',
-        style: { width: width, maxWidth: width },
+        style: drawerStyle,
       },
       header: { class: 'text-right' },
       content: { class: 'overflow-y-auto' },
@@ -26,13 +26,18 @@
 <script setup>
 import Drawer from "primevue/drawer";
 
-defineProps({
+const props = defineProps({
   visible: { type: Boolean, default: false },
   title: { type: String, default: "" },
   width: { type: String, default: "400px" },
 });
 
 const emit = defineEmits(["update:visible"]);
+
+const drawerStyle = computed(() => ({
+  width: `min(${props.width}, 100vw)`,
+  maxWidth: "100vw",
+}));
 
 const onVisibleChange = (value) => {
   emit("update:visible", value);
@@ -41,7 +46,6 @@ const onVisibleChange = (value) => {
 
 <style scoped>
 :deep(.entity-form-drawer-panel) {
-  width: v-bind(width) !important;
-  max-width: v-bind(width) !important;
+  max-width: 100vw !important;
 }
 </style>

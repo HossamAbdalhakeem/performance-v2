@@ -28,9 +28,9 @@
           @update:model-value="onInput"
         >
           <template #option="{ option }">
-            <div class="flex w-full items-center justify-between gap-3 text-right">
-              <span>{{ option.name }}</span>
-              <span class="text-xs text-slate-400">{{ option.phone || "بدون رقم" }}</span>
+            <div class="flex w-full min-w-0 items-center justify-between gap-3 text-right">
+              <span class="min-w-0 truncate">{{ option.name }}</span>
+              <span class="shrink-0 text-xs text-slate-400">{{ option.phone || "بدون رقم" }}</span>
             </div>
           </template>
         </AutoComplete>

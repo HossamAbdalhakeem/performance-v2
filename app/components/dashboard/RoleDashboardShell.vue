@@ -1,19 +1,40 @@
 <template>
   <div class="min-h-screen bg-[#111827] text-slate-100" dir="rtl">
+    <!-- Mobile overlay -->
+    <div
+      v-if="mobileNavOpen"
+      class="fixed inset-0 z-30 bg-black/50 lg:hidden"
+      aria-hidden="true"
+      @click="mobileNavOpen = false"
+    />
+
     <aside
-      class="fixed inset-y-0 right-0 z-20 flex w-72 flex-col border-l border-white/10 bg-[#0b1220] text-slate-100 shadow-xl"
+      class="fixed inset-y-0 right-0 z-40 flex w-[min(18rem,88vw)] flex-col border-l border-white/10 bg-[#0b1220] text-slate-100 shadow-xl transition-transform duration-200 lg:w-72"
+      :class="
+        mobileNavOpen
+          ? 'translate-x-0'
+          : 'translate-x-full lg:translate-x-0'
+      "
     >
       <div
-        class="flex shrink-0 items-center justify-between border-b border-white/10 px-6 py-5"
+        class="flex shrink-0 items-center justify-between border-b border-white/10 px-4 py-4 sm:px-6 sm:py-5"
       >
         <div>
           <p class="text-xs tracking-[0.28em] text-sky-200/80">مكتبة</p>
-          <h2 class="mt-1 text-xl font-bold">لوحة التحكم</h2>
+          <h2 class="mt-1 text-lg font-bold sm:text-xl">لوحة التحكم</h2>
         </div>
+        <button
+          type="button"
+          class="rounded-lg p-2 text-slate-300 hover:bg-white/5 lg:hidden"
+          aria-label="إغلاق القائمة"
+          @click="mobileNavOpen = false"
+        >
+          ✕
+        </button>
       </div>
 
       <nav
-        class="flex-1 space-y-2 overflow-y-auto px-4 py-5"
+        class="flex-1 space-y-2 overflow-y-auto px-3 py-4 sm:px-4 sm:py-5"
         :class="normalizedRole === 'admin' ? 'pb-44' : 'pb-28'"
         aria-label="القائمة الرئيسية"
       >
@@ -22,7 +43,6 @@
           :key="section.id"
           class="overflow-hidden rounded-xl border border-white/10 bg-white/[0.02]"
         >
-          <!-- Accordion header (admin groups) -->
           <button
             v-if="section.label"
             type="button"
@@ -42,7 +62,6 @@
             </span>
           </button>
 
-          <!-- Links: always open for unlabeled sections; accordion for labeled -->
           <div
             v-show="!section.label || openSectionId === section.id"
             class="space-y-1 px-2 pb-2"
@@ -58,6 +77,7 @@
                   ? 'bg-slate-800 text-sky-200 ring-1 ring-sky-500/40'
                   : 'text-slate-300'
               "
+              @click="mobileNavOpen = false"
             >
               <span>{{ item.label }}</span>
               <span class="text-lg" aria-hidden="true">{{ item.icon }}</span>
@@ -67,7 +87,7 @@
       </nav>
 
       <div
-        class="absolute bottom-0 left-0 right-0 space-y-3 border-t border-white/10 bg-[#0b1220] p-4"
+        class="absolute bottom-0 left-0 right-0 space-y-3 border-t border-white/10 bg-[#0b1220] p-3 sm:p-4"
       >
         <AcademicYearSwitcher v-if="normalizedRole === 'admin'" />
         <button
@@ -81,28 +101,42 @@
       </div>
     </aside>
 
-    <div class="mr-72 min-h-screen">
+    <div class="min-h-screen lg:mr-72">
       <header
-        class="border-b border-white/10 bg-[#0f172a]/90 px-6 py-5 backdrop-blur-sm"
+        class="border-b border-white/10 bg-[#0f172a]/90 px-3 py-3 backdrop-blur-sm sm:px-6 sm:py-5"
       >
-        <div class="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <p class="text-sm text-slate-400">{{ title }}</p>
-            <h1 class="mt-1 text-2xl font-bold text-white">{{ subtitle }}</h1>
+        <div class="flex flex-wrap items-center justify-between gap-3 sm:gap-4">
+          <div class="flex min-w-0 items-center gap-2 sm:gap-3">
+            <button
+              type="button"
+              class="rounded-xl border border-white/10 bg-slate-900 p-2.5 text-slate-200 hover:bg-white/5 lg:hidden"
+              aria-label="فتح القائمة"
+              @click="mobileNavOpen = true"
+            >
+              ☰
+            </button>
+            <div class="min-w-0">
+              <p class="truncate text-xs text-slate-400 sm:text-sm">{{ title }}</p>
+              <h1 class="mt-0.5 truncate text-lg font-bold text-white sm:mt-1 sm:text-2xl">
+                {{ subtitle }}
+              </h1>
+            </div>
           </div>
 
-          <div class="flex items-center gap-3">
+          <div class="flex items-center gap-2 sm:gap-3">
             <NotificationBell v-if="normalizedRole !== 'social'" />
             <div
-              class="flex items-center gap-3 rounded-2xl border border-white/10 bg-slate-900 px-3 py-2 shadow-sm"
+              class="flex items-center gap-2 rounded-2xl border border-white/10 bg-slate-900 px-2 py-1.5 shadow-sm sm:gap-3 sm:px-3 sm:py-2"
             >
               <div
-                class="flex h-10 w-10 items-center justify-center rounded-full bg-sky-500/20 font-bold text-sky-200"
+                class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-sky-500/20 text-sm font-bold text-sky-200 sm:h-10 sm:w-10"
               >
                 {{ userInitials }}
               </div>
-              <div class="text-right">
-                <p class="text-sm font-semibold text-white">{{ userName }}</p>
+              <div class="hidden text-right sm:block">
+                <p class="max-w-[9rem] truncate text-sm font-semibold text-white sm:max-w-none">
+                  {{ userName }}
+                </p>
                 <p class="text-xs text-slate-400">{{ roleLabel }}</p>
               </div>
             </div>
@@ -110,24 +144,26 @@
         </div>
       </header>
 
-      <main class="p-6">
+      <main class="p-3 sm:p-6">
         <div
           v-if="stats.length"
-          class="mb-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4"
+          class="mb-4 grid gap-3 sm:mb-6 sm:gap-4 sm:grid-cols-2 xl:grid-cols-4"
         >
           <div
             v-for="stat in stats"
             :key="stat.label"
             class="rounded-2xl border border-white/10 bg-slate-900 p-4 shadow-sm"
           >
-            <div class="flex items-center justify-between">
+            <div class="flex items-center justify-between gap-2">
               <p class="text-sm text-slate-400">{{ stat.label }}</p>
               <span
-                class="rounded-lg bg-sky-500/15 px-2 py-1 text-xs font-semibold text-sky-200"
+                class="shrink-0 rounded-lg bg-sky-500/15 px-2 py-1 text-xs font-semibold text-sky-200"
                 >{{ stat.tag }}</span
               >
             </div>
-            <p class="mt-4 text-3xl font-bold text-white">{{ stat.value }}</p>
+            <p class="mt-3 text-2xl font-bold text-white sm:mt-4 sm:text-3xl">
+              {{ stat.value }}
+            </p>
             <p class="mt-2 text-xs text-slate-400">{{ stat.note }}</p>
           </div>
         </div>
@@ -140,7 +176,7 @@
       v-model:visible="confirmLogoutVisible"
       modal
       header="تأكيد تسجيل الخروج"
-      :style="{ width: '28rem' }"
+      :style="{ width: '28rem', maxWidth: '95vw' }"
       :dismissableMask="true"
       dir="rtl"
     >
@@ -149,7 +185,7 @@
         الحالي.
       </p>
       <template #footer>
-        <div class="flex justify-end gap-2">
+        <div class="flex flex-wrap justify-end gap-2">
           <Button
             label="إلغاء"
             severity="secondary"
@@ -192,6 +228,7 @@ const authStore = useAuthStore();
 const route = useRoute();
 const confirmLogoutVisible = ref(false);
 const loggingOut = ref(false);
+const mobileNavOpen = ref(false);
 /** Accordion: only one labeled section open at a time (null = all closed) */
 const openSectionId = ref(null);
 
@@ -256,7 +293,6 @@ const openActiveSection = () => {
 
 /** Single menu source — admin uses labeled groups; other roles use one unlabeled group */
 const navigation = computed(() => {
-  // Track role + path explicitly so active state and groups stay reactive
   const role = normalizedRole.value;
   void route.path;
 
@@ -288,7 +324,6 @@ const navigation = computed(() => {
     ];
   }
 
-  // admin (default)
   return [
     {
       id: "base",
@@ -338,12 +373,12 @@ const userInitials = computed(() => {
     ?.toUpperCase();
 });
 const roleLabel = computed(() => roleMeta.value.label);
-const roleLabelShort = computed(() => roleMeta.value.short);
 
 watch(
   () => [route.path, normalizedRole.value],
   () => {
     openActiveSection();
+    mobileNavOpen.value = false;
   },
   { immediate: true }
 );

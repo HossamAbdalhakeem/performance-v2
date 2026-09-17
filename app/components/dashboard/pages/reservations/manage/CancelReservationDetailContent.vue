@@ -1,68 +1,68 @@
 <template>
   <div v-if="reservation" class="flex flex-col gap-4">
-    <div class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+    <div
+      class="rounded-xl border border-white/10 bg-slate-900/80 px-4 py-3 text-sm text-slate-200"
+    >
       <div class="grid gap-2">
         <div class="flex items-center justify-between gap-2">
-          <span class="text-slate-500">رقم الحجز</span>
-          <span class="font-semibold text-slate-900">
+          <span class="text-slate-400">رقم الحجز</span>
+          <span class="font-semibold text-white">
             {{ reservation.reservationNumber }}
           </span>
         </div>
         <div class="flex items-center justify-between gap-2">
-          <span class="text-slate-500">الطالب</span>
-          <span class="font-medium">{{ reservation.studentName }}</span>
+          <span class="text-slate-400">الطالب</span>
+          <span class="font-medium text-slate-100">{{ reservation.studentName }}</span>
         </div>
         <div class="flex items-center justify-between gap-2">
-          <span class="text-slate-500">الموبايل</span>
-          <span class="font-medium">{{ reservation.phone || "—" }}</span>
+          <span class="text-slate-400">الموبايل</span>
+          <span class="font-medium text-slate-100">{{ reservation.phone || "—" }}</span>
         </div>
         <div class="flex items-center justify-between gap-2">
-          <span class="text-slate-500">المنتج</span>
-          <span class="font-medium">{{ reservation.productName }}</span>
+          <span class="text-slate-400">المنتج</span>
+          <span class="font-medium text-slate-100">{{ reservation.productName }}</span>
         </div>
         <div class="flex items-center justify-between gap-2">
-          <span class="text-slate-500">الفرع</span>
-          <span class="font-medium">{{ reservation.branchName }}</span>
+          <span class="text-slate-400">الفرع</span>
+          <span class="font-medium text-slate-100">{{ reservation.branchName }}</span>
         </div>
         <div class="flex items-center justify-between gap-2">
-          <span class="text-slate-500">الكمية</span>
-          <span class="font-medium">{{ reservation.quantity }}</span>
+          <span class="text-slate-400">الكمية</span>
+          <span class="font-medium text-slate-100">{{ reservation.quantity }}</span>
         </div>
         <div class="flex items-center justify-between gap-2">
-          <span class="text-slate-500">الحالة</span>
-          <span class="font-medium">{{ reservation.statusLabel }}</span>
+          <span class="text-slate-400">الحالة</span>
+          <span class="font-medium text-slate-100">{{ reservation.statusLabel }}</span>
         </div>
       </div>
 
-      <div class="mt-3 grid gap-2 rounded-lg border border-slate-200 bg-white p-3">
+      <div class="mt-3 grid gap-2 rounded-lg border border-white/10 bg-slate-950/70 p-3">
         <div class="flex items-center justify-between gap-2">
-          <span class="text-slate-500">إجمالي المبلغ</span>
-          <span class="font-semibold">
+          <span class="text-slate-400">إجمالي المبلغ</span>
+          <span class="font-semibold text-slate-100">
             {{ formatMoney(reservation.totalAmount) }}
           </span>
         </div>
         <div class="flex items-center justify-between gap-2">
-          <span class="text-slate-500">المدفوع (مقدم)</span>
-          <span class="font-semibold text-emerald-700">
+          <span class="text-slate-400">المدفوع (مقدم)</span>
+          <span class="font-semibold text-emerald-300">
             {{ reservation.paidAmountLabel }}
           </span>
         </div>
-        <div class="flex items-center justify-between gap-2 border-t border-slate-100 pt-2">
-          <span class="text-slate-500">المتبقي</span>
-          <span class="font-semibold text-orange-600">
+        <div class="flex items-center justify-between gap-2 border-t border-white/10 pt-2">
+          <span class="text-slate-400">المتبقي</span>
+          <span class="font-semibold text-amber-300">
             {{ reservation.remainingAmountLabel }}
           </span>
         </div>
       </div>
     </div>
 
-
-
     <div
       v-if="hasPaidDeposit"
-      class="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900"
+      class="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-100"
     >
-      <p class="mb-3 font-semibold">
+      <p class="mb-3 font-semibold text-emerald-200">
         مبلغ الرد للطالب: {{ reservation.paidAmountLabel }}
       </p>
       <PaymentFields

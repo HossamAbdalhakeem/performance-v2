@@ -20,9 +20,9 @@
       @update:model-value="onUpdate"
     >
       <template v-if="variant === 'rich'" #value="{ placeholder: valuePlaceholder }">
-        <div v-if="selectedOption" class="w-full py-0.5 text-right">
-          <div class="flex items-start justify-between gap-3">
-            <span class="font-medium text-slate-100">{{ selectedOption.name }}</span>
+        <div v-if="selectedOption" class="w-full min-w-0 py-0.5 text-right">
+          <div class="flex items-start justify-between gap-2 sm:gap-3">
+            <span class="min-w-0 truncate font-medium text-slate-100">{{ selectedOption.name }}</span>
             <span
               v-if="selectedOption.availabilityLabel"
               class="shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold"
@@ -35,13 +35,13 @@
               {{ selectedOption.availabilityLabel }}
             </span>
           </div>
-          <div class="mt-0.5 flex items-center justify-between gap-3">
-            <p v-if="selectedOption.teacherName" class="text-xs text-slate-400">
+          <div class="mt-0.5 flex flex-wrap items-center justify-between gap-2 sm:gap-3">
+            <p v-if="selectedOption.teacherName" class="min-w-0 truncate text-xs text-slate-400">
               مقدم من أ/ {{ selectedOption.teacherName }}
             </p>
             <span
               v-if="selectedOption.priceLabel"
-              class="text-xs"
+              class="shrink-0 text-xs"
               :class="selectedOption.isSellingPrice ? 'text-sky-300' : 'text-amber-200'"
             >
               {{ selectedOption.priceKindLabel }} {{ selectedOption.priceLabel }}
@@ -52,9 +52,9 @@
       </template>
 
       <template v-if="variant === 'rich'" #option="{ option }">
-        <div class="w-full py-1 text-right">
-          <div class="flex items-start justify-between gap-3">
-            <span class="font-medium">{{ option.name }}</span>
+        <div class="w-full min-w-0 py-1 text-right">
+          <div class="flex items-start justify-between gap-2 sm:gap-3">
+            <span class="min-w-0 truncate font-medium">{{ option.name }}</span>
             <span
               v-if="option.availabilityLabel"
               class="shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold"
@@ -67,8 +67,8 @@
               {{ option.availabilityLabel }}
             </span>
           </div>
-          <div class="mt-0.5 flex items-center justify-between gap-3">
-            <p v-if="option.teacherName" class="text-xs text-slate-400">
+          <div class="mt-0.5 flex flex-wrap items-center justify-between gap-2 sm:gap-3">
+            <p v-if="option.teacherName" class="min-w-0 truncate text-xs text-slate-400">
               مقدم من أ/ {{ option.teacherName }}
             </p>
             <span

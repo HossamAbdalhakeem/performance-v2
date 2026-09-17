@@ -4,13 +4,13 @@
     modal
     dir="rtl"
     :header="dialogTitle"
-    :style="{ width: '1320px', maxWidth: '98vw' }"
-    :pt="{ header: { class: 'text-right' }, content: { class: 'text-right' } }"
+    :style="{ width: 'min(1320px, 98vw)' }"
+    :pt="{ header: { class: 'text-right' }, content: { class: 'text-right overflow-x-auto' } }"
     @update:visible="$emit('update:visible', $event)"
     @hide="$emit('hide')"
   >
     <div class="flex flex-col gap-4">
-      <div class="grid gap-3 md:grid-cols-3">
+      <div class="grid gap-3 sm:grid-cols-2 md:grid-cols-3">
         <DateRangePicker
           v-model:from="filters.from"
           v-model:to="filters.to"

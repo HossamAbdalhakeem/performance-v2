@@ -1,5 +1,7 @@
 <template>
-  <div class="reports-filters flex flex-row flex-wrap items-center justify-end gap-2">
+  <div
+    class="reports-filters flex w-full flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end"
+  >
     <ProductSelect
       :model-value="book"
       source="catalog"
@@ -33,7 +35,7 @@
     <Button
       icon="pi pi-refresh"
       severity="secondary"
-      class="shrink-0"
+      class="w-full shrink-0 sm:w-auto"
       :loading="loading"
       @click="$emit('refresh')"
     />
@@ -86,15 +88,17 @@ const onDateChange = (value) => {
 </script>
 
 <style scoped>
-.reports-filters {
-  width: 75%;
-  max-width: 100%;
+.reports-filters :deep(.reports-filter-item) {
+  width: 100%;
+  min-width: 0;
 }
 
-.reports-filters :deep(.reports-filter-item) {
-  width: 30%;
-  min-width: 30%;
-  max-width: 30%;
+@media (min-width: 640px) {
+  .reports-filters :deep(.reports-filter-item) {
+    width: 12rem;
+    flex: 1 1 12rem;
+    max-width: 16rem;
+  }
 }
 
 .reports-filters :deep(.reports-filter-item .p-select),

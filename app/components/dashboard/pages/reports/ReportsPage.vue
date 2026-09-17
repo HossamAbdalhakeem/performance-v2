@@ -1,7 +1,7 @@
 <template>
   <div class="space-y-6 text-right" dir="rtl">
-    <div class="flex flex-wrap items-center justify-between gap-3">
-      <div>
+    <div class="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between">
+      <div class="min-w-0">
         <h2 class="shrink-0 text-xl font-bold text-white">التقارير</h2>
         <p class="mt-1 text-sm text-slate-400">
           ملخص المبيعات والحجوزات والمخزون حسب الفلاتر
@@ -12,6 +12,7 @@
         v-model:branch="selectedBranch"
         v-model:date="selectedDate"
         :loading="loading"
+        class="w-full sm:w-auto sm:max-w-full sm:flex-1"
         @change="loadReport"
         @refresh="loadReport"
       />

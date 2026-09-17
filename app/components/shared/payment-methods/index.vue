@@ -1,6 +1,6 @@
 <template>
   <div class="flex h-full flex-col gap-2 text-right" dir="rtl">
-    <label v-if="label" class="text-sm font-medium text-slate-700">{{ label }}</label>
+    <label v-if="label" class="text-sm font-medium text-slate-300">{{ label }}</label>
     <div
       class="space-y-2 rounded-xl border border-white/10 bg-slate-950/60 p-3"
       :class="{ 'ring-1 ring-red-400': invalid }"
