@@ -7,6 +7,13 @@
       </p>
     </div>
 
+    <AdminHomeSalesTrendCard
+      :points="salesTrendPoints"
+      :branch-id="salesTrendBranchId"
+      :loading="salesTrendLoading"
+      @update:branch-id="onSalesTrendBranchChange"
+    />
+
     <AdminHomeKpiSection
       :cards="kpiCards"
       :loading="summaryLoading"
@@ -18,12 +25,8 @@
     <AdminHomeInsightsSection
       :payment-method-items="paymentMethodItems"
       :payments-loading="paymentsLoading"
-      :sales-trend-points="salesTrendPoints"
-      :sales-trend-branch-id="salesTrendBranchId"
-      :sales-trend-loading="salesTrendLoading"
       :top-products="topProducts"
       :products-loading="productsLoading"
-      @update:sales-trend-branch-id="onSalesTrendBranchChange"
     />
 
     <AdminHomeRecentOperationsSection
@@ -35,14 +38,12 @@
 
 <script setup>
 import { reportService } from "~/services/reportService";
-import {
-  TRANSACTION_TYPE_LABELS,
-  RESERVATION_STATUS_LABELS,
-} from "~/utils/domainLabels";
-import { formatMoney } from "~/utils/format";
 
 defineOptions({ name: "AdminHomePage" });
 
+const AdminHomeSalesTrendCard = defineAsyncComponent(() =>
+  import("./AdminHomeSalesTrendCard.vue"),
+);
 const AdminHomeKpiSection = defineAsyncComponent(() =>
   import("./AdminHomeKpiSection.vue"),
 );
@@ -75,15 +76,6 @@ const topProducts = ref([]);
 const recentOperations = ref([]);
 const salesTrendPoints = ref([]);
 const salesTrendBranchId = ref(null);
-
-const OPERATION_TYPE_LABELS = {
-  SALE: TRANSACTION_TYPE_LABELS.SALE,
-  RESERVATION: TRANSACTION_TYPE_LABELS.RESERVATION,
-  DELIVERED: RESERVATION_STATUS_LABELS.DELIVERED,
-  CANCELLED: RESERVATION_STATUS_LABELS.CANCELLED,
-  RETURN: TRANSACTION_TYPE_LABELS.RETURN,
-  EXCHANGE: TRANSACTION_TYPE_LABELS.EXCHANGE,
-};
 
 const kpiCards = computed(() => {
   const s = summary.value || {};
@@ -182,31 +174,16 @@ const actionCards = [
   },
 ];
 
-const formatTime = (value) => {
-  if (!value) return "—";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "—";
-  return date.toLocaleString("ar-EG", {
-    hour: "2-digit",
-    minute: "2-digit",
-    day: "2-digit",
-    month: "short",
-  });
-};
-
 const recentOperationRows = computed(() =>
   (recentOperations.value || []).map((row, index) => {
     const type = String(row.type || "").toUpperCase();
     return {
       id: index + 1,
-      time: formatTime(row.time),
+      timeRaw: row.time,
       typeKey: type,
-      typeLabel: OPERATION_TYPE_LABELS[type] || type || "—",
       student: row.student || "—",
       product: row.product || "—",
-      amount: row.amount == null ? "—" : formatMoney(row.amount, "locale"),
-      amountLabel:
-        row.amount == null ? "—" : formatMoney(row.amount, "locale"),
+      amountRaw: row.amount == null ? null : Number(row.amount),
       branch: row.branch || "—",
     };
   }),

@@ -85,7 +85,7 @@ defineProps({
 defineEmits(["exchange", "refund"]);
 
 const columns = [
-  { field: "saleNumber", header: "رقم العملية" },
+  // { field: "saleNumber", header: "رقم العملية" },
   { field: "createdAtLabel", header: "تاريخ البيع" },
   { field: "studentName", header: "الطالب" },
   { field: "phone", header: "الموبايل", fallback: "—" },

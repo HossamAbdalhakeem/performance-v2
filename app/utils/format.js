@@ -72,9 +72,31 @@ const resolveDateTimeOptions = (format = "datetime") => {
   if (typeof format === "string") {
     return { ...(DATETIME_PRESETS[format] || DATETIME_PRESETS.datetime) };
   }
+
+  const custom = format || {};
+  const hasFieldOptions = [
+    "weekday",
+    "era",
+    "year",
+    "month",
+    "day",
+    "dayPeriod",
+    "hour",
+    "minute",
+    "second",
+    "fractionalSecondDigits",
+    "timeZoneName",
+  ].some((key) => Object.prototype.hasOwnProperty.call(custom, key));
+
+  // dateStyle/timeStyle cannot mix with individual date/time fields.
+  if (hasFieldOptions) {
+    const { dateStyle: _ds, timeStyle: _ts, ...base } = DATETIME_PRESETS.datetime;
+    return { ...base, ...custom };
+  }
+
   return {
     ...DATETIME_PRESETS.datetime,
-    ...(format || {}),
+    ...custom,
   };
 };
 

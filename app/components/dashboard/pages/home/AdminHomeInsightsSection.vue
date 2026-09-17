@@ -3,7 +3,7 @@
     <div>
       <p class="font-bold text-white">التحليلات</p>
       <p class="mt-0.5 text-xs text-slate-400">
-        توزيع المدفوعات ومبيعات آخر 7 أيام وأفضل المنتجات
+        توزيع المدفوعات وأفضل المنتجات
       </p>
     </div>
 
@@ -36,50 +36,43 @@
         :empty-message="paymentEmptyMessage"
       />
 
-      <AdminHomeSalesTrendCard
-        :points="salesTrendPoints"
-        :branch-id="salesTrendBranchId"
-        :loading="salesTrendLoading"
-        @update:branch-id="$emit('update:salesTrendBranchId', $event)"
-      />
-    </div>
-
-    <div
-      v-if="productsLoading"
-      class="rounded-2xl border border-white/10 bg-slate-900/90 p-5"
-    >
-      <div class="mb-4 space-y-2">
-        <Skeleton width="10rem" height="1.1rem" border-radius="6px" />
-        <Skeleton width="14rem" height="0.75rem" border-radius="6px" />
-      </div>
-      <div class="space-y-3">
-        <div
-          v-for="i in 5"
-          :key="`prod-skel-${i}`"
-          class="flex items-center justify-between gap-3"
-        >
-          <div class="flex min-w-0 flex-1 items-center gap-3">
-            <Skeleton width="2rem" height="2rem" border-radius="8px" />
-            <Skeleton width="70%" height="0.9rem" border-radius="6px" />
+      <div
+        v-if="productsLoading"
+        class="rounded-2xl border border-white/10 bg-slate-900/90 p-5"
+      >
+        <div class="mb-4 space-y-2">
+          <Skeleton width="10rem" height="1.1rem" border-radius="6px" />
+          <Skeleton width="14rem" height="0.75rem" border-radius="6px" />
+        </div>
+        <div class="space-y-3">
+          <div
+            v-for="i in 5"
+            :key="`prod-skel-${i}`"
+            class="flex items-center justify-between gap-3"
+          >
+            <div class="flex min-w-0 flex-1 items-center gap-3">
+              <Skeleton width="2rem" height="2rem" border-radius="8px" />
+              <Skeleton width="70%" height="0.9rem" border-radius="6px" />
+            </div>
+            <Skeleton width="2.5rem" height="0.9rem" border-radius="6px" />
           </div>
-          <Skeleton width="2.5rem" height="0.9rem" border-radius="6px" />
         </div>
       </div>
+      <AdminHomeTopProductsCard
+        v-else
+        :title="productsTitle"
+        :subtitle="productsSubtitle"
+        :items="topProducts"
+        :empty-message="productsEmptyMessage"
+      />
     </div>
-    <AdminHomeTopProductsCard
-      v-else
-      :title="productsTitle"
-      :subtitle="productsSubtitle"
-      :items="topProducts"
-      :empty-message="productsEmptyMessage"
-    />
   </section>
 </template>
 
 <script setup>
+import Skeleton from "primevue/skeleton";
 import PaymentMethodsReport from "~/components/shared/payment-methods-report/index.vue";
 import AdminHomeTopProductsCard from "./AdminHomeTopProductsCard.vue";
-import AdminHomeSalesTrendCard from "./AdminHomeSalesTrendCard.vue";
 
 defineOptions({ name: "AdminHomeInsightsSection" });
 
@@ -92,9 +85,6 @@ defineProps({
     type: String,
     default: "لا توجد مدفوعات بعد",
   },
-  salesTrendPoints: { type: Array, default: () => [] },
-  salesTrendBranchId: { type: String, default: null },
-  salesTrendLoading: { type: Boolean, default: false },
   topProducts: { type: Array, default: () => [] },
   productsLoading: { type: Boolean, default: false },
   productsTitle: { type: String, default: "أكثر المنتجات مبيعًا" },
@@ -104,6 +94,4 @@ defineProps({
     default: "لا توجد مبيعات لعرضها بعد.",
   },
 });
-
-defineEmits(["update:salesTrendBranchId"]);
 </script>
