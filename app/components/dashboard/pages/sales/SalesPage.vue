@@ -42,9 +42,12 @@
               <ProductSelect
                 v-model="form.productId"
                 :options="productOptions"
+                :loading="loadingProducts"
+                :disabled="!branchId"
                 placeholder="اختر المنتج المتاح في الفرع"
                 :invalid="!!(errorMessage || fieldErrors.productId)"
                 @change="onProductChange"
+                @search="onProductSearch"
               />
               <ErrorMessage name="productId" class="text-xs text-red-500" />
             </div>
@@ -179,6 +182,7 @@ import {
 import { formatMoney, formatDateTime } from "~/utils/format";
 import { useAuthStore } from "~/store/auth";
 import { useAppToast } from "~/composables/useAppToast";
+import { useThrottledCallback } from "~/composables/useThrottledCallback";
 
 const SaleSuccessDialogContent = defineAsyncComponent(() =>
   import("~/components/dashboard/pages/sales/manage/SaleSuccessDialogContent.vue"),
@@ -187,6 +191,7 @@ const SaleSuccessDialogContent = defineAsyncComponent(() =>
 const authStore = useAuthStore();
 const { showError } = useAppToast();
 const saving = ref(false);
+const loadingProducts = ref(false);
 const formKey = ref(0);
 const proofFile = ref(null);
 const proofKey = ref("");
@@ -276,17 +281,30 @@ const clearStudent = (setFieldValue) => {
   setFieldValue?.("studentPhone", "");
 };
 
-const loadProducts = async () => {
+const loadProducts = async (search = "") => {
   if (!branchId.value) {
     products.value = [];
     throw new Error("لا يوجد فرع مرتبط بالمستخدم الحالي.");
   }
 
-  const items = await inventoryService.getBranchInventory(branchId.value, {
-    availableOnly: true,
-  });
-  products.value = Array.isArray(items) ? items : items?.data || [];
+  loadingProducts.value = true;
+  try {
+    const query = String(search || "").trim();
+    const items = await inventoryService.getBranchInventory(branchId.value, {
+      availableOnly: true,
+      ...(query ? { search: query } : {}),
+    });
+    products.value = Array.isArray(items) ? items : items?.data || [];
+  } finally {
+    loadingProducts.value = false;
+  }
 };
+
+const { run: onProductSearch } = useThrottledCallback((term) => {
+  loadProducts(term).catch((error) => {
+    showError(error?.message || "تعذر تحميل المنتجات.");
+  });
+}, 400);
 
 const onProductChange = (productId) => {
   quantityError.value = "";

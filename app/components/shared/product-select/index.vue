@@ -11,7 +11,7 @@
       filter
       :filter-fields="activeFilterFields"
       :loading="isLoading"
-      :disabled="disabled || isLoading || !canSelect"
+      :disabled="disabled || !canSelect"
       :show-clear="showClear"
       :invalid="invalid"
       class="w-full product-select"
@@ -163,17 +163,17 @@ const canSelect = computed(() => {
 });
 
 const activeFilterFields = computed(() => {
-  // Remote results are already filtered by BE; avoid local re-filtering that
-  // can hide valid matches (e.g. teacher/study-year hits).
-  if (usesRemoteSearch.value && searchTerm.value) return ["_remoteMatch"];
+  // While searching (own API or parent @search), skip local re-filter.
+  if (searchTerm.value) return ["_remoteMatch"];
   return props.filterFields;
 });
 
 const resolvedOptions = computed(() => {
-  if (props.source === "options" || props.options != null) {
-    return props.options || [];
-  }
-  return internalOptions.value;
+  const list =
+    props.source === "options" || props.options != null
+      ? props.options || []
+      : internalOptions.value;
+  return markRemoteMatch(list, searchTerm.value);
 });
 
 const selectedOption = computed(() => {
@@ -322,6 +322,7 @@ const { run: runRemoteSearch } = useThrottledCallback((term) => {
 const onFilter = (event) => {
   const term = String(event?.value ?? "").trim();
   searchTerm.value = term;
+  // Always notify parent (e.g. BookingForm with :options) to reload.
   emit("search", term);
 
   if (!usesRemoteSearch.value) return;

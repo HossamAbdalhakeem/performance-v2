@@ -89,7 +89,7 @@
                 v-model="form.productId"
                 :options="productOptions"
                 :loading="loadingProducts"
-                :disabled="!resolvedBranchId || loadingProducts"
+                :disabled="!resolvedBranchId"
                 :invalid="!!(errorMessage || fieldErrors.productId)"
                 :hint="
                   !resolvedBranchId
@@ -98,6 +98,7 @@
                       : 'لا يوجد فرع مرتبط بالمستخدم الحالي.'
                     : ''
                 "
+                @search="onProductSearch"
               />
               <ErrorMessage name="productId" class="text-xs text-red-500" />
             </div>
@@ -213,6 +214,7 @@ import {
 import { formatMoney, formatDateTime } from "~/utils/format";
 import { useAuthStore } from "~/store/auth";
 import { useAppToast } from "~/composables/useAppToast";
+import { useThrottledCallback } from "~/composables/useThrottledCallback";
 
 defineOptions({ name: "DashboardBookingForm" });
 
@@ -337,16 +339,20 @@ const validateDepositAmount = () => {
   return true;
 };
 
-const loadProducts = async () => {
+const loadProducts = async (search = "") => {
   const branchId = resolvedBranchId.value;
-  inventoryItems.value = [];
 
-  if (!branchId) return;
+  if (!branchId) {
+    inventoryItems.value = [];
+    return;
+  }
 
   loadingProducts.value = true;
   try {
+    const query = String(search || "").trim();
     const items = await inventoryService.getBranchInventory(branchId, {
       forReservation: true,
+      ...(query ? { search: query } : {}),
     });
     inventoryItems.value = Array.isArray(items) ? items : items?.data || [];
 
@@ -363,6 +369,10 @@ const loadProducts = async () => {
     loadingProducts.value = false;
   }
 };
+
+const { run: onProductSearch } = useThrottledCallback((term) => {
+  loadProducts(term);
+}, 400);
 
 const onBranchChange = async (value) => {
   form.branchId = value || null;
