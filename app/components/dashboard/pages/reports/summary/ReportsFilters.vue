@@ -1,6 +1,6 @@
 <template>
   <div
-    class="reports-filters relative flex w-full min-w-0 flex-col gap-2 lg:flex-row lg:flex-wrap lg:items-center lg:justify-end"
+    class="reports-filters flex w-full min-w-0 flex-col gap-2 lg:flex-row lg:flex-wrap lg:items-center lg:justify-end"
   >
     <ProductSelect
       :model-value="book"
@@ -24,33 +24,16 @@
       @update:model-value="onBranchChange"
     />
 
-    <Select
-      :model-value="period"
-      :options="periodOptions"
-      option-label="label"
-      option-value="value"
-      placeholder="الفترة"
-      class="w-full min-w-0 lg:w-72 lg:shrink-0"
-      @update:model-value="onPeriodChange"
-    >
-      <template #value="{ placeholder: valuePlaceholder }">
-        <span class="truncate">{{ selectedPeriodLabel || valuePlaceholder }}</span>
-      </template>
-    </Select>
-
-    <!-- Hidden host: only the overlay opens; no extra filter input in the bar -->
-    <div class="reports-custom-range-host" aria-hidden="true">
-      <DateRangePicker
-        ref="customRangeRef"
-        label=""
-        placeholder="اختر التاريخ المخصص"
-        :from="from"
-        :to="to"
-        @update:from="onFromChange"
-        @update:to="onToChange"
-        @change="onRangeChange"
-      />
-    </div>
+    <PeriodDateFilter
+      :from="from"
+      :to="to"
+      default-period="year"
+      wrapper-class="w-full min-w-0 lg:w-72 lg:shrink-0"
+      select-class="w-full"
+      @update:from="emit('update:from', $event)"
+      @update:to="emit('update:to', $event)"
+      @change="emit('change', $event)"
+    />
 
     <Button
       icon="pi pi-refresh"
@@ -63,15 +46,14 @@
 </template>
 
 <script setup>
-import Select from "primevue/select";
 import Button from "primevue/button";
 import ProductSelect from "~/components/shared/product-select/index.vue";
 import AppGlobalSelectBranch from "~/components/shared/app-global-select-branch/index.vue";
-import DateRangePicker from "~/components/shared/date-range-picker/index.vue";
+import PeriodDateFilter from "~/components/shared/period-date-filter/index.vue";
 
 defineOptions({ name: "ReportsFilters" });
 
-const props = defineProps({
+defineProps({
   book: { type: [String, Number], default: null },
   branch: { type: [String, Number], default: "all" },
   from: { type: String, default: null },
@@ -88,94 +70,6 @@ const emit = defineEmits([
   "refresh",
 ]);
 
-const customRangeRef = ref(null);
-const period = ref("year");
-
-const periodOptions = [
-  { label: "يوم", value: "day" },
-  { label: "اسبوع", value: "week" },
-  { label: "شهر", value: "month" },
-  { label: "سنة", value: "year" },
-  { label: "تاريخ مخصص", value: "custom" },
-];
-
-const formatDisplayDate = (iso) => {
-  if (!iso) return "";
-  const [y, m, d] = String(iso).split("-");
-  if (!y || !m || !d) return String(iso);
-  return `${y}/${m}/${d}`;
-};
-
-const customRangeLabel = computed(() => {
-  if (props.from && props.to) {
-    return `${formatDisplayDate(props.from)} - ${formatDisplayDate(props.to)}`;
-  }
-  if (props.from) return formatDisplayDate(props.from);
-  return "";
-});
-
-const selectedPeriodLabel = computed(() => {
-  if (period.value === "custom") {
-    return customRangeLabel.value || "تاريخ مخصص";
-  }
-  return (
-    periodOptions.find((option) => option.value === period.value)?.label || ""
-  );
-});
-
-const toIsoDate = (date) => {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, "0");
-  const d = String(date.getDate()).padStart(2, "0");
-  return `${y}-${m}-${d}`;
-};
-
-const startOfToday = () => {
-  const now = new Date();
-  now.setHours(0, 0, 0, 0);
-  return now;
-};
-
-const rangeForPeriod = (value) => {
-  const today = startOfToday();
-  const to = toIsoDate(today);
-
-  if (value === "day") {
-    return { from: to, to };
-  }
-
-  if (value === "week") {
-    const from = new Date(today);
-    from.setDate(from.getDate() - 6);
-    return { from: toIsoDate(from), to };
-  }
-
-  if (value === "month") {
-    const from = new Date(today.getFullYear(), today.getMonth(), 1);
-    return { from: toIsoDate(from), to };
-  }
-
-  if (value === "year") {
-    const from = new Date(today.getFullYear(), 0, 1);
-    return { from: toIsoDate(from), to };
-  }
-
-  return null;
-};
-
-const applyPreset = (value) => {
-  const range = rangeForPeriod(value);
-  if (!range) return;
-  emit("update:from", range.from);
-  emit("update:to", range.to);
-  emit("change", range);
-};
-
-const openCustomPicker = async () => {
-  await nextTick();
-  customRangeRef.value?.open?.();
-};
-
 const onBookChange = (value) => {
   emit("update:book", value ?? null);
   emit("change");
@@ -185,66 +79,4 @@ const onBranchChange = (value) => {
   emit("update:branch", value);
   emit("change");
 };
-
-const onPeriodChange = async (value) => {
-  period.value = value || "year";
-
-  if (period.value === "custom") {
-    await openCustomPicker();
-    return;
-  }
-
-  applyPreset(period.value);
-};
-
-const onFromChange = (value) => {
-  emit("update:from", value);
-};
-
-const onToChange = (value) => {
-  emit("update:to", value);
-};
-
-const onRangeChange = (payload) => {
-  period.value = "custom";
-  emit("change", payload);
-};
-
-const detectPeriodFromProps = () => {
-  const from = props.from;
-  const to = props.to;
-  if (!from || !to) {
-    period.value = "year";
-    return;
-  }
-
-  for (const option of ["day", "week", "month", "year"]) {
-    const range = rangeForPeriod(option);
-    if (range && range.from === from && range.to === to) {
-      period.value = option;
-      return;
-    }
-  }
-
-  period.value = "custom";
-};
-
-onMounted(() => {
-  detectPeriodFromProps();
-  if (period.value === "custom") return;
-  if (!props.from || !props.to) {
-    applyPreset(period.value);
-  }
-});
 </script>
-
-<style scoped>
-.reports-custom-range-host {
-  position: absolute;
-  width: 0;
-  height: 0;
-  overflow: hidden;
-  opacity: 0;
-  pointer-events: none;
-}
-</style>

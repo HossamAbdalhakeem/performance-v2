@@ -1,25 +1,29 @@
 <template>
   <div class="space-y-6 text-right" dir="rtl">
-    <div class="flex flex-wrap items-center justify-between gap-3">
-      <div>
+    <div class="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between">
+      <div class="min-w-0">
         <h2 class="text-xl font-bold text-white">{{ title }}</h2>
         <p class="mt-1 text-sm text-slate-400">{{ subtitle }}</p>
       </div>
-      <div class="flex flex-wrap items-end gap-2">
-        <DateRangePicker
-          class="min-w-[16rem] flex-1"
-          label=""
-          placeholder="اختر الفترة"
+
+      <div
+        class="flex w-full min-w-0 flex-col gap-2 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center sm:justify-end"
+      >
+        <PeriodDateFilter
           :from="dateFrom"
           :to="dateTo"
-          @update:from="$emit('update:dateFrom', $event)"
-          @update:to="$emit('update:dateTo', $event)"
-          @change="$emit('date-change', $event)"
+          default-period="day"
+          wrapper-class="w-full min-w-0 sm:w-72 sm:shrink-0"
+          select-class="w-full"
+          @update:from="emit('update:dateFrom', $event)"
+          @update:to="emit('update:dateTo', $event)"
+          @change="emit('date-change', $event)"
         />
+
         <Button
-          label="تحديث"
           icon="pi pi-refresh"
           severity="secondary"
+          class="h-11 w-11 shrink-0 self-end"
           :loading="loading"
           @click="$emit('refresh')"
         />
@@ -66,7 +70,7 @@
 
 <script setup>
 import Button from "primevue/button";
-import DateRangePicker from "~/components/shared/date-range-picker/index.vue";
+import PeriodDateFilter from "~/components/shared/period-date-filter/index.vue";
 
 defineOptions({ name: "DailyReportShell" });
 
