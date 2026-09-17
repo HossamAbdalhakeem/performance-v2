@@ -250,6 +250,7 @@ onMounted(preloadSuggestions);
   font-size: 1.125rem;
   font-weight: 600;
   pointer-events: none;
+  z-index: 1;
 }
 
 .student-search-field--default :deep(.student-search-icon) {
@@ -260,8 +261,31 @@ onMounted(preloadSuggestions);
   color: rgb(148 163 184);
 }
 
+/* Join input + dropdown as one control (RTL-aware via logical radii) */
+.student-search-field :deep(.p-autocomplete) {
+  display: flex;
+  width: 100%;
+  align-items: stretch;
+}
+
+.student-search-field :deep(.p-autocomplete .p-inputtext),
+.student-search-field :deep(.student-search-input--dark) {
+  flex: 1 1 auto;
+  min-width: 0;
+  border-start-start-radius: 0.75rem;
+  border-end-start-radius: 0.75rem;
+  border-start-end-radius: 0;
+  border-end-end-radius: 0;
+}
+
+.student-search-field :deep(.p-autocomplete .p-autocomplete-dropdown) {
+  border-start-start-radius: 0;
+  border-end-start-radius: 0;
+  border-start-end-radius: 0.75rem;
+  border-end-end-radius: 0.75rem;
+}
+
 .student-search-field--dark :deep(.student-search-input--dark) {
-  border-radius: 0.75rem;
   border: 1px solid rgb(51 65 85);
   background-color: rgb(15 23 42);
   color: rgb(241 245 249);
@@ -269,5 +293,16 @@ onMounted(preloadSuggestions);
 
 .student-search-field--dark :deep(.student-search-input--dark::placeholder) {
   color: rgb(148 163 184);
+}
+
+.student-search-field--dark :deep(.p-autocomplete .p-autocomplete-dropdown) {
+  border: 1px solid rgb(51 65 85);
+  border-inline-start: 0;
+  background-color: rgb(30 41 59);
+  color: rgb(226 232 240);
+}
+
+.student-search-field--default :deep(.p-autocomplete .p-autocomplete-dropdown) {
+  border-inline-start: 0;
 }
 </style>
