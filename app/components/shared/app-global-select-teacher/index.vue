@@ -9,12 +9,14 @@
       option-value="value"
       :placeholder="placeholder"
       filter
+      :filter-fields="activeFilterFields"
       :loading="isLoading"
       :disabled="disabled || isLoading"
       :show-clear="showClear"
       :invalid="invalid"
       class="w-full"
       :class="[selectClass, { 'p-invalid': invalid }]"
+      @filter="onFilter"
       @update:model-value="onUpdate"
     />
 
@@ -26,6 +28,7 @@
 import Select from "primevue/select";
 import { teacherService } from "~/services/teacherService";
 import { useAppToast } from "~/composables/useAppToast";
+import { useThrottledCallback } from "~/composables/useThrottledCallback";
 
 defineOptions({ name: "AppGlobalSelectTeacher" });
 
@@ -48,62 +51,111 @@ const props = defineProps({
   /** Auto-load teachers on mount when options is not provided */
   autoLoad: { type: Boolean, default: true },
   query: { type: Object, default: () => ({}) },
+  throttleMs: { type: Number, default: 400 },
 });
 
-const emit = defineEmits(["update:modelValue", "change", "loaded"]);
+const emit = defineEmits(["update:modelValue", "change", "loaded", "search"]);
 
 const { showError } = useAppToast();
 
 const internalOptions = ref([]);
 const internalLoading = ref(false);
+const searchTerm = ref("");
+const selectedOptionCache = ref(null);
+const requestId = ref(0);
 
 const isLoading = computed(() => props.loading || internalLoading.value);
+const usesRemoteSearch = computed(() => !Array.isArray(props.options));
 
-const mapTeacherOption = (teacher) => ({
+const activeFilterFields = computed(() => {
+  if (usesRemoteSearch.value && searchTerm.value) return ["_remoteMatch"];
+  return ["label"];
+});
+
+const mapTeacherOption = (teacher, term = "") => ({
   label: teacher.name || teacher.teacher_name || `مدرس ${teacher.id}`,
   value: teacher.id,
   status: teacher.status,
   raw: teacher,
+  ...(term ? { _remoteMatch: term } : {}),
 });
+
+const withSelectedOption = (options) => {
+  const list = Array.isArray(options) ? [...options] : [];
+  const selected =
+    list.find((item) => item.value === props.modelValue) ||
+    (selectedOptionCache.value?.value === props.modelValue
+      ? selectedOptionCache.value
+      : null);
+  if (!selected?.value) return list;
+  if (list.some((item) => item.value === selected.value)) return list;
+  return [selected, ...list];
+};
 
 const resolvedOptions = computed(() => {
   if (Array.isArray(props.options)) return props.options;
   return internalOptions.value;
 });
 
-const loadTeachers = async () => {
+const loadTeachers = async (term = searchTerm.value) => {
   if (!props.autoLoad || Array.isArray(props.options)) return;
 
+  const currentRequest = ++requestId.value;
   internalLoading.value = true;
   try {
-    const teachers = await teacherService.getTeachers(props.query);
+    const query = String(term || "").trim();
+    const teachers = await teacherService.getTeachers({
+      ...(props.query || {}),
+      ...(query ? { search: query } : {}),
+    });
+    if (currentRequest !== requestId.value) return;
+
     const list = Array.isArray(teachers) ? teachers : teachers?.data || [];
     const mapped = list
       .filter((teacher) =>
         props.excludeInactive ? teacher.status !== "INACTIVE" : true,
       )
-      .map(mapTeacherOption);
+      .map((teacher) => mapTeacherOption(teacher, query));
 
-    internalOptions.value = mapped;
-    emit("loaded", mapped);
+    internalOptions.value = withSelectedOption(mapped);
+    emit("loaded", internalOptions.value);
   } catch (error) {
-    internalOptions.value = [];
+    if (currentRequest !== requestId.value) return;
+    internalOptions.value = withSelectedOption([]);
     showError(error?.message || "تعذر تحميل المدرسين.");
   } finally {
-    internalLoading.value = false;
+    if (currentRequest === requestId.value) internalLoading.value = false;
   }
+};
+
+const { run: runRemoteSearch } = useThrottledCallback((term) => {
+  loadTeachers(term);
+}, props.throttleMs);
+
+const onFilter = (event) => {
+  const term = String(event?.value ?? "").trim();
+  searchTerm.value = term;
+  emit("search", term);
+  if (!usesRemoteSearch.value) return;
+  runRemoteSearch(term);
 };
 
 const onUpdate = (value) => {
   emit("update:modelValue", value ?? null);
+  const option =
+    resolvedOptions.value.find((item) => item.value === value) ||
+    (selectedOptionCache.value?.value === value
+      ? selectedOptionCache.value
+      : null);
+  if (option) selectedOptionCache.value = option;
   emit("change", value ?? null);
 };
 
-/** Allow parent to refresh after creating a teacher */
-const reload = () => loadTeachers();
+const reload = (term = searchTerm.value) => loadTeachers(term);
 
 const prependOption = (option) => {
   if (!option?.value) return;
+  selectedOptionCache.value = option;
   internalOptions.value = [
     option,
     ...internalOptions.value.filter((item) => item.value !== option.value),
@@ -119,8 +171,15 @@ onMounted(() => {
 watch(
   () => props.query,
   () => {
-    loadTeachers();
+    loadTeachers(searchTerm.value);
   },
   { deep: true },
+);
+
+watch(
+  () => props.modelValue,
+  (value) => {
+    if (!value) selectedOptionCache.value = null;
+  },
 );
 </script>
