@@ -18,16 +18,7 @@
       />
     </div>
 
-    <div
-      v-if="loading"
-      class="space-y-4"
-    >
-      <div class="flex items-end justify-between gap-2">
-        <Skeleton width="2.5rem" height="0.7rem" border-radius="4px" />
-        <Skeleton width="2.5rem" height="0.7rem" border-radius="4px" />
-      </div>
-      <Skeleton width="100%" height="12rem" border-radius="12px" />
-    </div>
+    <AdminHomeSalesTrendSkeleton v-if="loading" />
 
     <div v-else class="h-56 w-full">
       <Line :data="chartData" :options="chartOptions" />
@@ -47,6 +38,7 @@ import {
 } from "chart.js";
 import { Line } from "vue-chartjs";
 import AppGlobalSelectBranch from "~/components/shared/app-global-select-branch/index.vue";
+import AdminHomeSalesTrendSkeleton from "./skeletons/AdminHomeSalesTrendSkeleton.vue";
 
 ChartJS.register(
   CategoryScale,

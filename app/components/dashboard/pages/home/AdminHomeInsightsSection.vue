@@ -8,26 +8,7 @@
     </div>
 
     <div class="grid gap-4 xl:grid-cols-2">
-      <div
-        v-if="paymentsLoading"
-        class="rounded-xl border border-white/10 bg-slate-900 p-4"
-      >
-        <div class="mb-4 flex justify-center">
-          <Skeleton width="8rem" height="1.1rem" border-radius="6px" />
-        </div>
-        <div class="flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
-          <Skeleton shape="circle" size="8rem" />
-          <div class="w-full max-w-xs space-y-2">
-            <Skeleton
-              v-for="i in 3"
-              :key="`pay-skel-${i}`"
-              width="100%"
-              height="1rem"
-              border-radius="6px"
-            />
-          </div>
-        </div>
-      </div>
+      <AdminHomePaymentsSkeleton v-if="paymentsLoading" />
       <PaymentMethodsReport
         v-else
         :items="paymentMethodItems"
@@ -36,28 +17,7 @@
         :empty-message="paymentEmptyMessage"
       />
 
-      <div
-        v-if="productsLoading"
-        class="rounded-2xl border border-white/10 bg-slate-900/90 p-5"
-      >
-        <div class="mb-4 space-y-2">
-          <Skeleton width="10rem" height="1.1rem" border-radius="6px" />
-          <Skeleton width="14rem" height="0.75rem" border-radius="6px" />
-        </div>
-        <div class="space-y-3">
-          <div
-            v-for="i in 5"
-            :key="`prod-skel-${i}`"
-            class="flex items-center justify-between gap-3"
-          >
-            <div class="flex min-w-0 flex-1 items-center gap-3">
-              <Skeleton width="2rem" height="2rem" border-radius="8px" />
-              <Skeleton width="70%" height="0.9rem" border-radius="6px" />
-            </div>
-            <Skeleton width="2.5rem" height="0.9rem" border-radius="6px" />
-          </div>
-        </div>
-      </div>
+      <AdminHomeTopProductsSkeleton v-if="productsLoading" />
       <AdminHomeTopProductsCard
         v-else
         :title="productsTitle"
@@ -70,9 +30,10 @@
 </template>
 
 <script setup>
-import Skeleton from "primevue/skeleton";
 import PaymentMethodsReport from "~/components/shared/payment-methods-report/index.vue";
 import AdminHomeTopProductsCard from "./AdminHomeTopProductsCard.vue";
+import AdminHomePaymentsSkeleton from "./skeletons/AdminHomePaymentsSkeleton.vue";
+import AdminHomeTopProductsSkeleton from "./skeletons/AdminHomeTopProductsSkeleton.vue";
 
 defineOptions({ name: "AdminHomeInsightsSection" });
 

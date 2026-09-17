@@ -6,7 +6,10 @@
         اختصارات للعمليات الأكثر استخدامًا
       </p>
     </div>
-    <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+
+    <AdminHomeActionsSectionSkeleton v-if="loading" />
+
+    <div v-else class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
       <AdminHomeActionCard
         v-for="action in actions"
         :key="action.key"
@@ -25,11 +28,13 @@
 
 <script setup>
 import AdminHomeActionCard from "./AdminHomeActionCard.vue";
+import AdminHomeActionsSectionSkeleton from "./skeletons/AdminHomeActionsSectionSkeleton.vue";
 
 defineOptions({ name: "AdminHomeActionsSection" });
 
 defineProps({
   actions: { type: Array, default: () => [] },
+  loading: { type: Boolean, default: false },
 });
 
 defineEmits(["select"]);

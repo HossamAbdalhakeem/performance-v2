@@ -7,11 +7,12 @@
       </p>
     </div>
 
-    <div class="rounded-2xl border border-white/10 bg-slate-900/90 p-4">
+    <AdminHomeRecentOperationsSkeleton v-if="loading" />
+
+    <div v-else class="rounded-2xl border border-white/10 bg-slate-900/90 p-4">
       <AppDataTable
         :value="displayRows"
         :columns="columns"
-        :loading="loading"
         :empty-message="emptyMessage"
         :skeleton-rows="5"
       >
@@ -47,6 +48,7 @@ import {
   getTransactionTypeLabel,
   getReservationStatusLabel,
 } from "~/utils/domainLabels";
+import AdminHomeRecentOperationsSkeleton from "./skeletons/AdminHomeRecentOperationsSkeleton.vue";
 
 defineOptions({ name: "AdminHomeRecentOperationsSection" });
 
