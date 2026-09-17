@@ -266,6 +266,7 @@ const roleMeta = computed(
 
 const isActive = (to) => {
   const path = route.path;
+  if (to === "/home") return path === "/home" || path === "/";
   if (to === "/reservations") return path === "/reservations";
   if (to === "/reports") {
     return path === "/reports";
@@ -322,6 +323,11 @@ const navigation = computed(() => {
   }
 
   return [
+    {
+      id: "home",
+      label: "",
+      items: [{ label: "الرئيسية", icon: "⌂", to: "/home" }],
+    },
     {
       id: "base",
       label: "البيانات الأساسية",

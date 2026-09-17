@@ -8,7 +8,7 @@ import { useAuthStore } from "~/store/auth.js";
 const authStore = useAuthStore();
 
 const roleFirstPageMap = {
-  admin: "/products",
+  admin: "/home",
   branch: "/sales/direct",
   social: "/books/reserve",
 };

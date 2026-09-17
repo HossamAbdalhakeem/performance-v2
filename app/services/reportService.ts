@@ -78,4 +78,37 @@ export const reportService = {
       await apiFetch("/reports/expenses", { method: "GET", params }),
     );
   },
+
+  async getGeneralSummary() {
+    return asData(await apiFetch("/reports/general/summary", { method: "GET" }));
+  },
+
+  async getGeneralPayments() {
+    return asData(
+      await apiFetch("/reports/general/payments", { method: "GET" }),
+    );
+  },
+
+  async getGeneralTopProducts() {
+    return asData(
+      await apiFetch("/reports/general/top-products", { method: "GET" }),
+    );
+  },
+
+  async getGeneralRecentOperations() {
+    return asData(
+      await apiFetch("/reports/general/recent-operations", { method: "GET" }),
+    );
+  },
+
+  async getGeneralSalesTrend(params: Record<string, any> = {}) {
+    const query = { ...params };
+    if (!query.branchId) delete query.branchId;
+    return asData(
+      await apiFetch("/reports/general/sales-trend", {
+        method: "GET",
+        params: query,
+      }),
+    );
+  },
 };
