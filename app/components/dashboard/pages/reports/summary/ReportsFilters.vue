@@ -55,7 +55,7 @@
     <Button
       icon="pi pi-refresh"
       severity="secondary"
-      class="w-full shrink-0 sm:w-auto"
+      class="reports-refresh-btn w-full shrink-0 sm:w-auto"
       :loading="loading"
       @click="$emit('refresh')"
     />
@@ -254,6 +254,20 @@ onMounted(() => {
 .reports-filters :deep(.reports-filter-item .p-select),
 .reports-filters :deep(.p-select.reports-filter-item) {
   width: 100% !important;
+}
+
+.reports-filters :deep(.reports-refresh-btn.p-button) {
+  width: 100%;
+  min-height: 2.75rem;
+  height: 2.75rem;
+  padding-inline: 0.9rem;
+}
+
+@media (min-width: 640px) {
+  .reports-filters :deep(.reports-refresh-btn.p-button) {
+    width: 2.75rem;
+    min-width: 2.75rem;
+  }
 }
 
 .reports-custom-range-host {
