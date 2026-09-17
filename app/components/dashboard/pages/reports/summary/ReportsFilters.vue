@@ -9,7 +9,7 @@
       label=""
       placeholder="اختيار الكتاب"
       show-clear
-      wrapper-class="w-full min-w-0 lg:w-52 lg:shrink-0"
+      wrapper-class="w-full min-w-0 lg:w-72 lg:shrink-0"
       @update:model-value="onBookChange"
     />
     <AppGlobalSelectBranch
@@ -19,7 +19,7 @@
       include-all-option
       all-option-label="كل الفروع"
       all-option-value="all"
-      wrapper-class="w-full min-w-0 lg:w-52 lg:shrink-0"
+      wrapper-class="w-full min-w-0 lg:w-72 lg:shrink-0"
       select-class="w-full"
       @update:model-value="onBranchChange"
     />
@@ -30,7 +30,7 @@
       option-label="label"
       option-value="value"
       placeholder="الفترة"
-      class="w-full min-w-0 lg:w-52 lg:shrink-0"
+      class="w-full min-w-0 lg:w-72 lg:shrink-0"
       @update:model-value="onPeriodChange"
     >
       <template #value="{ placeholder: valuePlaceholder }">
