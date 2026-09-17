@@ -110,6 +110,36 @@
             </div>
           </Field>
 
+          <Field
+            v-slot="{ errorMessage }"
+            v-model="form.quantity"
+            name="quantity"
+            rules="required|min_value:1"
+          >
+            <div class="flex flex-col gap-2 text-right">
+              <div class="flex items-center justify-between gap-2">
+                <label class="text-sm font-medium text-slate-700">الكمية</label>
+                <span
+                  v-if="selectedProductOption"
+                  class="rounded-full bg-sky-500/10 px-2.5 py-0.5 text-xs font-semibold text-sky-700"
+                >
+                  المتاح للبيع: {{ selectedProductOption.availableQuantity }}
+                </span>
+              </div>
+              <AppInputNumber
+                v-model="form.quantity"
+                :min="1"
+                :max="maxQuantity"
+                :max-fraction-digits="0"
+                :invalid="!!(errorMessage || fieldErrors.quantity || quantityError)"
+              />
+              <p v-if="quantityError" class="text-xs text-red-500">
+                {{ quantityError }}
+              </p>
+              <ErrorMessage name="quantity" class="text-xs text-red-500" />
+            </div>
+          </Field>
+
           <div
             v-if="selectedProductOption"
             class="md:col-span-2 rounded-2xl border border-amber-400/40 bg-gradient-to-l from-amber-500/20 via-orange-500/10 to-slate-900 px-4 py-5 text-center sm:px-6 sm:py-8"
@@ -192,6 +222,7 @@
 import Card from "primevue/card";
 import Button from "primevue/button";
 import Dialog from "primevue/dialog";
+import AppInputNumber from "~/components/dashboard/AppInputNumber.vue";
 import PaymentFields from "~/components/shared/payment-fields/index.vue";
 import FormSubmitButton from "~/components/shared/form-submit-button/index.vue";
 import ProductSelect from "~/components/shared/product-select/index.vue";
@@ -217,8 +248,6 @@ const SaleSuccessDialogContent = defineAsyncComponent(() =>
   import("~/components/dashboard/pages/sales/manage/SaleSuccessDialogContent.vue"),
 );
 
-const SALE_QUANTITY = 1;
-
 const authStore = useAuthStore();
 const { showError } = useAppToast();
 const saving = ref(false);
@@ -229,6 +258,7 @@ const proofKey = ref("");
 const proofPreviewUrl = ref("");
 const proofRequiredError = ref(false);
 const paymentFieldsRef = ref(null);
+const quantityError = ref("");
 const successDialogVisible = ref(false);
 const saleSummary = ref(null);
 const selectedStudent = ref(null);
@@ -240,6 +270,7 @@ const form = reactive({
   teacherId: null,
   productType: null,
   productId: null,
+  quantity: 1,
   method: PaymentMethod.CASH,
 });
 
@@ -251,6 +282,7 @@ const formInitialValues = {
   teacherId: null,
   productType: null,
   productId: null,
+  quantity: 1,
   method: PaymentMethod.CASH,
 };
 
@@ -324,6 +356,10 @@ const selectedProduct = computed(() => {
   return row?.product || row || null;
 });
 
+const maxQuantity = computed(() =>
+  Math.max(1, Number(selectedProductOption.value?.availableQuantity || 1)),
+);
+
 const unitPrice = computed(() =>
   Number(
     selectedProduct.value?.sellingPrice ||
@@ -332,7 +368,7 @@ const unitPrice = computed(() =>
   ),
 );
 const requiredAmount = computed(() =>
-  Number((unitPrice.value * SALE_QUANTITY).toFixed(2)),
+  Number((unitPrice.value * Number(form.quantity || 0)).toFixed(2)),
 );
 
 const validateStudentSelection = (value) => {
@@ -434,7 +470,36 @@ const onProductTypeChange = async (value) => {
 };
 
 const onProductChange = (productId) => {
+  quantityError.value = "";
   form.productId = productId;
+  const available = productOptions.value.find(
+    (option) => option.value === productId,
+  )?.availableQuantity;
+  if (available != null && Number(form.quantity) > Number(available)) {
+    form.quantity = Number(available);
+  }
+};
+
+const validateQuantity = () => {
+  quantityError.value = "";
+  const available = Number(selectedProductOption.value?.availableQuantity || 0);
+  const qty = Number(form.quantity || 0);
+
+  if (!selectedProductOption.value) {
+    return false;
+  }
+
+  if (qty < 1) {
+    quantityError.value = "الكمية يجب أن تكون 1 على الأقل.";
+    return false;
+  }
+
+  if (qty > available) {
+    quantityError.value = `الكمية المطلوبة أكبر من المتاح (${available}).`;
+    return false;
+  }
+
+  return true;
 };
 
 const asText = (value, key = "") => {
@@ -480,6 +545,7 @@ const resetForm = () => {
     teacherId: null,
     productType: null,
     productId: null,
+    quantity: 1,
     method: PaymentMethod.CASH,
   });
   selectedStudent.value = null;
@@ -488,26 +554,21 @@ const resetForm = () => {
   proofKey.value = "";
   proofPreviewUrl.value = "";
   proofRequiredError.value = false;
+  quantityError.value = "";
   paymentFieldsRef.value?.reset?.();
   formKey.value += 1;
 };
 
 const submitSale = async () => {
   proofRequiredError.value = false;
+  quantityError.value = "";
 
   if (paymentFieldsRef.value && !paymentFieldsRef.value.validate()) {
     proofRequiredError.value = true;
     return;
   }
 
-  if (!selectedProductOption.value) {
-    showError("اختر منتجاً متاحاً للبيع.");
-    return;
-  }
-
-  const available = Number(selectedProductOption.value.availableQuantity || 0);
-  if (available < SALE_QUANTITY) {
-    showError(`الكمية المتاحة غير كافية (المتاح: ${available}).`);
+  if (!validateQuantity()) {
     return;
   }
 
@@ -516,7 +577,7 @@ const submitSale = async () => {
     const studentId = await ensureStudent();
     const needsProof = paymentMethodNeedsProof(form.method);
     const product = selectedProductOption.value;
-    const quantity = SALE_QUANTITY;
+    const quantity = Number(form.quantity || 0);
     const lineUnitPrice = Number(product?.sellingPrice || unitPrice.value || 0);
     const totalAmount = Number((lineUnitPrice * quantity).toFixed(2));
     const studentName = asText(form.studentName, "name");
@@ -562,4 +623,13 @@ const submitSale = async () => {
     saving.value = false;
   }
 };
+
+watch(
+  () => form.quantity,
+  () => {
+    if (selectedProductOption.value) {
+      validateQuantity();
+    }
+  },
+);
 </script>

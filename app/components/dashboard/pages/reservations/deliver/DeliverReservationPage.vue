@@ -439,7 +439,7 @@ const loadReservations = async () => {
     const list = result.data || [];
     reservations.value = list
       .map(normalizeReservation)
-      .filter((item) => item.status !== "DELIVERED" && item.status !== "CANCELLED");
+      // .filter((item) => item.status !== "DELIVERED" && item.status !== "CANCELLED");
   } catch (error) {
     reservations.value = [];
     showError(error?.message || "تعذر تحميل الحجوزات.");
