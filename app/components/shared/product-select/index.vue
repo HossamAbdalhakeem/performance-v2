@@ -5,7 +5,7 @@
     <Select
       :model-value="modelValue"
       :options="resolvedOptions"
-      option-label="label"
+      :option-label="optionLabelKey"
       option-value="value"
       :placeholder="placeholder"
       filter
@@ -96,7 +96,7 @@ import {
   mapInventoryProductOptions,
 } from "~/utils/productOptions";
 import { useAppToast } from "~/composables/useAppToast";
-import { useThrottledCallback } from "~/composables/useThrottledCallback";
+import { useDebouncedCallback } from "~/composables/useDebouncedCallback";
 
 const props = defineProps({
   modelValue: { type: [String, Number], default: null },
@@ -113,6 +113,8 @@ const props = defineProps({
     default: "rich",
     validator: (value) => ["rich", "simple"].includes(value),
   },
+  /** When true, dropdown shows product name only (no price / availability in label). */
+  nameOnly: { type: Boolean, default: false },
   source: {
     type: String,
     default: "options",
@@ -152,6 +154,8 @@ const selectedOptionCache = ref(null);
 const requestId = ref(0);
 
 const isLoading = computed(() => props.loading || internalLoading.value);
+
+const optionLabelKey = computed(() => (props.nameOnly ? "name" : "label"));
 
 const usesRemoteSearch = computed(
   () => props.source === "catalog" || props.source === "inventory",
@@ -315,18 +319,32 @@ const reload = async (term = searchTerm.value) => {
   }
 };
 
-const { run: runRemoteSearch } = useThrottledCallback((term) => {
-  reload(term);
-}, props.throttleMs);
+const { run: runSearch, cancel: cancelSearch } = useDebouncedCallback(
+  (term) => {
+    // Notify parent (e.g. BookingForm with :options) and remote sources.
+    emit("search", term);
+    if (usesRemoteSearch.value) {
+      reload(term);
+    }
+  },
+  props.throttleMs,
+);
 
 const onFilter = (event) => {
   const term = String(event?.value ?? "").trim();
   searchTerm.value = term;
-  // Always notify parent (e.g. BookingForm with :options) to reload.
-  emit("search", term);
 
-  if (!usesRemoteSearch.value) return;
-  runRemoteSearch(term);
+  // Clear immediately so the full list comes back without waiting.
+  if (!term) {
+    cancelSearch();
+    emit("search", "");
+    if (usesRemoteSearch.value) {
+      reload("");
+    }
+    return;
+  }
+
+  runSearch(term);
 };
 
 watch(
@@ -355,6 +373,7 @@ watch(
   () => {
     if (!props.autoLoad) return;
     if (props.source === "options") return;
+    cancelSearch();
     searchTerm.value = "";
     reload("");
   },

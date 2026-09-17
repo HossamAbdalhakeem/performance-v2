@@ -44,7 +44,7 @@
                 :options="productOptions"
                 :loading="loadingProducts"
                 :disabled="!branchId"
-                placeholder="اختر المنتج المتاح في الفرع"
+                placeholder="اختر المنتج"
                 :invalid="!!(errorMessage || fieldErrors.productId)"
                 @change="onProductChange"
                 @search="onProductSearch"

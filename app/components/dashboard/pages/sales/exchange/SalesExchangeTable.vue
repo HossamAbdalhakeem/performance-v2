@@ -15,6 +15,18 @@
       </span>
     </template>
 
+    <template #quantity="{ data }">
+      <div class="flex flex-col items-center gap-0.5">
+        <span class="font-medium">{{ data.remainingQuantity }}</span>
+        <span
+          v-if="data.status === 'PARTIALLY_RETURNED'"
+          class="text-[11px] text-amber-600"
+        >
+          مرتجع {{ data.returnedQuantity ?? 0 }}
+        </span>
+      </div>
+    </template>
+
     <template #paymentMethod="{ data }">
       <PaymentProofThumb
         :method="data.paymentMethod"
@@ -74,7 +86,7 @@ const columns = [
   { field: "studentName", header: "الطالب" },
   { field: "phone", header: "الموبايل", fallback: "—" },
   { field: "productName", header: "المنتج" },
-  { field: "remainingQuantity", header: "الكمية" },
+  { field: "remainingQuantity", header: "الكمية", slot: "quantity" },
   { field: "amountLabel", header: "المبلغ", slot: "amountLabel" },
   { field: "paymentMethodLabel", header: "طريقة الدفع", slot: "paymentMethod" },
   { field: "branchName", header: "الفرع" },

@@ -17,9 +17,17 @@
       لا يمكن التراجع عن هذا الإجراء بعد التأكيد.
     </p>
     <p class="text-slate-600">
+      الكمية:
+      <span class="font-semibold text-slate-900">{{ refundQuantity }}</span>
+      من أصل
+      <span class="font-semibold text-slate-900">
+        {{ sale?.remainingQuantity }}
+      </span>
+    </p>
+    <p class="text-slate-600">
       سيتم تسجيل استرداد بمبلغ
       <span class="font-semibold text-emerald-700">
-        {{ sale?.refundAmountLabel }}
+        {{ refundAmountLabel }}
       </span>
       عبر
       <span class="font-semibold">{{ refundMethodLabel }}</span>
@@ -30,6 +38,8 @@
 <script setup>
 defineProps({
   sale: { type: Object, default: null },
+  refundQuantity: { type: Number, default: 1 },
+  refundAmountLabel: { type: String, default: "-" },
   refundMethodLabel: { type: String, default: "-" },
 });
 </script>

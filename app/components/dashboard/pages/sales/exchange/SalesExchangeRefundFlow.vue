@@ -12,10 +12,13 @@
       <RefundDetailContent
         v-if="detailVisible && sale"
         :sale="sale"
+        :refund-quantity="refundQuantity"
         :refund-method="refundMethod"
         :refund-image="refundImage"
         :refund-proof-key="refundProofKey"
         :refund-error="refundError"
+        :quantity-error="quantityError"
+        @update:refund-quantity="onQuantityChange"
         @update:refund-method="refundMethod = $event"
         @update:refund-image="refundImage = $event"
         @update:refund-proof-key="refundProofKey = $event"
@@ -56,6 +59,8 @@
       <RefundConfirmContent
         v-if="confirmVisible"
         :sale="sale"
+        :refund-quantity="refundQuantity"
+        :refund-amount-label="refundAmountLabel"
         :refund-method-label="refundMethodLabel"
       />
 
@@ -86,6 +91,7 @@ import Button from "primevue/button";
 import Dialog from "primevue/dialog";
 import { returnService } from "~/services/returnService";
 import { useAppToast } from "~/composables/useAppToast";
+import { formatMoney } from "~/utils/format";
 import {
   PAYMENT_METHOD_LABELS,
   PaymentMethod,
@@ -112,25 +118,55 @@ const { showError, showSuccess } = useAppToast();
 
 const busy = ref(false);
 const confirmVisible = ref(false);
+const refundQuantity = ref(1);
 const refundMethod = ref(PaymentMethod.CASH);
 const refundImage = ref(null);
 const refundProofKey = ref("");
 const refundError = ref("");
+const quantityError = ref("");
 
 const detailVisible = computed({
   get: () => props.open,
   set: (value) => emit("update:open", value),
 });
 
+const maxQuantity = computed(() =>
+  Math.max(1, Number(props.sale?.remainingQuantity || 1)),
+);
+
 const refundMethodLabel = computed(
   () => PAYMENT_METHOD_LABELS[refundMethod.value] || refundMethod.value || "-",
 );
 
+const refundAmountLabel = computed(() => {
+  const qty = Number(refundQuantity.value || 0);
+  const unitPrice = Number(props.sale?.unitPrice || 0);
+  if (qty > 0 && unitPrice > 0) {
+    return formatMoney(unitPrice * qty);
+  }
+  return props.sale?.refundAmountLabel || formatMoney(0);
+});
+
+const clampQuantity = (value) => {
+  const max = maxQuantity.value;
+  const parsed = Math.floor(Number(value));
+  if (!Number.isFinite(parsed) || parsed < 1) return 1;
+  if (parsed > max) return max;
+  return parsed;
+};
+
+const onQuantityChange = (value) => {
+  quantityError.value = "";
+  refundQuantity.value = clampQuantity(value);
+};
+
 const resetFields = () => {
+  refundQuantity.value = maxQuantity.value;
   refundMethod.value = PaymentMethod.CASH;
   refundImage.value = null;
   refundProofKey.value = "";
   refundError.value = "";
+  quantityError.value = "";
   confirmVisible.value = false;
 };
 
@@ -148,6 +184,19 @@ const onDetailVisible = (value) => {
 
 const requestConfirm = () => {
   refundError.value = "";
+  quantityError.value = "";
+
+  const qty = clampQuantity(refundQuantity.value);
+  refundQuantity.value = qty;
+
+  if (qty < 1) {
+    quantityError.value = "كمية الاسترداد يجب أن تكون 1 على الأقل.";
+    return;
+  }
+  if (qty > maxQuantity.value) {
+    quantityError.value = `كمية الاسترداد لا يمكن أن تتجاوز ${maxQuantity.value}.`;
+    return;
+  }
   if (!refundMethod.value) {
     refundError.value = "اختر طريقة الاسترداد.";
     return;
@@ -164,12 +213,19 @@ const requestConfirm = () => {
 
 const confirm = async () => {
   if (!props.sale?.saleId || !props.sale?.saleItemId) return;
+  const qty = clampQuantity(refundQuantity.value);
+  if (qty < 1 || qty > maxQuantity.value) {
+    quantityError.value = `كمية الاسترداد يجب أن تكون بين 1 و ${maxQuantity.value}.`;
+    confirmVisible.value = false;
+    return;
+  }
+
   busy.value = true;
   try {
     const payload = {
       saleId: props.sale.saleId,
       saleItemId: props.sale.saleItemId,
-      quantity: props.sale.remainingQuantity,
+      quantity: qty,
       method: refundMethod.value,
     };
     if (refundProofKey.value) {
@@ -192,6 +248,15 @@ watch(
   () => props.open,
   (open) => {
     if (open) resetFields();
+  },
+);
+
+watch(
+  () => props.sale?.remainingQuantity,
+  () => {
+    if (props.open) {
+      refundQuantity.value = maxQuantity.value;
+    }
   },
 );
 </script>

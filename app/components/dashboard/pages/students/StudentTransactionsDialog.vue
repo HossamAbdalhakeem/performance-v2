@@ -32,6 +32,7 @@
           v-model="filters.productId"
           source="catalog"
           variant="simple"
+          name-only
           label="المنتج"
           placeholder="كل المنتجات"
           show-clear
