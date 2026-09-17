@@ -2,16 +2,6 @@
   <div
     class="reports-filters flex w-full flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end"
   >
-    <ProductSelect
-      :model-value="book"
-      source="catalog"
-      variant="simple"
-      label=""
-      placeholder="اختيار الكتاب"
-      show-clear
-      wrapper-class="reports-filter-item"
-      @update:model-value="onBookChange"
-    />
     <AppGlobalSelectBranch
       :model-value="branch"
       label=""
@@ -45,36 +35,23 @@
 <script setup>
 import Select from "primevue/select";
 import Button from "primevue/button";
-import ProductSelect from "~/components/shared/product-select/index.vue";
 import AppGlobalSelectBranch from "~/components/shared/app-global-select-branch/index.vue";
 
 defineOptions({ name: "ReportsFilters" });
 
 defineProps({
-  book: { type: [String, Number], default: null },
   branch: { type: [String, Number], default: "all" },
   date: { type: String, default: "today" },
   loading: { type: Boolean, default: false },
 });
 
-const emit = defineEmits([
-  "update:book",
-  "update:branch",
-  "update:date",
-  "change",
-  "refresh",
-]);
+const emit = defineEmits(["update:branch", "update:date", "change", "refresh"]);
 
 const dateOptions = [
   { label: "اليوم", value: "today" },
   { label: "الأسبوع", value: "week" },
   { label: "الشهر", value: "month" },
 ];
-
-const onBookChange = (value) => {
-  emit("update:book", value);
-  emit("change");
-};
 
 const onBranchChange = (value) => {
   emit("update:branch", value);

@@ -1,14 +1,20 @@
 <template>
   <div class="rounded-xl border border-white/10 bg-slate-900 p-4">
-    <p class="mb-3 font-bold text-white">مبيعات</p>
+    <p class="mb-3 font-bold text-white">مبيعات ومدفوعات</p>
     <div class="grid gap-2 text-sm text-slate-200">
       <p>
         مبيعات فرع:
         <strong class="text-white">{{ formatNumber(breakdown.branchSales) }}</strong>
       </p>
       <p>
-        محجوزات:
+        مدفوعات الحجوزات (كل الحالات):
         <strong class="text-white">{{ formatNumber(breakdown.reservations) }}</strong>
+      </p>
+      <p>
+        عربونات حجوزات معلّقة:
+        <strong class="text-amber-200">
+          {{ formatNumber(breakdown.reservationDeposits ?? reservationDeposits) }}
+        </strong>
       </p>
       <p>
         مرتجعات:
@@ -16,7 +22,9 @@
       </p>
       <p>
         صافي الربح:
-        <strong class="text-white">{{ formatNumber(breakdown.netProfit) }}</strong>
+        <strong class="text-white">
+          {{ formatNumber(netProfit) }}
+        </strong>
       </p>
     </div>
   </div>
@@ -25,10 +33,16 @@
 <script setup>
 defineOptions({ name: "ReportsSalesBreakdown" });
 
-defineProps({
+const props = defineProps({
   breakdown: { type: Object, default: () => ({}) },
   refundsTotal: { type: [Number, String], default: 0 },
+  reservationDeposits: { type: [Number, String], default: 0 },
+  financials: { type: Object, default: null },
 });
+
+const netProfit = computed(() =>
+  props.financials?.netProfit ?? props.breakdown?.netProfit ?? 0,
+);
 
 const formatNumber = (value) =>
   Number(value || 0).toLocaleString("en-US", {

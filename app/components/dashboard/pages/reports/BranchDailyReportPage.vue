@@ -53,6 +53,13 @@
         total-label="إجمالي المحصل"
       />
 
+      <ReportsFinancialsSection
+        v-if="!isCustomerService && hasFinancials"
+        :financials="summary.financials"
+        :reservation-deposits="summary.reservationDeposits"
+        is-branch-scoped
+      />
+
       <DailyReportInventorySection
         v-if="!isCustomerService"
         :inventory="summary.inventory"
@@ -102,6 +109,9 @@ const DailyReportActivitySection = defineAsyncComponent(() =>
 const PaymentMethodsReport = defineAsyncComponent(() =>
   import("~/components/shared/payment-methods-report/index.vue"),
 );
+const ReportsFinancialsSection = defineAsyncComponent(() =>
+  import("~/components/dashboard/pages/reports/summary/ReportsFinancialsSection.vue"),
+);
 const DailyReportInventorySection = defineAsyncComponent(() =>
   import("~/components/dashboard/pages/reports/daily/DailyReportInventorySection.vue"),
 );
@@ -147,6 +157,13 @@ const todayInputValue = () => {
 const selectedDate = ref(todayInputValue());
 
 const summary = computed(() => report.value?.summary || {});
+
+const hasFinancials = computed(
+  () =>
+    summary.value.financials &&
+    typeof summary.value.financials === "object" &&
+    Object.keys(summary.value.financials).length > 0,
+);
 
 const isCustomerService = computed(() => {
   if (report.value?.scope === "customer_service") return true;

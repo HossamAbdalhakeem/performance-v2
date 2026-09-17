@@ -1,5 +1,5 @@
 <template>
-  <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+  <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
     <ReportKpiCard
       label="إجمالي المبيعات"
       :value="formatMoney(summary.salesAmount, 'locale')"
@@ -9,6 +9,11 @@
       label="إجمالي الحجوزات"
       :value="summary.reservations ?? 0"
       :hint="`مدفوع ${formatMoney(summary.reservationsPaidAmount, 'locale')}`"
+    />
+    <ReportKpiCard
+      label="عربونات معلقة"
+      :value="formatMoney(summary.reservationDeposits, 'locale')"
+      hint="ليست ضمن إيراد المبيعات بعد"
     />
     <ReportKpiCard
       label="إجمالي المخزون"

@@ -4,11 +4,10 @@
       <div class="min-w-0">
         <h2 class="shrink-0 text-xl font-bold text-white">التقارير</h2>
         <p class="mt-1 text-sm text-slate-400">
-          ملخص المبيعات والحجوزات والمخزون حسب الفلاتر
+          ملخص المبيعات والأرباح والمصروفات والحجوزات حسب الفلاتر
         </p>
       </div>
       <ReportsFilters
-        v-model:book="selectedBook"
         v-model:branch="selectedBranch"
         v-model:date="selectedDate"
         :loading="loading"
@@ -23,9 +22,17 @@
     <template v-else>
       <ReportsSummaryCards :summary="summary" :books="books" />
 
+      <ReportsFinancialsSection
+        :financials="financials"
+        :reservation-deposits="summary.reservationDeposits"
+        :is-branch-scoped="isBranchScoped"
+      />
+
       <ReportsSalesBreakdown
         :breakdown="salesBreakdown"
         :refunds-total="summary.refundsTotal"
+        :reservation-deposits="summary.reservationDeposits"
+        :financials="financials"
       />
 
       <PaymentMethodsReport
@@ -62,6 +69,9 @@ const ReportsLoadingSkeleton = defineAsyncComponent(() =>
 const ReportsSummaryCards = defineAsyncComponent(() =>
   import("~/components/dashboard/pages/reports/summary/ReportsSummaryCards.vue"),
 );
+const ReportsFinancialsSection = defineAsyncComponent(() =>
+  import("~/components/dashboard/pages/reports/summary/ReportsFinancialsSection.vue"),
+);
 const ReportsSalesBreakdown = defineAsyncComponent(() =>
   import("~/components/dashboard/pages/reports/summary/ReportsSalesBreakdown.vue"),
 );
@@ -78,13 +88,16 @@ const { showError } = useAppToast();
 
 const selectedDate = ref("today");
 const selectedBranch = ref("all");
-const selectedBook = ref(null);
 const loading = ref(true);
 const report = ref(null);
 
 const summary = computed(() => report.value?.summary || {});
 const books = computed(() => summary.value.books || {});
 const salesBreakdown = computed(() => summary.value.salesBreakdown || {});
+const financials = computed(() => summary.value.financials || {});
+const isBranchScoped = computed(
+  () => Boolean(selectedBranch.value && selectedBranch.value !== "all"),
+);
 
 const paymentMethodItems = computed(() =>
   Array.isArray(summary.value.paymentsByMethod)
@@ -131,9 +144,6 @@ const reportParams = () => {
   if (selectedBranch.value && selectedBranch.value !== "all") {
     params.branchId = selectedBranch.value;
   }
-  if (selectedBook.value) {
-    params.productId = selectedBook.value;
-  }
   return params;
 };
 
@@ -152,6 +162,7 @@ const loadReport = async () => {
 const exportReports = () => {
   const s = summary.value;
   const breakdown = salesBreakdown.value;
+  const f = financials.value;
   const rows = [
     ["اسم الطالب", "المدرس", "الموبايل", "اشترى ايه"],
     ...studentRows.value.map((row) => [
@@ -161,15 +172,21 @@ const exportReports = () => {
       row.product,
     ]),
     [],
-    ["إجمالي المبيعات", s.salesAmount ?? 0],
+    ["إجمالي المبيعات (إيراد صافي)", s.salesAmount ?? f.revenue ?? 0],
     ["عدد عمليات البيع", s.sales ?? 0],
+    ["تكلفة البضاعة COGS", f.cogs ?? 0],
+    ["إجمالي الربح", f.grossProfit ?? 0],
+    ["مصروفات الفروع", f.branchExpenses ?? 0],
+    ["مصروفات عامة", f.generalExpenses ?? 0],
+    ["المصروفات التشغيلية", f.operatingExpenses ?? 0],
+    ["صافي الربح", f.netProfit ?? breakdown.netProfit ?? 0],
     ["إجمالي الحجوزات", s.reservations ?? 0],
     ["مدفوعات الحجوزات", s.reservationsPaidAmount ?? 0],
+    ["عربونات حجوزات معلقة", s.reservationDeposits ?? 0],
     ["إجمالي المخزون", s.inventoryTotal ?? 0],
     ["مبيعات فرع", breakdown.branchSales ?? 0],
     ["محجوزات", breakdown.reservations ?? 0],
     ["مرتجعات", s.refundsTotal ?? 0],
-    ["صافي الربح", breakdown.netProfit ?? 0],
     ["صافي المدفوعات", s.paymentsTotal ?? 0],
     [],
     ["طريقة الدفع", "المبلغ"],
