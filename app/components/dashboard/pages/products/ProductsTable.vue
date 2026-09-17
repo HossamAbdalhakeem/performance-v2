@@ -11,6 +11,13 @@
     empty-message="لا توجد منتجات."
     @page="$emit('page', $event)"
   >
+    <template #type="{ data }">
+      <AppStatusTag
+        kind="product-type"
+        :code="data.type"
+        :label="data.typeLabel"
+      />
+    </template>
     <template #actions="{ data }">
       <Button
         label="تعديل"
@@ -27,6 +34,7 @@
 <script setup>
 import Button from "primevue/button";
 import AppDataTable from "~/components/shared/app-data-table/index.vue";
+import AppStatusTag from "~/components/shared/app-status-tag/index.vue";
 
 defineProps({
   products: { type: Array, default: () => [] },
@@ -43,7 +51,7 @@ const columns = [
   { field: "sellingPriceLabel", header: "سعر البيع" },
   { field: "teacherName", header: "المدرس" },
   { field: "studyYearName", header: "السنة الدراسية" },
-  { field: "typeLabel", header: "النوع" },
+  { field: "typeLabel", header: "النوع", slot: "type" },
   { field: "reservationLabel", header: "الحجز" },
   { field: "actions", header: "إجراء", slot: "actions", style: "width: 8rem" },
 ];

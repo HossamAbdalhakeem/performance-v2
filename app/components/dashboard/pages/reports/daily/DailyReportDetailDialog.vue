@@ -30,12 +30,18 @@
         />
       </template>
       <template #type="{ data }">
-        <span
-          class="inline-flex rounded-md px-2 py-1 text-xs font-bold"
-          :class="movementTypeClass(data.typeKey)"
-        >
-          {{ data.type }}
-        </span>
+        <AppStatusTag
+          kind="stock-movement"
+          :code="data.typeKey"
+          :label="data.type"
+        />
+      </template>
+      <template #status="{ data }">
+        <AppStatusTag
+          kind="reservation"
+          :code="data.statusKey"
+          :label="data.status"
+        />
       </template>
     </AppDataTable>
   </Dialog>
@@ -44,7 +50,13 @@
 <script setup>
 import Dialog from "primevue/dialog";
 import PaymentProofThumb from "~/components/shared/payment-proof-thumb/index.vue";
+import AppStatusTag from "~/components/shared/app-status-tag/index.vue";
 import { formatMoney, formatDateTime } from "~/utils/format";
+import { getPaymentMethodLabel } from "~/utils/paymentMethods";
+import {
+  getReservationStatusLabel,
+  getStockMovementLabel,
+} from "~/utils/domainLabels";
 
 const AppDataTable = defineAsyncComponent(() =>
   import("~/components/shared/app-data-table/index.vue"),
@@ -70,22 +82,6 @@ const movementColumns = [
   { field: "by", header: "بواسطة" },
 ];
 
-const MOVEMENT_TYPE_CLASS = {
-  STOCK_IN: "bg-teal-500/20 text-teal-300",
-  STOCK_OUT: "bg-orange-500/20 text-orange-300",
-  SALE: "bg-sky-500/20 text-sky-300",
-  RESERVATION: "bg-amber-500/20 text-amber-300",
-  RESERVATION_RELEASE: "bg-rose-500/20 text-rose-300",
-  RETURN: "bg-fuchsia-500/20 text-fuchsia-300",
-  DAMAGED: "bg-red-500/20 text-red-300",
-  ADJUSTMENT: "bg-violet-500/20 text-violet-300",
-  EXCHANGE: "bg-indigo-500/20 text-indigo-300",
-};
-
-const movementTypeClass = (typeKey) =>
-  MOVEMENT_TYPE_CLASS[String(typeKey || "").toUpperCase()] ||
-  "bg-slate-500/20 text-slate-300";
-
 const saleColumns = [
   { field: "time", header: "الوقت" },
   { field: "student", header: "الطالب" },
@@ -106,7 +102,7 @@ const reservationColumns = computed(() => {
     cols.push({ field: "branch", header: "الفرع" });
   }
   cols.push(
-    { field: "status", header: "الحالة" },
+    { field: "status", header: "الحالة", slot: "status" },
     { field: "paid", header: "المدفوع" },
     { field: "method", header: "الدفع", slot: "method" },
     { field: "by", header: "بواسطة" },
@@ -242,7 +238,7 @@ const displayRows = computed(() => {
       student: row.student || "-",
       products: row.products || "-",
       amount: formatMoney(row.amount, "rtl"),
-      method: row.paymentMethodLabel || row.method || "-",
+      method: getPaymentMethodLabel(row.paymentMethod || row.method),
       paymentMethod: row.paymentMethod || "",
       paymentId: row.paymentId || null,
       proofUrl: row.proofUrl || null,
@@ -258,9 +254,10 @@ const displayRows = computed(() => {
       student: row.student || "-",
       product: row.product || "-",
       branch: row.branch || "-",
-      status: row.statusLabel || row.status || "-",
+      statusKey: row.status || "",
+      status: getReservationStatusLabel(row.status),
       paid: formatMoney(row.paid, "rtl"),
-      method: row.paymentMethodLabel || row.method || "-",
+      method: getPaymentMethodLabel(row.paymentMethod || row.method),
       paymentMethod: row.paymentMethod || "",
       paymentId: row.paymentId || null,
       proofUrl: row.proofUrl || null,
@@ -297,7 +294,7 @@ const displayRows = computed(() => {
     return rows.map((row) => ({
       time: formatDateTime(row.time, "time"),
       product: row.product || "-",
-      type: row.typeLabel || row.type || "-",
+      type: getStockMovementLabel(row.type || row.typeKey),
       typeKey: row.type || row.typeKey || "",
       qty: row.quantityLabel ?? String(row.quantityChange ?? 0),
       by: row.by || "-",

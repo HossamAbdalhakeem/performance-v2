@@ -52,6 +52,8 @@
 </template>
 
 <script setup>
+import { REPORT_ACTIVITY_KEY_LABELS, getReportMetricColor } from "~/utils/domainLabels";
+
 defineOptions({ name: "DailyReportInventorySection" });
 
 const INVENTORY_UI = {
@@ -97,9 +99,9 @@ const series = computed(() =>
     };
     return {
       key: item.key,
-      label: item.label,
+      label: REPORT_ACTIVITY_KEY_LABELS[item.key] || item.label || item.key,
       value: Number(item.value ?? 0),
-      color: item.color || "#94a3b8",
+      color: getReportMetricColor(item.key),
       ...ui,
     };
   }),

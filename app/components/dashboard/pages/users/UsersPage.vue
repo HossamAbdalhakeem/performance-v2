@@ -37,6 +37,7 @@ import { userService } from "~/services/userService";
 import { branchService } from "~/services/branchService";
 import { useAppToast } from "~/composables/useAppToast";
 import { getUserRoleLabel } from "~/enums/userRole";
+import { getStatusTagLabel } from "~/utils/statusTags";
 
 const UserForm = defineAsyncComponent(() =>
   import("~/components/dashboard/pages/users/UserForm.vue"),
@@ -62,8 +63,7 @@ const normalizeUser = (user) => ({
   email: user.email || "-",
   roleLabel: getUserRoleLabel(user.role),
   branchName: user.branch?.name || "-",
-  statusLabel: user.status === "INACTIVE" ? "غير نشط" : "نشط",
-  statusSeverity: user.status === "INACTIVE" ? "danger" : "success",
+  statusLabel: getStatusTagLabel("entity", user.status),
 });
 
 const buildQuery = () => {

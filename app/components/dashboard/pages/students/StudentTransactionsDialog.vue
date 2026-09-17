@@ -53,9 +53,10 @@
         @page="onPage"
       >
         <template #typeLabel="{ data }">
-          <Tag
-            :value="data.typeLabel"
-            :severity="typeSeverity(data.type)"
+          <AppStatusTag
+            kind="transaction"
+            :code="data.type"
+            :label="data.typeLabel"
           />
         </template>
         <template #amountLabel="{ data }">
@@ -76,7 +77,12 @@
           />
         </template>
         <template #statusLabel="{ data }">
-          <Tag :value="data.statusLabel" :severity="data.statusSeverity" />
+          <AppStatusTag
+            :kind="transactionStatusKind(data.type)"
+            :code="data.status"
+            :label="data.statusLabel"
+            :severity="data.statusSeverity"
+          />
         </template>
       </AppDataTable>
     </div>
@@ -85,8 +91,8 @@
 
 <script setup>
 import Dialog from "primevue/dialog";
-import Tag from "primevue/tag";
 import AppDataTable from "~/components/shared/app-data-table/index.vue";
+import AppStatusTag from "~/components/shared/app-status-tag/index.vue";
 import DateRangePicker from "~/components/shared/date-range-picker/index.vue";
 import PaymentProofThumb from "~/components/shared/payment-proof-thumb/index.vue";
 import ProductSelect from "~/components/shared/product-select/index.vue";
@@ -95,6 +101,12 @@ import { studentService } from "~/services/studentService";
 import { useAppToast } from "~/composables/useAppToast";
 import { formatMoney, formatDateTime } from "~/utils/format";
 import { PAYMENT_METHOD_LABELS } from "~/utils/paymentMethods";
+import { getStatusTagMeta, getStatusTagSeverity } from "~/utils/statusTags";
+import {
+  getReservationStatusLabel,
+  getSaleStatusLabel,
+  getTransactionTypeLabel,
+} from "~/utils/domainLabels";
 
 const props = defineProps({
   visible: { type: Boolean, default: false },
@@ -116,10 +128,10 @@ const pagination = reactive({
 });
 
 const TYPE_META = {
-  SALE: { label: "بيع", severity: "info" },
-  RESERVATION: { label: "حجز", severity: "warn" },
-  RETURN: { label: "مرتجع", severity: "danger" },
-  EXCHANGE: { label: "استبدال", severity: "secondary" },
+  SALE: getStatusTagMeta("transaction", "SALE"),
+  RESERVATION: getStatusTagMeta("transaction", "RESERVATION"),
+  RETURN: getStatusTagMeta("transaction", "RETURN"),
+  EXCHANGE: getStatusTagMeta("transaction", "EXCHANGE"),
 };
 
 const today = () => {
@@ -146,19 +158,24 @@ const dialogTitle = computed(() =>
     : "معاملات الطالب",
 );
 
-const typeSeverity = (type) =>
-  TYPE_META[String(type || "").toUpperCase()]?.severity || "warn";
+const transactionStatusKind = (type) => {
+  const normalized = String(type || "").toUpperCase();
+  return normalized === "SALE" ||
+    normalized === "RETURN" ||
+    normalized === "EXCHANGE"
+    ? "sale"
+    : "reservation";
+};
 
 const statusSeverity = (status, type) => {
   const normalizedType = String(type || "").toUpperCase();
-  const normalizedStatus = String(status || "").toUpperCase();
 
   if (normalizedType === "SALE") return "success";
   if (normalizedType === "RETURN") return "danger";
-  if (normalizedStatus === "CANCELLED") return "danger";
-  if (normalizedStatus === "DELIVERED") return "success";
-  if (normalizedStatus === "READY") return "info";
-  return "warn";
+  if (normalizedType === "EXCHANGE") {
+    return getStatusTagSeverity("sale", status);
+  }
+  return getStatusTagSeverity("reservation", status);
 };
 
 const columns = [
@@ -192,7 +209,7 @@ const buildParams = () => {
 const normalizeTransaction = (item) => {
   const type = String(item.type || item.transactionType || "").toUpperCase();
   const typeMeta = TYPE_META[type] || {
-    label: item.typeLabel || type || "—",
+    label: getTransactionTypeLabel(type),
     severity: "warn",
   };
   const dateValue = item.date || item.createdAt || item.created_at;
@@ -212,11 +229,11 @@ const normalizeTransaction = (item) => {
     item.branch?.name ||
     item.branch_name ||
     "—";
-  const status = item.status || item.statusLabel || "";
+  const status = item.status || "";
   const statusLabel =
-    item.statusLabel ||
-    status ||
-    (type === "RETURN" ? "مرتجع" : "—");
+    type === "SALE" || type === "RETURN" || type === "EXCHANGE"
+      ? getSaleStatusLabel(status)
+      : getReservationStatusLabel(status);
   const paymentMethod = String(item.paymentMethod || "CASH").toUpperCase();
 
   return {

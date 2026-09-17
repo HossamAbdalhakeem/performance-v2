@@ -48,12 +48,11 @@
           @page="onPage"
         >
           <template #status="{ data }">
-            <span
-              class="rounded-full px-2 py-1 text-xs font-semibold"
-              :class="statusBadgeClass(data.status)"
-            >
-              {{ data.statusLabel }}
-            </span>
+            <AppStatusTag
+              kind="product-availability"
+              :code="data.status"
+              :label="data.statusLabel"
+            />
           </template>
         </AppDataTable>
       </template>
@@ -65,10 +64,12 @@
 import Card from "primevue/card";
 import Button from "primevue/button";
 import AppDataTable from "~/components/shared/app-data-table/index.vue";
+import AppStatusTag from "~/components/shared/app-status-tag/index.vue";
 import SearchInput from "~/components/shared/search-input/index.vue";
 import { productService } from "~/services/productService";
 import { useAppToast } from "~/composables/useAppToast";
 import { formatMoney } from "~/utils/format";
+import { getStatusTagMeta } from "~/utils/statusTags";
 
 const { showError } = useAppToast();
 const pending = ref(false);
@@ -82,14 +83,6 @@ const pagination = reactive({
   first: 0,
 });
 
-const STATUS_META = {
-  AVAILABLE: { label: "متاح", className: "bg-green-700 text-white" },
-  ACTIVE: { label: "متاح", className: "bg-green-700 text-white" },
-  UPCOMING: { label: "قادم", className: "bg-amber-600 text-white" },
-  INACTIVE: { label: "غير متاح", className: "bg-red-800 text-white" },
-  OUT_OF_STOCK: { label: "غير متوفر", className: "bg-red-800 text-white" },
-};
-
 const bookColumns = [
   { field: "title", header: "اسم الكتاب" },
   { field: "teacher", header: "الأستاذ" },
@@ -100,9 +93,6 @@ const bookColumns = [
 const emptyMessage = computed(() =>
   search.value.trim() ? "لا توجد كتب مطابقة" : "لا توجد كتب."
 );
-
-const statusBadgeClass = (status) =>
-  STATUS_META[status]?.className || "bg-slate-600 text-white";
 
 const getBookRowClass = (data) =>
   selectedId.value === data.id
@@ -122,10 +112,9 @@ const navigateToReserve = async () => {
 
 const normalizeBook = (item) => {
   const status = String(item.status || "").toUpperCase();
-  const meta = STATUS_META[status] || {
+  const meta = getStatusTagMeta("product-availability", status, {
     label: item.status || "-",
-    className: "bg-slate-600 text-white",
-  };
+  });
 
   return {
     id: item.id,

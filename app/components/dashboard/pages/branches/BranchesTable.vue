@@ -10,7 +10,11 @@
     empty-message="لا توجد فروع مسجلة."
   >
     <template #status="{ data }">
-      <Tag :value="data.statusLabel" :severity="data.statusSeverity" />
+      <AppStatusTag
+        kind="entity"
+        :code="data.status"
+        :label="data.statusLabel"
+      />
     </template>
 
     <template #inventory="{ data }">
@@ -63,14 +67,14 @@
           empty-message="لا توجد كميات مسجلة لهذا الفرع."
         >
           <template #reservedQuantity="{ data: item }">
-            <Tag
-              :value="String(item.reservedQuantity ?? 0)"
+            <AppStatusTag
+              :label="String(item.reservedQuantity ?? 0)"
               severity="warn"
             />
           </template>
           <template #availableQuantity="{ data: item }">
-            <Tag
-              :value="String(item.availableQuantity ?? 0)"
+            <AppStatusTag
+              :label="String(item.availableQuantity ?? 0)"
               severity="success"
             />
           </template>
@@ -82,8 +86,8 @@
 
 <script setup>
 import Button from "primevue/button";
-import Tag from "primevue/tag";
 import AppDataTable from "~/components/shared/app-data-table/index.vue";
+import AppStatusTag from "~/components/shared/app-status-tag/index.vue";
 
 defineProps({
   branches: { type: Array, default: () => [] },

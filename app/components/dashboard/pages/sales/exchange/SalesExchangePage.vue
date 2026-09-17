@@ -46,6 +46,10 @@ import SearchInput from "~/components/shared/search-input/index.vue";
 import { exchangeService } from "~/services/exchangeService";
 import { useAppToast } from "~/composables/useAppToast";
 import { formatMoney, formatDateTime } from "~/utils/format";
+import { getPaymentMethodLabel } from "~/utils/paymentMethods";
+import {
+  getSaleStatusLabel,
+} from "~/utils/domainLabels";
 
 const SalesExchangeRefundFlow = defineAsyncComponent(() =>
   import("~/components/dashboard/pages/sales/exchange/SalesExchangeRefundFlow.vue"),
@@ -70,6 +74,8 @@ const withDisplayLabels = (row) => ({
   amountLabel: formatMoney(row.amount),
   refundAmountLabel: formatMoney(row.refundAmount ?? row.amount),
   createdAtLabel: formatDateTime(row.createdAt, { empty: "—" }),
+  statusLabel: getSaleStatusLabel(row.status),
+  paymentMethodLabel: getPaymentMethodLabel(row.paymentMethod),
 });
 
 const loadData = async () => {

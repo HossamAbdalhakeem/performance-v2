@@ -37,6 +37,7 @@
             :payments-total="summary.paymentsTotal"
             :payments-collected="summary.paymentsCollected ?? summary.paymentsTotal"
             :refunds-total="Number(summary.refundsTotal || 0)"
+            :expenses="summary.financials?.branchExpenses ?? 0"
             :cancelled-reservations="summary.cancelledReservations"
             :ready-reservations="summary.readyReservations"
           />

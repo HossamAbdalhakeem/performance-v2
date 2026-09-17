@@ -8,7 +8,11 @@
     empty-message="لا يوجد مدرسون."
   >
     <template #status="{ data }">
-      <Tag :value="data.statusLabel" :severity="data.statusSeverity" />
+      <AppStatusTag
+        kind="entity"
+        :code="data.status"
+        :label="data.statusLabel"
+      />
     </template>
     <template #actions="{ data }">
       <Button
@@ -25,8 +29,8 @@
 
 <script setup>
 import Button from "primevue/button";
-import Tag from "primevue/tag";
 import AppDataTable from "~/components/shared/app-data-table/index.vue";
+import AppStatusTag from "~/components/shared/app-status-tag/index.vue";
 
 defineProps({
   teachers: { type: Array, default: () => [] },

@@ -33,6 +33,62 @@
 
           <Field
             v-slot="{ errorMessage }"
+            v-model="form.studyYearId"
+            name="studyYearId"
+            rules="required"
+          >
+            <div class="flex flex-col gap-2 text-right">
+              <AppGlobalSelectStudyYear
+                v-model="form.studyYearId"
+                label="السنة الدراسية"
+                placeholder="اختر السنة الدراسية"
+                :invalid="!!(errorMessage || fieldErrors.studyYearId)"
+                @change="onStudyYearChange"
+              />
+              <ErrorMessage name="studyYearId" class="text-xs text-red-500" />
+            </div>
+          </Field>
+
+          <Field
+            v-slot="{ errorMessage }"
+            v-model="form.teacherId"
+            name="teacherId"
+            rules="required"
+          >
+            <div class="flex flex-col gap-2 text-right">
+              <AppGlobalSelectTeacher
+                v-model="form.teacherId"
+                label="المدرس"
+                placeholder="اختر المدرس"
+                :disabled="!form.studyYearId"
+                :invalid="!!(errorMessage || fieldErrors.teacherId)"
+                @change="onTeacherChange"
+              />
+              <ErrorMessage name="teacherId" class="text-xs text-red-500" />
+            </div>
+          </Field>
+
+          <Field
+            v-slot="{ errorMessage }"
+            v-model="form.productType"
+            name="productType"
+            rules="required"
+          >
+            <div class="flex flex-col gap-2 text-right">
+              <AppGlobalSelectProductType
+                v-model="form.productType"
+                label="نوع المنتج"
+                placeholder="اختر النوع"
+                :disabled="!form.teacherId"
+                :invalid="!!(errorMessage || fieldErrors.productType)"
+                @change="onProductTypeChange"
+              />
+              <ErrorMessage name="productType" class="text-xs text-red-500" />
+            </div>
+          </Field>
+
+          <Field
+            v-slot="{ errorMessage }"
             v-model="form.productId"
             name="productId"
             label="المنتج"
@@ -43,43 +99,14 @@
                 v-model="form.productId"
                 :options="productOptions"
                 :loading="loadingProducts"
-                :disabled="!branchId"
+                :disabled="!canSelectProduct"
                 placeholder="اختر المنتج"
+                :hint="productSelectHint"
                 :invalid="!!(errorMessage || fieldErrors.productId)"
                 @change="onProductChange"
                 @search="onProductSearch"
               />
               <ErrorMessage name="productId" class="text-xs text-red-500" />
-            </div>
-          </Field>
-
-          <Field
-            v-slot="{ errorMessage }"
-            v-model="form.quantity"
-            name="quantity"
-            rules="required|min_value:1"
-          >
-            <div class="flex flex-col gap-2 text-right">
-              <div class="flex items-center justify-between gap-2">
-                <label class="text-sm font-medium text-slate-700">الكمية</label>
-                <span
-                  v-if="selectedProductOption"
-                  class="rounded-full bg-sky-500/10 px-2.5 py-0.5 text-xs font-semibold text-sky-700"
-                >
-                  المتاح للبيع: {{ selectedProductOption.availableQuantity }}
-                </span>
-              </div>
-              <AppInputNumber
-                v-model="form.quantity"
-                :min="1"
-                :max="maxQuantity"
-                :max-fraction-digits="0"
-                :invalid="!!(errorMessage || fieldErrors.quantity || quantityError)"
-              />
-              <p v-if="quantityError" class="text-xs text-red-500">
-                {{ quantityError }}
-              </p>
-              <ErrorMessage name="quantity" class="text-xs text-red-500" />
             </div>
           </Field>
 
@@ -165,11 +192,13 @@
 import Card from "primevue/card";
 import Button from "primevue/button";
 import Dialog from "primevue/dialog";
-import AppInputNumber from "~/components/dashboard/AppInputNumber.vue";
 import PaymentFields from "~/components/shared/payment-fields/index.vue";
 import FormSubmitButton from "~/components/shared/form-submit-button/index.vue";
 import ProductSelect from "~/components/shared/product-select/index.vue";
 import StudentSearchField from "~/components/shared/student-search-field/index.vue";
+import AppGlobalSelectStudyYear from "~/components/shared/app-global-select-study-year/index.vue";
+import AppGlobalSelectTeacher from "~/components/shared/app-global-select-teacher/index.vue";
+import AppGlobalSelectProductType from "~/components/shared/app-global-select-product-type/index.vue";
 import { Form, Field, ErrorMessage } from "vee-validate";
 import { saleService } from "~/services/saleService";
 import { inventoryService } from "~/services/inventoryService";
@@ -188,6 +217,8 @@ const SaleSuccessDialogContent = defineAsyncComponent(() =>
   import("~/components/dashboard/pages/sales/manage/SaleSuccessDialogContent.vue"),
 );
 
+const SALE_QUANTITY = 1;
+
 const authStore = useAuthStore();
 const { showError } = useAppToast();
 const saving = ref(false);
@@ -198,7 +229,6 @@ const proofKey = ref("");
 const proofPreviewUrl = ref("");
 const proofRequiredError = ref(false);
 const paymentFieldsRef = ref(null);
-const quantityError = ref("");
 const successDialogVisible = ref(false);
 const saleSummary = ref(null);
 const selectedStudent = ref(null);
@@ -206,8 +236,10 @@ const selectedStudent = ref(null);
 const form = reactive({
   studentName: "",
   studentPhone: "",
+  studyYearId: null,
+  teacherId: null,
+  productType: null,
   productId: null,
-  quantity: 1,
   method: PaymentMethod.CASH,
 });
 
@@ -215,8 +247,10 @@ const formInitialValues = {
   studentId: null,
   studentName: "",
   studentPhone: "",
+  studyYearId: null,
+  teacherId: null,
+  productType: null,
   productId: null,
-  quantity: 1,
   method: PaymentMethod.CASH,
 };
 
@@ -227,40 +261,88 @@ const branchId = computed(
     authStore.user?.branch_id ||
     authStore.user?.branchId ||
     authStore.user?.branches?.[0]?.id ||
-    null
+    null,
 );
 
+const canSelectProduct = computed(
+  () =>
+    Boolean(
+      branchId.value &&
+        form.studyYearId &&
+        form.teacherId &&
+        form.productType,
+    ),
+);
+
+const productSelectHint = computed(() => {
+  if (!branchId.value) return "لا يوجد فرع مرتبط بالمستخدم الحالي.";
+  if (!form.studyYearId) return "اختر السنة الدراسية أولاً.";
+  if (!form.teacherId) return "اختر المدرس أولاً.";
+  if (!form.productType) return "اختر نوع المنتج أولاً.";
+  return "";
+});
+
+const matchesProductFilters = (option) => {
+  if (
+    form.studyYearId &&
+    String(option.studyYearId || "") !== String(form.studyYearId)
+  ) {
+    return false;
+  }
+  if (
+    form.teacherId &&
+    String(option.teacherId || "") !== String(form.teacherId)
+  ) {
+    return false;
+  }
+  if (
+    form.productType &&
+    String(option.type || "").toUpperCase() !==
+      String(form.productType).toUpperCase()
+  ) {
+    return false;
+  }
+  return true;
+};
+
 const productOptions = computed(() =>
-  products.value.map(mapInventoryProductOption),
+  products.value
+    .map(mapInventoryProductOption)
+    .filter((option) => option.value && matchesProductFilters(option)),
 );
 
 const selectedProductOption = computed(
   () =>
     productOptions.value.find((option) => option.value === form.productId) ||
-    null
+    null,
 );
 
 const selectedProduct = computed(() => {
   const row = products.value.find(
-    (item) => (item.product?.id || item.productId || item.id) === form.productId
+    (item) => (item.product?.id || item.productId || item.id) === form.productId,
   );
   return row?.product || row || null;
 });
 
-const maxQuantity = computed(() =>
-  Math.max(1, Number(selectedProductOption.value?.availableQuantity || 1))
-);
-
 const unitPrice = computed(() =>
-  Number(selectedProduct.value?.sellingPrice || selectedProductOption.value?.sellingPrice || 0)
+  Number(
+    selectedProduct.value?.sellingPrice ||
+      selectedProductOption.value?.sellingPrice ||
+      0,
+  ),
 );
 const requiredAmount = computed(() =>
-  Number((unitPrice.value * Number(form.quantity || 0)).toFixed(2))
+  Number((unitPrice.value * SALE_QUANTITY).toFixed(2)),
 );
 
 const validateStudentSelection = (value) => {
   if (value) return true;
   return "اختر طالباً من القائمة أو أضف طالباً جديداً.";
+};
+
+const clearProductSelection = () => {
+  form.productId = null;
+  products.value = [];
 };
 
 const applyStudent = (student, setFieldValue) => {
@@ -270,6 +352,14 @@ const applyStudent = (student, setFieldValue) => {
   setFieldValue?.("studentId", student.id);
   setFieldValue?.("studentName", student.name);
   setFieldValue?.("studentPhone", student.phone);
+
+  const studentStudyYearId =
+    student.studyYearId || student.studyYear?.id || student.study_year_id || null;
+  if (studentStudyYearId && !form.studyYearId) {
+    form.studyYearId = studentStudyYearId;
+    setFieldValue?.("studyYearId", studentStudyYearId);
+    onStudyYearChange(studentStudyYearId);
+  }
 };
 
 const clearStudent = (setFieldValue) => {
@@ -282,9 +372,9 @@ const clearStudent = (setFieldValue) => {
 };
 
 const loadProducts = async (search = "") => {
-  if (!branchId.value) {
+  if (!canSelectProduct.value) {
     products.value = [];
-    throw new Error("لا يوجد فرع مرتبط بالمستخدم الحالي.");
+    return;
   }
 
   loadingProducts.value = true;
@@ -292,9 +382,19 @@ const loadProducts = async (search = "") => {
     const query = String(search || "").trim();
     const items = await inventoryService.getBranchInventory(branchId.value, {
       availableOnly: true,
+      studyYearId: form.studyYearId,
+      teacherId: form.teacherId,
+      type: form.productType,
       ...(query ? { search: query } : {}),
     });
     products.value = Array.isArray(items) ? items : items?.data || [];
+
+    if (
+      form.productId &&
+      !productOptions.value.some((option) => option.value === form.productId)
+    ) {
+      form.productId = null;
+    }
   } finally {
     loadingProducts.value = false;
   }
@@ -306,37 +406,35 @@ const { run: onProductSearch } = useThrottledCallback((term) => {
   });
 }, 400);
 
-const onProductChange = (productId) => {
-  quantityError.value = "";
-  form.productId = productId;
-  const available = productOptions.value.find(
-    (option) => option.value === productId
-  )?.availableQuantity;
-  if (available != null && Number(form.quantity) > Number(available)) {
-    form.quantity = Number(available);
+const onStudyYearChange = (value) => {
+  form.studyYearId = value || null;
+  form.teacherId = null;
+  form.productType = null;
+  clearProductSelection();
+};
+
+const onTeacherChange = (value) => {
+  form.teacherId = value || null;
+  form.productType = null;
+  clearProductSelection();
+};
+
+const onProductTypeChange = async (value) => {
+  form.productType = value || null;
+  form.productId = null;
+  if (!canSelectProduct.value) {
+    products.value = [];
+    return;
+  }
+  try {
+    await loadProducts();
+  } catch (error) {
+    showError(error?.message || "تعذر تحميل المنتجات.");
   }
 };
 
-const validateQuantity = () => {
-  quantityError.value = "";
-  const available = Number(selectedProductOption.value?.availableQuantity || 0);
-  const qty = Number(form.quantity || 0);
-
-  if (!selectedProductOption.value) {
-    return false;
-  }
-
-  if (qty < 1) {
-    quantityError.value = "الكمية يجب أن تكون 1 على الأقل.";
-    return false;
-  }
-
-  if (qty > available) {
-    quantityError.value = `الكمية المطلوبة أكبر من المتاح (${available}).`;
-    return false;
-  }
-
-  return true;
+const onProductChange = (productId) => {
+  form.productId = productId;
 };
 
 const asText = (value, key = "") => {
@@ -378,30 +476,38 @@ const resetForm = () => {
   Object.assign(form, {
     studentName: "",
     studentPhone: "",
+    studyYearId: null,
+    teacherId: null,
+    productType: null,
     productId: null,
-    quantity: 1,
     method: PaymentMethod.CASH,
   });
   selectedStudent.value = null;
+  products.value = [];
   proofFile.value = null;
   proofKey.value = "";
   proofPreviewUrl.value = "";
   proofRequiredError.value = false;
-  quantityError.value = "";
   paymentFieldsRef.value?.reset?.();
   formKey.value += 1;
 };
 
 const submitSale = async () => {
   proofRequiredError.value = false;
-  quantityError.value = "";
 
   if (paymentFieldsRef.value && !paymentFieldsRef.value.validate()) {
     proofRequiredError.value = true;
     return;
   }
 
-  if (!validateQuantity()) {
+  if (!selectedProductOption.value) {
+    showError("اختر منتجاً متاحاً للبيع.");
+    return;
+  }
+
+  const available = Number(selectedProductOption.value.availableQuantity || 0);
+  if (available < SALE_QUANTITY) {
+    showError(`الكمية المتاحة غير كافية (المتاح: ${available}).`);
     return;
   }
 
@@ -410,7 +516,7 @@ const submitSale = async () => {
     const studentId = await ensureStudent();
     const needsProof = paymentMethodNeedsProof(form.method);
     const product = selectedProductOption.value;
-    const quantity = Number(form.quantity || 0);
+    const quantity = SALE_QUANTITY;
     const lineUnitPrice = Number(product?.sellingPrice || unitPrice.value || 0);
     const totalAmount = Number((lineUnitPrice * quantity).toFixed(2));
     const studentName = asText(form.studentName, "name");
@@ -450,28 +556,10 @@ const submitSale = async () => {
     successDialogVisible.value = true;
 
     resetForm();
-    await loadProducts();
   } catch (error) {
     showError(error?.message || "تعذر تسجيل البيع.");
   } finally {
     saving.value = false;
   }
 };
-
-watch(
-  () => form.quantity,
-  () => {
-    if (selectedProductOption.value) {
-      validateQuantity();
-    }
-  }
-);
-
-onMounted(async () => {
-  try {
-    await loadProducts();
-  } catch (error) {
-    showError(error?.message || "تعذر تحميل بيانات المبيعات.");
-  }
-});
 </script>

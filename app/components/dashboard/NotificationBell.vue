@@ -79,6 +79,7 @@ import { notificationService } from "~/services/notificationService";
 import { useAuthStore } from "~/store/auth.js";
 import { useAppToast } from "~/composables/useAppToast";
 import { formatDateTime } from "~/utils/format";
+import { formatLowStockNotification } from "~/utils/domainLabels";
 
 defineOptions({ name: "NotificationBell" });
 
@@ -130,7 +131,14 @@ const loadNotifications = async ({ showLoading = false } = {}) => {
   if (showLoading) loading.value = true;
 
   try {
-    const list = await notificationService.getNotifications();
+    const list = (await notificationService.getNotifications()).map((item) => {
+      const copy = formatLowStockNotification(item);
+      return {
+        ...item,
+        title: copy.title,
+        message: copy.message,
+      };
+    });
     const first = list[0];
 
     if (

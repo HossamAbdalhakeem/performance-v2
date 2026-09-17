@@ -76,6 +76,7 @@
 <script setup>
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 import { Doughnut } from "vue-chartjs";
+import { REPORT_ACTIVITY_KEY_LABELS, getReportMetricColor } from "~/utils/domainLabels";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
@@ -95,22 +96,6 @@ const SECTION_MAP = {
   ready: null,
   waiting: null,
   branches: null,
-};
-
-const COLORS = {
-  sales: "#0ea5e9",
-  delivered: "#10b981",
-  undelivered: "#f59e0b",
-  cancelled: "#e11d48",
-  received: "#14b8a6",
-  stockOut: "#ea580c",
-  allMovements: "#8b5cf6",
-  returns: "#d946ef",
-  exchanges: "#6366f1",
-  reservations: "#f59e0b",
-  ready: "#10b981",
-  waiting: "#06b6d4",
-  branches: "#64748b",
 };
 
 const props = defineProps({
@@ -266,10 +251,10 @@ const legend = computed(() => {
       key: def.key,
       group: def.group,
       groupLabel: def.groupLabel,
-      label: fromActivity?.label || def.label,
+      label: REPORT_ACTIVITY_KEY_LABELS[def.key] || def.label,
       value,
       percent,
-      color: COLORS[def.key] || "#94a3b8",
+      color: getReportMetricColor(def.key),
       sectionKey: SECTION_MAP[def.key] ?? null,
     };
   });

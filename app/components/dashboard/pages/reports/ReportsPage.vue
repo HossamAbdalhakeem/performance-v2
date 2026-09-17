@@ -62,6 +62,7 @@ import Button from "primevue/button";
 import ReportsFilters from "~/components/dashboard/pages/reports/summary/ReportsFilters.vue";
 import { reportService } from "~/services/reportService";
 import { useAppToast } from "~/composables/useAppToast";
+import { UNSPECIFIED_LABEL } from "~/utils/domainLabels";
 
 const ReportsLoadingSkeleton = defineAsyncComponent(() =>
   import("~/components/dashboard/pages/reports/summary/ReportsLoadingSkeleton.vue"),
@@ -116,7 +117,9 @@ const paymentMethodItems = computed(() =>
 );
 
 const customersByYearLabels = computed(() =>
-  (report.value?.customersByYear || []).map((row) => row.label),
+  (report.value?.customersByYear || []).map((row) =>
+    row.label === "unspecified" || !row.label ? UNSPECIFIED_LABEL : row.label,
+  ),
 );
 
 const customersByYearValues = computed(() =>

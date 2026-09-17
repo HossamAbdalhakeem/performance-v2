@@ -54,56 +54,112 @@
           </div>
         </Field>
 
-        <div
-          class="md:col-span-2 grid gap-4"
-          :class="isCustomerService ? 'md:grid-cols-2' : 'md:grid-cols-1'"
+        <Field
+          v-if="isCustomerService"
+          v-slot="{ errorMessage }"
+          v-model="form.branchId"
+          class="md:col-span-2"
+          name="branchId"
+          label="الفرع"
+          rules="required"
         >
-          <Field
-            v-if="isCustomerService"
-            v-slot="{ errorMessage }"
-            v-model="form.branchId"
-            name="branchId"
-            label="الفرع"
-            rules="required"
-          >
-            <div class="flex h-full flex-col gap-2 text-right">
-              <AppGlobalSelectBranch
-                v-model="form.branchId"
-                label="اختيار الفرع"
-                placeholder="اختر الفرع"
-                :invalid="!!(errorMessage || fieldErrors.branchId)"
-                @change="onBranchChange"
-              />
-              <ErrorMessage name="branchId" class="text-xs text-red-500" />
-            </div>
-          </Field>
-          <Field
-            v-slot="{ errorMessage }"
-            v-model="form.productId"
-            name="productId"
-            label="المنتج"
-            rules="required"
-          >
-            <div class="flex flex-col gap-2 text-right">
-              <ProductSelect
-                v-model="form.productId"
-                :options="productOptions"
-                :loading="loadingProducts"
-                :disabled="!resolvedBranchId"
-                :invalid="!!(errorMessage || fieldErrors.productId)"
-                :hint="
-                  !resolvedBranchId
-                    ? isCustomerService
-                      ? 'اختر الفرع أولاً لعرض منتجات الحجز.'
-                      : 'لا يوجد فرع مرتبط بالمستخدم الحالي.'
-                    : ''
-                "
-                @search="onProductSearch"
-              />
-              <ErrorMessage name="productId" class="text-xs text-red-500" />
-            </div>
-          </Field>
-        </div>
+          <div class="flex flex-col gap-2 text-right">
+            <AppGlobalSelectBranch
+              v-model="form.branchId"
+              label="اختيار الفرع"
+              placeholder="اختر الفرع"
+              :invalid="!!(errorMessage || fieldErrors.branchId)"
+              @change="onBranchChange"
+            />
+            <ErrorMessage name="branchId" class="text-xs text-red-500" />
+          </div>
+        </Field>
+
+        <Field
+          v-slot="{ errorMessage }"
+          v-model="form.studyYearId"
+          name="studyYearId"
+          rules="required"
+        >
+          <div class="flex flex-col gap-2 text-right">
+            <AppGlobalSelectStudyYear
+              v-model="form.studyYearId"
+              label="السنة الدراسية"
+              placeholder="اختر السنة الدراسية"
+              :label-class="
+                isCustomerService ? 'text-slate-200' : 'text-slate-700'
+              "
+              :invalid="!!(errorMessage || fieldErrors.studyYearId)"
+              @change="onStudyYearChange"
+            />
+            <ErrorMessage name="studyYearId" class="text-xs text-red-500" />
+          </div>
+        </Field>
+
+        <Field
+          v-slot="{ errorMessage }"
+          v-model="form.teacherId"
+          name="teacherId"
+          rules="required"
+        >
+          <div class="flex flex-col gap-2 text-right">
+            <AppGlobalSelectTeacher
+              v-model="form.teacherId"
+              label="المدرس"
+              placeholder="اختر المدرس"
+              :disabled="!form.studyYearId"
+              :label-class="
+                isCustomerService ? 'text-slate-200' : 'text-slate-700'
+              "
+              :invalid="!!(errorMessage || fieldErrors.teacherId)"
+              @change="onTeacherChange"
+            />
+            <ErrorMessage name="teacherId" class="text-xs text-red-500" />
+          </div>
+        </Field>
+
+        <Field
+          v-slot="{ errorMessage }"
+          v-model="form.productType"
+          name="productType"
+          rules="required"
+        >
+          <div class="flex flex-col gap-2 text-right">
+            <AppGlobalSelectProductType
+              v-model="form.productType"
+              label="نوع المنتج"
+              placeholder="اختر النوع"
+              :disabled="!form.teacherId"
+              :label-class="
+                isCustomerService ? 'text-slate-200' : 'text-slate-700'
+              "
+              :invalid="!!(errorMessage || fieldErrors.productType)"
+              @change="onProductTypeChange"
+            />
+            <ErrorMessage name="productType" class="text-xs text-red-500" />
+          </div>
+        </Field>
+
+        <Field
+          v-slot="{ errorMessage }"
+          v-model="form.productId"
+          name="productId"
+          label="المنتج"
+          rules="required"
+        >
+          <div class="flex flex-col gap-2 text-right">
+            <ProductSelect
+              v-model="form.productId"
+              :options="productOptions"
+              :loading="loadingProducts"
+              :disabled="!canSelectProduct"
+              :invalid="!!(errorMessage || fieldErrors.productId)"
+              :hint="productSelectHint"
+              @search="onProductSearch"
+            />
+            <ErrorMessage name="productId" class="text-xs text-red-500" />
+          </div>
+        </Field>
 
         <div
           v-if="selectedProductOption"
@@ -203,8 +259,12 @@ import FormSubmitButton from "~/components/shared/form-submit-button/index.vue";
 import ProductSelect from "~/components/shared/product-select/index.vue";
 import StudentSearchField from "~/components/shared/student-search-field/index.vue";
 import AppGlobalSelectBranch from "~/components/shared/app-global-select-branch/index.vue";
+import AppGlobalSelectStudyYear from "~/components/shared/app-global-select-study-year/index.vue";
+import AppGlobalSelectTeacher from "~/components/shared/app-global-select-teacher/index.vue";
+import AppGlobalSelectProductType from "~/components/shared/app-global-select-product-type/index.vue";
 import { Form, Field, ErrorMessage } from "vee-validate";
 import { inventoryService } from "~/services/inventoryService";
+import { productService } from "~/services/productService";
 import { mapInventoryProductOption } from "~/utils/productOptions";
 import {
   PAYMENT_METHOD_LABELS,
@@ -221,6 +281,8 @@ defineOptions({ name: "DashboardBookingForm" });
 const ReservationSuccessDialog = defineAsyncComponent(
   () => import("~/components/dashboard/ReservationSuccessDialog.vue"),
 );
+
+const RESERVATION_QUANTITY = 1;
 
 const props = defineProps({
   title: { type: String, default: "احجز كتاب" },
@@ -267,6 +329,7 @@ const proofRequiredError = ref(false);
 const paymentFieldsRef = ref(null);
 const selectedStudent = ref(null);
 const inventoryItems = ref([]);
+const amountError = ref("");
 
 const paymentExclude = computed(() =>
   isCustomerService.value ? [PaymentMethod.CASH] : [],
@@ -280,7 +343,10 @@ const form = reactive({
   studentName: "",
   studentPhone: "",
   branchId: null,
-  productId: props.initialProduct || null,
+  studyYearId: null,
+  teacherId: null,
+  productType: null,
+  productId: null,
   amount: null,
   paymentMethod: defaultPaymentMethod.value,
 });
@@ -290,7 +356,10 @@ const formInitialValues = computed(() => ({
   studentName: "",
   studentPhone: "",
   branchId: null,
-  productId: props.initialProduct || null,
+  studyYearId: null,
+  teacherId: null,
+  productType: null,
+  productId: null,
   amount: null,
   paymentMethod: defaultPaymentMethod.value,
 }));
@@ -299,8 +368,55 @@ const resolvedBranchId = computed(() =>
   isCustomerService.value ? form.branchId : employeeBranchId.value,
 );
 
+const canSelectProduct = computed(
+  () =>
+    Boolean(
+      resolvedBranchId.value &&
+        form.studyYearId &&
+        form.teacherId &&
+        form.productType,
+    ),
+);
+
+const productSelectHint = computed(() => {
+  if (!resolvedBranchId.value) {
+    return isCustomerService.value
+      ? "اختر الفرع أولاً لعرض منتجات الحجز."
+      : "لا يوجد فرع مرتبط بالمستخدم الحالي.";
+  }
+  if (!form.studyYearId) return "اختر السنة الدراسية أولاً.";
+  if (!form.teacherId) return "اختر المدرس أولاً.";
+  if (!form.productType) return "اختر نوع المنتج أولاً.";
+  return "";
+});
+
+const matchesProductFilters = (option) => {
+  if (
+    form.studyYearId &&
+    String(option.studyYearId || "") !== String(form.studyYearId)
+  ) {
+    return false;
+  }
+  if (
+    form.teacherId &&
+    String(option.teacherId || "") !== String(form.teacherId)
+  ) {
+    return false;
+  }
+  if (
+    form.productType &&
+    String(option.type || "").toUpperCase() !==
+      String(form.productType).toUpperCase()
+  ) {
+    return false;
+  }
+  return true;
+};
+
 const productOptions = computed(() =>
-  inventoryItems.value.map(mapInventoryProductOption),
+  inventoryItems.value
+    .map(mapInventoryProductOption)
+    .filter((option) => option.value && matchesProductFilters(option)),
 );
 
 const selectedProductOption = computed(
@@ -320,8 +436,6 @@ const productDepositCap = computed(() => productDisplayPrice.value);
 /** @deprecated alias kept for existing watchers/submit logic */
 const productPrice = productDepositCap;
 
-const amountError = ref("");
-
 const validateDepositAmount = () => {
   amountError.value = "";
   const paid = Number(form.amount || 0);
@@ -339,10 +453,13 @@ const validateDepositAmount = () => {
   return true;
 };
 
-const loadProducts = async (search = "") => {
-  const branchId = resolvedBranchId.value;
+const clearProductSelection = () => {
+  form.productId = null;
+  inventoryItems.value = [];
+};
 
-  if (!branchId) {
+const loadProducts = async (search = "") => {
+  if (!canSelectProduct.value) {
     inventoryItems.value = [];
     return;
   }
@@ -350,20 +467,29 @@ const loadProducts = async (search = "") => {
   loadingProducts.value = true;
   try {
     const query = String(search || "").trim();
-    const items = await inventoryService.getBranchInventory(branchId, {
-      forReservation: true,
-      ...(query ? { search: query } : {}),
-    });
+    const items = await inventoryService.getBranchInventory(
+      resolvedBranchId.value,
+      {
+        forReservation: true,
+        studyYearId: form.studyYearId,
+        teacherId: form.teacherId,
+        type: form.productType,
+        ...(query ? { search: query } : {}),
+      },
+    );
     inventoryItems.value = Array.isArray(items) ? items : items?.data || [];
 
+    const preferredId = form.productId || props.initialProduct || null;
     if (
-      form.productId &&
-      !inventoryItems.value.some(
-        (item) =>
-          (item.product?.id || item.productId || item.id) === form.productId,
-      )
+      preferredId &&
+      productOptions.value.some((option) => option.value === preferredId)
     ) {
-      form.productId = props.initialProduct || null;
+      form.productId = preferredId;
+    } else if (
+      form.productId &&
+      !productOptions.value.some((option) => option.value === form.productId)
+    ) {
+      form.productId = null;
     }
   } finally {
     loadingProducts.value = false;
@@ -376,8 +502,57 @@ const { run: onProductSearch } = useThrottledCallback((term) => {
 
 const onBranchChange = async (value) => {
   form.branchId = value || null;
-  form.productId = props.initialProduct || null;
+  form.productId = null;
+  if (canSelectProduct.value) {
+    await loadProducts();
+  } else {
+    inventoryItems.value = [];
+  }
+};
+
+const onStudyYearChange = (value) => {
+  form.studyYearId = value || null;
+  form.teacherId = null;
+  form.productType = null;
+  clearProductSelection();
+};
+
+const onTeacherChange = (value) => {
+  form.teacherId = value || null;
+  form.productType = null;
+  clearProductSelection();
+};
+
+const onProductTypeChange = async (value) => {
+  form.productType = value || null;
+  form.productId = null;
+  if (!canSelectProduct.value) {
+    inventoryItems.value = [];
+    return;
+  }
   await loadProducts();
+};
+
+const hydrateFromInitialProduct = async () => {
+  if (!props.initialProduct) return;
+
+  try {
+    const product = await productService.getProduct(String(props.initialProduct));
+    if (!product) return;
+
+    form.studyYearId =
+      product.studyYearId || product.studyYear?.id || product.study_year_id || null;
+    form.teacherId =
+      product.teacherId || product.teacher?.id || product.teacher_id || null;
+    form.productType = String(product.type || "").toUpperCase() || null;
+    form.productId = product.id || props.initialProduct;
+
+    if (canSelectProduct.value) {
+      await loadProducts();
+    }
+  } catch {
+    // Keep manual filter flow if product details cannot be loaded.
+  }
 };
 
 const validateStudentSelection = (value) => {
@@ -392,6 +567,14 @@ const applyStudent = (student, setFieldValue) => {
   setFieldValue?.("studentId", student.id);
   setFieldValue?.("studentName", student.name);
   setFieldValue?.("studentPhone", student.phone);
+
+  const studentStudyYearId =
+    student.studyYearId || student.studyYear?.id || student.study_year_id || null;
+  if (studentStudyYearId && !form.studyYearId) {
+    form.studyYearId = studentStudyYearId;
+    setFieldValue?.("studyYearId", studentStudyYearId);
+    onStudyYearChange(studentStudyYearId);
+  }
 };
 
 const clearStudent = (setFieldValue) => {
@@ -424,11 +607,15 @@ const resetForm = () => {
     studentName: "",
     studentPhone: "",
     branchId: null,
-    productId: props.initialProduct || null,
+    studyYearId: null,
+    teacherId: null,
+    productType: null,
+    productId: null,
     amount: null,
     paymentMethod: defaultPaymentMethod.value,
   });
   selectedStudent.value = null;
+  inventoryItems.value = [];
   clearProof();
   amountError.value = "";
   proofRequiredError.value = false;
@@ -469,7 +656,7 @@ const handleSubmit = async () => {
     const paidAmount = Number(form.amount || 0);
 
     const result = await props.submitFn({
-      teacher_id: product?.teacherId || "",
+      teacher_id: product?.teacherId || form.teacherId || "",
       product_id: form.productId,
       productId: form.productId,
       studentId,
@@ -485,7 +672,7 @@ const handleSubmit = async () => {
       branch_id: form.branchId || undefined,
       receipt_image: needsProof ? proofPreviewUrl.value || null : null,
       proofReference: needsProof ? proofKey.value || undefined : undefined,
-      quantity: 1,
+      quantity: RESERVATION_QUANTITY,
     });
 
     const reservationNumber =
@@ -549,8 +736,8 @@ watch(
 
 watch(
   () => props.initialProduct,
-  (value) => {
-    if (value) form.productId = value;
+  async (value) => {
+    if (value) await hydrateFromInitialProduct();
   },
 );
 
@@ -561,15 +748,18 @@ watch(isCustomerService, async (value) => {
   if (!value) {
     form.branchId = null;
   }
-  await loadProducts();
+  if (canSelectProduct.value) {
+    await loadProducts();
+  }
 });
 
 onMounted(async () => {
   try {
-    await loadProducts();
-    if (props.initialProduct) form.productId = props.initialProduct;
     if (isCustomerService.value && form.paymentMethod === PaymentMethod.CASH) {
       form.paymentMethod = defaultPaymentMethod.value;
+    }
+    if (props.initialProduct) {
+      await hydrateFromInitialProduct();
     }
   } catch (error) {
     showError(error?.message || "تعذر تحميل بيانات الحجز.");

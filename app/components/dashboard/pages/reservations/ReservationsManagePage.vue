@@ -198,6 +198,7 @@ import { useAppToast } from "~/composables/useAppToast";
 import { PaymentMethod, PAYMENT_METHOD_LABELS } from "~/utils/paymentMethods";
 import { formatMoney, formatDateTime } from "~/utils/format";
 import { getUserRoleLabel } from "~/enums/userRole";
+import { getStatusTagMeta } from "~/utils/statusTags";
 
 defineOptions({ name: "ReservationsManagePage" });
 
@@ -213,14 +214,6 @@ const ExchangeReservationDetailContent = defineAsyncComponent(() =>
 const ExchangeReservationConfirmContent = defineAsyncComponent(() =>
   import("~/components/dashboard/pages/reservations/manage/ExchangeReservationConfirmContent.vue"),
 );
-
-const STATUS_META = {
-  PENDING: { label: "قيد الانتظار", severity: "warn" },
-  WAITING_FOR_STOCK: { label: "بانتظار المخزون", severity: "warn" },
-  READY: { label: "جاهز", severity: "info" },
-  DELIVERED: { label: "تم التسليم", severity: "success" },
-  CANCELLED: { label: "ملغي", severity: "danger" },
-};
 
 const { showError, showSuccess } = useAppToast();
 
@@ -265,10 +258,7 @@ const getRemainingAmount = (item) => {
 
 const normalizeReservation = (item) => {
   const status = String(item.status || "").toUpperCase();
-  const meta = STATUS_META[status] || {
-    label: status || "-",
-    severity: "secondary",
-  };
+  const meta = getStatusTagMeta("reservation", status);
   const sellingPrice = Number(
     item.product?.sellingPrice ??
       item.product?.selling_price ??
@@ -340,7 +330,6 @@ const normalizeReservation = (item) => {
     ),
     status,
     statusLabel: meta.label,
-    statusSeverity: meta.severity,
   };
 };
 

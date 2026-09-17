@@ -103,6 +103,10 @@ import {
   PaymentMethod,
   paymentMethodNeedsProof,
 } from "~/utils/paymentMethods";
+import {
+  buildExchangeDiffLabels,
+  getAvailabilityLabel,
+} from "~/utils/domainLabels";
 
 const ExchangeDetailContent = defineAsyncComponent(() =>
   import("~/components/dashboard/pages/sales/exchange/manage/ExchangeDetailContent.vue"),
@@ -165,14 +169,25 @@ const maxQuantity = computed(() =>
   Math.max(1, Number(props.sale?.remainingQuantity || 1)),
 );
 
-const selectedNewProduct = computed(() => preview.value?.newProduct || null);
+const selectedNewProduct = computed(() => {
+  const product = preview.value?.newProduct;
+  if (!product) return null;
+  return {
+    ...product,
+    availabilityLabel: getAvailabilityLabel(
+      product.availability ?? product.isAvailable,
+    ),
+  };
+});
 
 const priceComparisonUi = computed(() => {
   if (!preview.value?.kind) return null;
   const ui = COMPARISON_UI[preview.value.kind] || COMPARISON_UI.same;
+  const labels = buildExchangeDiffLabels(preview.value);
   return {
     ...preview.value,
     ...ui,
+    ...labels,
   };
 });
 

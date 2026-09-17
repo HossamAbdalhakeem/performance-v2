@@ -51,15 +51,19 @@
     </template>
 
     <template #status="{ data }">
-      <Tag :value="data.statusLabel" :severity="data.statusSeverity" />
+      <AppStatusTag
+        kind="reservation"
+        :code="data.status"
+        :label="data.statusLabel"
+      />
     </template>
 
     <template #createdBy="{ data }">
       <div class="flex flex-col items-center gap-0.5">
         <span class="text-sm font-medium">{{ data.createdByName }}</span>
-        <Tag
+        <AppStatusTag
           v-if="data.createdByRoleLabel && data.createdByRoleLabel !== '-'"
-          :value="data.createdByRoleLabel"
+          :label="data.createdByRoleLabel"
           severity="secondary"
         />
       </div>
@@ -92,8 +96,8 @@
 
 <script setup>
 import Button from "primevue/button";
-import Tag from "primevue/tag";
 import AppDataTable from "~/components/shared/app-data-table/index.vue";
+import AppStatusTag from "~/components/shared/app-status-tag/index.vue";
 import PaymentProofThumb from "~/components/shared/payment-proof-thumb/index.vue";
 
 defineProps({

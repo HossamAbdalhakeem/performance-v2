@@ -62,6 +62,7 @@ import SearchInput from "~/components/shared/search-input/index.vue";
 import StudentsTable from "~/components/dashboard/pages/students/StudentsTable.vue";
 import { studentService } from "~/services/studentService";
 import { useAppToast } from "~/composables/useAppToast";
+import { getStatusTagLabel } from "~/utils/statusTags";
 
 const StudentForm = defineAsyncComponent(() =>
   import("~/components/dashboard/pages/students/StudentForm.vue"),
@@ -96,8 +97,7 @@ const normalizeStudent = (student) => ({
   name: student.name || "-",
   phone: student.phone || "-",
   studyYearName: student.studyYear?.name || "-",
-  statusLabel: student.status === "INACTIVE" ? "غير نشط" : "نشط",
-  statusSeverity: student.status === "INACTIVE" ? "danger" : "success",
+  statusLabel: getStatusTagLabel("entity", student.status),
 });
 
 const loadData = async () => {

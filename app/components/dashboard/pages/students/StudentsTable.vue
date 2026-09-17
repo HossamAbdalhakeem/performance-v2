@@ -12,7 +12,11 @@
     @page="$emit('page', $event)"
   >
     <template #status="{ data }">
-      <Tag :value="data.statusLabel" :severity="data.statusSeverity" />
+      <AppStatusTag
+        kind="entity"
+        :code="data.status"
+        :label="data.statusLabel"
+      />
     </template>
     <template #actions="{ data }">
       <StudentsTableActions
@@ -27,8 +31,8 @@
 </template>
 
 <script setup>
-import Tag from "primevue/tag";
 import AppDataTable from "~/components/shared/app-data-table/index.vue";
+import AppStatusTag from "~/components/shared/app-status-tag/index.vue";
 import StudentsTableActions from "~/components/dashboard/pages/students/StudentsTableActions.vue";
 
 defineProps({

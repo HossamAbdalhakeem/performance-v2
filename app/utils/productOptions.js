@@ -49,6 +49,7 @@ export const mapInventoryProductOption = (item) => {
     isAvailable,
     availabilityLabel,
     teacherId: product.teacherId || product.teacher_id || product.teacher?.id || "",
+    type: String(product.type || product.productType || product.product_type || "").toUpperCase(),
     label: priceLabel
       ? `${name} · ${availabilityLabel} · ${priceKindLabel} ${priceLabel}`
       : `${name} · ${availabilityLabel}`,

@@ -54,6 +54,7 @@ import TeachersFilters from "~/components/dashboard/pages/teachers/TeachersFilte
 import TeachersTable from "~/components/dashboard/pages/teachers/TeachersTable.vue";
 import { teacherService } from "~/services/teacherService";
 import { useAppToast } from "~/composables/useAppToast";
+import { getStatusTagLabel } from "~/utils/statusTags";
 
 const TeacherForm = defineAsyncComponent(() =>
   import("~/components/dashboard/pages/teachers/TeacherForm.vue"),
@@ -76,8 +77,7 @@ const drawerTitle = computed(() =>
 const normalizeTeacher = (teacher) => ({
   ...teacher,
   name: teacher.name || "-",
-  statusLabel: teacher.status === "INACTIVE" ? "غير نشط" : "نشط",
-  statusSeverity: teacher.status === "INACTIVE" ? "danger" : "success",
+  statusLabel: getStatusTagLabel("entity", teacher.status),
 });
 
 const buildQuery = () => {

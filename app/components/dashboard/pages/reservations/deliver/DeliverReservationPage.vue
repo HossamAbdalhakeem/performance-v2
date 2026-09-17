@@ -67,12 +67,7 @@
       </template>
 
       <template #status="{ data }">
-        <span
-          class="rounded-md px-2 py-1 text-xs font-bold"
-          :class="statusClass(data)"
-        >
-          {{ data.statusLabel }}
-        </span>
+        <AppStatusTag kind="reservation" :code="data.status" :label="data.statusLabel" />
       </template>
 
       <template #actions="{ data }">
@@ -198,6 +193,8 @@ import {
 import { formatMoney, formatDateTime } from "~/utils/format";
 import { getUserRoleLabel } from "~/enums/userRole";
 import PaymentProofThumb from "~/components/shared/payment-proof-thumb/index.vue";
+import AppStatusTag from "~/components/shared/app-status-tag/index.vue";
+import { getStatusTagMeta } from "~/utils/statusTags";
 
 const DeliverReservationDetailContent = defineAsyncComponent(() =>
   import("~/components/dashboard/pages/reservations/deliver/manage/DeliverReservationDetailContent.vue"),
@@ -205,14 +202,6 @@ const DeliverReservationDetailContent = defineAsyncComponent(() =>
 const DeliverReservationConfirmContent = defineAsyncComponent(() =>
   import("~/components/dashboard/pages/reservations/deliver/manage/DeliverReservationConfirmContent.vue"),
 );
-
-const STATUS_META = {
-  PENDING: { label: "قيد الانتظار", class: "bg-amber-500/20 text-amber-300" },
-  WAITING_FOR_STOCK: { label: "بانتظار المخزون", class: "bg-amber-500/20 text-amber-300" },
-  READY: { label: "جاهز للتسليم", class: "bg-emerald-500/20 text-emerald-300" },
-  DELIVERED: { label: "تم التسليم", class: "bg-slate-500/20 text-slate-300" },
-  CANCELLED: { label: "ملغي", class: "bg-red-500/20 text-red-300" },
-};
 
 const { showError, showSuccess } = useAppToast();
 const loading = ref(false);
@@ -294,9 +283,6 @@ const onSearch = (value) => {
   loadReservations();
 };
 
-const statusClass = (item) =>
-  STATUS_META[item?.status]?.class || "bg-slate-500/20 text-slate-300";
-
 const getRemainingAmount = (item) => {
   const total = Number(item.totalAmount ?? item.total_amount ?? 0);
   const paid = Number(item.paidAmount ?? item.paid_amount ?? 0);
@@ -306,7 +292,7 @@ const getRemainingAmount = (item) => {
 const normalizeReservation = (item) => {
   const remainingAmount = getRemainingAmount(item);
   const status = String(item.status || "").toUpperCase();
-  const meta = STATUS_META[status] || { label: status || "-" };
+  const meta = getStatusTagMeta("reservation", status);
   const paidAmount = Number(item.paidAmount ?? item.paid_amount ?? 0);
   const totalAmount = Number(item.totalAmount ?? item.total_amount ?? 0);
   const sellingPrice = Number(

@@ -75,6 +75,7 @@ import Drawer from "primevue/drawer";
 import BranchesTable from "~/components/dashboard/pages/branches/BranchesTable.vue";
 import { branchService } from "~/services/branchService";
 import { useAppToast } from "~/composables/useAppToast";
+import { getStatusTagMeta } from "~/utils/statusTags";
 
 const AddStockForm = defineAsyncComponent(() =>
   import("~/components/dashboard/pages/inventory/AddStockForm.vue"),
@@ -90,12 +91,7 @@ const selectedBranch = ref(null);
 const addDrawerVisible = ref(false);
 const removeDrawerVisible = ref(false);
 
-const statusMeta = (status) => {
-  if (status === "INACTIVE") {
-    return { label: "غير نشط", severity: "danger" };
-  }
-  return { label: "نشط", severity: "success" };
-};
+const statusMeta = (status) => getStatusTagMeta("entity", status);
 
 const normalizeInventoryItem = (item) => ({
   productId: item.productId || item.product?.id,
@@ -137,7 +133,6 @@ const loadData = async () => {
         name: branch.name || "-",
         status: branch.status,
         statusLabel: meta.label,
-        statusSeverity: meta.severity,
         productsCount: Number(summary.productsCount ?? items.length),
         inventoryPreview: (summary.preview || items.slice(0, 3)).map(
           normalizeInventoryItem,

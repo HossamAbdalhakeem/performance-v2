@@ -21,11 +21,23 @@
         <i class="pi pi-wallet text-lg" />
       </span>
     </div>
-    <div class="mt-5 grid grid-cols-2 gap-3 text-sm">
+    <div
+      class="mt-5 grid gap-3 text-sm"
+      :class="showExpenses ? 'grid-cols-3' : 'grid-cols-2'"
+    >
       <div class="rounded-xl border border-white/5 bg-black/20 px-3 py-2">
         <p class="text-xs text-slate-400">المحصل</p>
         <p class="mt-1 font-bold text-sky-300">
           {{ formatMoney(paymentsCollected, "rtl") }}
+        </p>
+      </div>
+      <div
+        v-if="showExpenses"
+        class="rounded-xl border border-white/5 bg-black/20 px-3 py-2"
+      >
+        <p class="text-xs text-slate-400">المصروفات</p>
+        <p class="mt-1 font-bold text-amber-300">
+          {{ formatMoney(expenses, "rtl") }}
         </p>
       </div>
       <div class="rounded-xl border border-white/5 bg-black/20 px-3 py-2">
@@ -48,9 +60,12 @@ const props = defineProps({
   paymentsTotal: { type: [Number, String], default: 0 },
   paymentsCollected: { type: [Number, String], default: 0 },
   refundsTotal: { type: [Number, String], default: 0 },
+  expenses: { type: [Number, String], default: 0 },
   cancelledReservations: { type: [Number, String], default: 0 },
   readyReservations: { type: [Number, String], default: 0 },
 });
+
+const showExpenses = computed(() => !props.isCustomerService);
 
 const title = computed(() =>
   props.isCustomerService ? "مدفوعات حجوزاتك" : "صافي المدفوعات",
