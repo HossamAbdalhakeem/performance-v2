@@ -12,7 +12,7 @@ export const useAuthStore = defineStore("authStore", {
   }),
   getters: {
     getUser: (state) => state.user,
-    isLoggedIn: (state) => state.loggedIn,
+    isLoggedIn: (state) => Boolean(state.loggedIn && state.token),
     getRole: (state) => state.user?.role || "admin",
     getRoles: (state) => state.user?.roles || [],
     getBranches: (state) => state.user?.branches || [],
@@ -62,7 +62,9 @@ export const useAuthStore = defineStore("authStore", {
     async setUser(data, token) {
       this.user = data || {};
       this.token = token || this.token || null;
-      this.loggedIn = Boolean(this.user?.id || this.user?.phone || this.user?.role);
+      this.loggedIn = Boolean(
+        this.token && (this.user?.id || this.user?.phone || this.user?.role),
+      );
 
       useLocalStorage("token").value = this.token;
       useLocalStorage("dashboard_role").value = this.user?.role || "admin";
@@ -84,27 +86,27 @@ export const useAuthStore = defineStore("authStore", {
         console.error("Logout request failed", error);
       }
 
-      // Clear token first, keep user until after navigation so the layout
-      // does not remount the current page and re-fire its APIs.
-      this.token = null;
-      this.loggedIn = false;
-      useLocalStorage("token").value = null;
-      useLocalStorage("academicYearId").value = null;
-
-      await navigateTo("/login");
+      // Clear the full session before navigating so middleware cannot
+      // re-hydrate as logged-in without a token and remount dashboard APIs.
       this.removeUser();
+      await navigateTo("/login");
     },
     hydrateFromStorage() {
       const dashboardRole = useLocalStorage("dashboard_role");
       const dashboardUser = useLocalStorage("dashboard_user");
       const token = useLocalStorage("token");
 
-      if (!dashboardRole.value || !dashboardUser.value) return;
+      if (!token.value || !dashboardRole.value || !dashboardUser.value) {
+        if (this.loggedIn || this.token || dashboardUser.value || dashboardRole.value) {
+          this.removeUser();
+        }
+        return;
+      }
 
       try {
         const parsed = JSON.parse(dashboardUser.value);
         this.user = parsed;
-        this.token = token.value || null;
+        this.token = token.value;
         this.loggedIn = true;
       } catch (error) {
         this.removeUser();

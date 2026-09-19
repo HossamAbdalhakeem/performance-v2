@@ -128,7 +128,7 @@ const updatePanelPosition = () => {
 };
 
 const loadNotifications = async ({ showLoading = false } = {}) => {
-  if (!authStore.isLoggedIn || fetching) return;
+  if (!authStore.isLoggedIn || !authStore.token || fetching) return;
   fetching = true;
   if (showLoading) loading.value = true;
 

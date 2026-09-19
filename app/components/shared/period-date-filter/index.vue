@@ -45,6 +45,14 @@ const props = defineProps({
     default: "year",
     validator: (value) => ["day", "week", "month", "year"].includes(value),
   },
+  /**
+   * Academic-year date range used when period = year.
+   * Expected shape: { from: 'YYYY-MM-DD', to: 'YYYY-MM-DD' }
+   */
+  academicYearRange: {
+    type: Object,
+    default: null,
+  },
   selectClass: {
     type: String,
     default: "w-full min-w-0",
@@ -64,7 +72,7 @@ const periodOptions = [
   { label: "يوم", value: "day" },
   { label: "اسبوع", value: "week" },
   { label: "شهر", value: "month" },
-  { label: "سنة", value: "year" },
+  { label: "العام الدراسي", value: "year" },
   { label: "تاريخ مخصص", value: "custom" },
 ];
 
@@ -125,6 +133,12 @@ const rangeForPeriod = (value) => {
   }
 
   if (value === "year") {
+    const ayFrom = props.academicYearRange?.from;
+    const ayTo = props.academicYearRange?.to;
+    if (ayFrom && ayTo) {
+      return { from: String(ayFrom).slice(0, 10), to: String(ayTo).slice(0, 10) };
+    }
+    // Fallback when academic year dates are unavailable.
     const from = new Date(today.getFullYear(), 0, 1);
     return { from: toIsoDate(from), to };
   }
@@ -187,6 +201,17 @@ onMounted(() => {
     applyPreset(period.value);
   }
 });
+
+watch(
+  () => [
+    props.academicYearRange?.from,
+    props.academicYearRange?.to,
+  ],
+  () => {
+    if (period.value !== "year") return;
+    applyPreset("year");
+  },
+);
 </script>
 
 <style scoped>

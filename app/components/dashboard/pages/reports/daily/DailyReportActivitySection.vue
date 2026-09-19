@@ -5,7 +5,25 @@
         <p class="font-bold text-white">{{ title }}</p>
       </div>
     </div>
-    <div class="flex flex-col gap-5">
+
+    <div v-if="loading" class="flex flex-col gap-5">
+      <div
+        class="mx-auto flex h-52 w-full max-w-[240px] items-center justify-center"
+      >
+        <Skeleton shape="circle" size="11rem" />
+      </div>
+      <div class="grid gap-2.5 sm:grid-cols-2 xl:grid-cols-3">
+        <Skeleton
+          v-for="i in skeletonTiles"
+          :key="`activity-skel-${i}`"
+          width="100%"
+          height="2.75rem"
+          border-radius="12px"
+        />
+      </div>
+    </div>
+
+    <div v-else class="flex flex-col gap-5">
       <div class="relative mx-auto h-52 w-full max-w-[240px]">
         <Doughnut
           v-if="hasData"
@@ -81,6 +99,7 @@
 </template>
 
 <script setup>
+import Skeleton from "primevue/skeleton";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 import { Doughnut } from "vue-chartjs";
 import {
@@ -111,6 +130,8 @@ const SECTION_MAP = {
 
 const props = defineProps({
   title: { type: String, default: "توزيع نشاط اليوم" },
+  loading: { type: Boolean, default: false },
+  skeletonTiles: { type: Number, default: 9 },
   /** Metric definitions built by the parent page */
   metrics: {
     type: Array,

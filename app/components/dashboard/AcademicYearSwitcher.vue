@@ -96,6 +96,7 @@
 import Dialog from "primevue/dialog";
 import { academicYearService } from "~/services/academicYearService";
 import { useAppToast } from "~/composables/useAppToast";
+import { useAuthStore } from "~/store/auth.js";
 
 const AcademicYearForm = defineAsyncComponent(() =>
   import("~/components/dashboard/AcademicYearForm.vue"),
@@ -105,6 +106,7 @@ defineOptions({ name: "AcademicYearSwitcher" });
 
 const STORAGE_KEY = "academicYearId";
 const yearStorage = useLocalStorage(STORAGE_KEY);
+const authStore = useAuthStore();
 
 const { showSuccess, showError } = useAppToast();
 
@@ -144,6 +146,8 @@ const writeStorage = (id) => {
 };
 
 const loadYears = async () => {
+  if (!authStore.isLoggedIn) return;
+
   loading.value = true;
   try {
     years.value = await academicYearService.getAcademicYears();

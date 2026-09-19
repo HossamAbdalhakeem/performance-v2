@@ -44,6 +44,24 @@
 
     <div class="mt-4 grid grid-cols-1 gap-2 text-sm text-slate-200 sm:grid-cols-2 lg:grid-cols-3">
       <p class="min-w-0 break-words">
+        مبيعات فرع:
+        <strong class="text-white">
+          {{ formatMoney(breakdown.branchSales, "locale") }}
+        </strong>
+      </p>
+      <p class="min-w-0 break-words">
+        مدفوعات الحجوزات (كل الحالات):
+        <strong class="text-white">
+          {{ formatMoney(breakdown.reservations, "locale") }}
+        </strong>
+      </p>
+      <p class="min-w-0 break-words">
+        مرتجعات:
+        <strong class="text-white">
+          {{ formatMoney(refundsTotal, "locale") }}
+        </strong>
+      </p>
+      <p class="min-w-0 break-words">
         مصروفات مرتبطة:
         <strong class="text-white">
           {{
@@ -80,6 +98,8 @@ defineOptions({ name: "ReportsFinancialsSection" });
 
 const props = defineProps({
   financials: { type: Object, default: () => ({}) },
+  breakdown: { type: Object, default: () => ({}) },
+  refundsTotal: { type: [Number, String], default: 0 },
   reservationDeposits: { type: [Number, String], default: 0 },
   generalExpenses: { type: [Number, String], default: null },
   isBranchScoped: { type: Boolean, default: false },

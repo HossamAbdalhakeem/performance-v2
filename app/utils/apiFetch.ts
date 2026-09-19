@@ -21,8 +21,26 @@ export const getApiOrigin = () => {
   return stripSlash(config.public.baseUrl || "");
 };
 
+const PUBLIC_PATHS = ["/auth/login"];
+
+const isPublicPath = (path: string) => {
+  const normalized = String(path || "").split("?")[0] || "";
+  return PUBLIC_PATHS.some(
+    (prefix) =>
+      normalized === prefix || normalized.startsWith(`${prefix}/`),
+  );
+};
+
+const getStoredToken = () => {
+  try {
+    return useLocalStorage("token").value || null;
+  } catch {
+    return null;
+  }
+};
+
 const getAuthHeaders = (extra: Record<string, string> = {}) => {
-  const token = useLocalStorage("token").value;
+  const token = getStoredToken();
 
   return {
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -182,6 +200,11 @@ const request = async <T = any>(
 ) => {
   if (!baseURL) {
     throw new ApiError("MISSING_API_BASE", "API base URL is not configured.");
+  }
+
+  // Skip authenticated endpoints when there is no session (e.g. after logout).
+  if (!isPublicPath(path) && !getStoredToken()) {
+    throw new ApiError("UNAUTHORIZED", "Not authenticated.", 401);
   }
 
   try {

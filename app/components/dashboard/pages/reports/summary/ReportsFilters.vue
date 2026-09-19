@@ -27,6 +27,7 @@
     <PeriodDateFilter
       :from="from"
       :to="to"
+      :academic-year-range="academicYearRange"
       default-period="year"
       wrapper-class="w-full min-w-0 lg:w-72 lg:shrink-0"
       select-class="w-full"
@@ -58,6 +59,7 @@ defineProps({
   branch: { type: [String, Number], default: "all" },
   from: { type: String, default: null },
   to: { type: String, default: null },
+  academicYearRange: { type: Object, default: null },
   loading: { type: Boolean, default: false },
 });
 

@@ -12,64 +12,107 @@
         v-model:branch="selectedBranch"
         v-model:from="dateFrom"
         v-model:to="dateTo"
-        :loading="loading"
+        :academic-year-range="academicYearRange"
+        :loading="anyLoading"
         class="w-full min-w-0"
         @change="onFiltersChange"
-        @refresh="loadReport"
+        @refresh="reloadAll"
       />
     </div>
 
-    <ReportsLoadingSkeleton v-if="loading" />
+    <!-- KPIs -->
+    <div v-if="loading.kpis" class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div
+        v-for="i in 4"
+        :key="`kpi-skel-${i}`"
+        class="rounded-xl border border-white/10 bg-slate-900 p-4"
+      >
+        <Skeleton width="7rem" height="0.9rem" class="mb-3" />
+        <Skeleton width="60%" height="1.8rem" />
+      </div>
+    </div>
+    <ReportsSummaryCards v-else :summary="kpisSummary" />
 
-    <template v-else>
-      <ReportsSummaryCards :summary="summary" :books="books" :cards="cards" />
+    <!-- Inventory -->
+    <ReportsInventoryTable
+      :by-type="inventory?.byType || []"
+      :books="inventory?.books"
+      :cards="inventory?.cards"
+      :booklets="inventory?.booklets"
+      :loading="loading.inventory"
+    />
 
-      <ReportsFinancialsSection
-        :financials="financials"
-        :reservation-deposits="reservationDeposits"
-        :general-expenses="generalExpensesSeparate"
-        :is-branch-scoped="isBranchScoped"
-      />
+    <!-- Financials -->
+    <div
+      v-if="loading.financial"
+      class="rounded-xl border border-white/10 bg-slate-900 p-4"
+    >
+      <Skeleton width="8rem" height="1rem" class="mb-4" />
+      <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <Skeleton v-for="i in 4" :key="`fin-${i}`" height="4.5rem" />
+      </div>
+    </div>
+    <ReportsFinancialsSection
+      v-else
+      :financials="financials"
+      :breakdown="financialBreakdown"
+      :refunds-total="financialRefundsTotal"
+      :reservation-deposits="reservationDeposits"
+      :general-expenses="generalExpensesSeparate"
+      :is-branch-scoped="isBranchScoped"
+    />
 
-      <ReportsSalesBreakdown
-        :breakdown="salesBreakdown"
-        :refunds-total="summary.refundsTotal"
-        :reservation-deposits="summary.reservationDeposits"
-        :financials="financials"
-      />
+    <!-- Payments -->
+    <div
+      v-if="loading.payments"
+      class="rounded-xl border border-white/10 bg-slate-900 p-4"
+    >
+      <Skeleton width="8rem" height="1rem" class="mb-3" />
+      <Skeleton width="100%" height="6rem" />
+    </div>
+    <PaymentMethodsReport
+      v-else
+      :items="paymentMethodItems"
+      total-label="إجمالي المدفوعات"
+    />
 
-      <PaymentMethodsReport
-        :items="paymentMethodItems"
-        total-label="إجمالي المدفوعات"
-      />
-
-      <ReportsCustomersSection
-        :year-labels="customersByYearLabels"
-        :year-values="customersByYearValues"
-        :students="studentRows"
-      />
-    </template>
+    <!-- Customers -->
+    <div
+      v-if="loading.customers"
+      class="rounded-xl border border-white/10 bg-slate-900 p-4"
+    >
+      <Skeleton width="8rem" height="1rem" class="mb-4" />
+      <div class="grid gap-4 xl:grid-cols-2">
+        <Skeleton height="12rem" />
+        <Skeleton height="12rem" />
+      </div>
+    </div>
+    <ReportsCustomersSection
+      v-else
+      :year-labels="customersByYearLabels"
+      :year-values="customersByYearValues"
+      :students="studentRows"
+    />
   </div>
 </template>
 
 <script setup>
+import Skeleton from "primevue/skeleton";
 import ReportsFilters from "~/components/dashboard/pages/reports/summary/ReportsFilters.vue";
 import { reportService } from "~/services/reportService";
+import { academicYearService } from "~/services/academicYearService";
 import { useAppToast } from "~/composables/useAppToast";
 import { useAcademicYearId } from "~/composables/useAcademicYearId";
 import { UNSPECIFIED_LABEL } from "~/utils/domainLabels";
 
-const ReportsLoadingSkeleton = defineAsyncComponent(() =>
-  import("~/components/dashboard/pages/reports/summary/ReportsLoadingSkeleton.vue"),
-);
 const ReportsSummaryCards = defineAsyncComponent(() =>
   import("~/components/dashboard/pages/reports/summary/ReportsSummaryCards.vue"),
 );
+const ReportsInventoryTable = defineAsyncComponent(() =>
+  import("~/components/dashboard/pages/reports/summary/ReportsInventoryTable.vue"),
+);
 const ReportsFinancialsSection = defineAsyncComponent(() =>
   import("~/components/dashboard/pages/reports/summary/ReportsFinancialsSection.vue"),
-);
-const ReportsSalesBreakdown = defineAsyncComponent(() =>
-  import("~/components/dashboard/pages/reports/summary/ReportsSalesBreakdown.vue"),
 );
 const PaymentMethodsReport = defineAsyncComponent(() =>
   import("~/components/shared/payment-methods-report/index.vue"),
@@ -85,25 +128,42 @@ const router = useRouter();
 const { showError } = useAppToast();
 const { academicYearId: currentAcademicYearId } = useAcademicYearId();
 
-const todayInputValue = () => {
-  const now = new Date();
-  const month = String(now.getMonth() + 1).padStart(2, "0");
-  const day = String(now.getDate()).padStart(2, "0");
-  return `${now.getFullYear()}-${month}-${day}`;
+const toDateInput = (value) => {
+  if (!value) return null;
+  const raw = String(value);
+  if (/^\d{4}-\d{2}-\d{2}/.test(raw)) return raw.slice(0, 10);
+  const date = new Date(raw);
+  if (Number.isNaN(date.getTime())) return null;
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
 };
 
-const yearStartInputValue = () => `${new Date().getFullYear()}-01-01`;
+const todayInputValue = () => toDateInput(new Date()) || "2026-01-01";
+
+const academicYears = ref([]);
+const academicYearRange = computed(() => {
+  const id = currentAcademicYearId.value;
+  if (!id) return null;
+  const match = academicYears.value.find((year) => String(year.id) === String(id));
+  if (!match) return null;
+  const from = toDateInput(match.startDate);
+  const to = toDateInput(match.endDate);
+  if (!from || !to) return null;
+  return { from, to };
+});
 
 const today = todayInputValue();
 const dateFrom = ref(
   typeof route.query.from === "string" && route.query.from
-    ? route.query.from
-    : yearStartInputValue(),
+    ? toDateInput(route.query.from)
+    : null,
 );
 const dateTo = ref(
   typeof route.query.to === "string" && route.query.to
-    ? route.query.to
-    : today,
+    ? toDateInput(route.query.to)
+    : null,
 );
 const selectedBranch = ref(
   route.query.branchId ? String(route.query.branchId) : "all",
@@ -111,61 +171,74 @@ const selectedBranch = ref(
 const selectedBook = ref(
   route.query.productId ? String(route.query.productId) : null,
 );
-const loading = ref(true);
-const report = ref(null);
-const financialReport = ref(null);
 
-const summary = computed(() => report.value?.summary || {});
-const books = computed(() => summary.value.books || {});
-const cards = computed(() => summary.value.cards || {});
-const salesBreakdown = computed(() => summary.value.salesBreakdown || {});
+const loading = reactive({
+  kpis: true,
+  inventory: true,
+  financial: true,
+  payments: true,
+  customers: true,
+});
+
+const kpis = ref(null);
+const inventory = ref(null);
+const financialReport = ref(null);
+const payments = ref(null);
+const customers = ref(null);
+
+const anyLoading = computed(() => Object.values(loading).some(Boolean));
+
+const kpisSummary = computed(() => kpis.value?.summary || {});
+
 const financials = computed(() => {
   const fromFinancial = financialReport.value?.financials;
-  if (fromFinancial) {
-    return {
-      ...fromFinancial,
-      branchExpenses: fromFinancial.academicYearExpenses,
-      operatingExpenses: fromFinancial.academicYearExpenses,
-      generalExpenses: financialReport.value?.separate?.generalExpenses ?? 0,
-    };
-  }
-  return summary.value.financials || {};
+  if (!fromFinancial) return {};
+  return {
+    ...fromFinancial,
+    branchExpenses: fromFinancial.academicYearExpenses,
+    operatingExpenses: fromFinancial.academicYearExpenses,
+    generalExpenses: financialReport.value?.separate?.generalExpenses ?? 0,
+  };
 });
+
+const financialBreakdown = computed(
+  () => financialReport.value?.breakdown || {},
+);
+const financialRefundsTotal = computed(
+  () => financialReport.value?.refundsTotal ?? 0,
+);
 const reservationDeposits = computed(
   () =>
     financialReport.value?.separate?.reservationDeposits ??
-    summary.value.reservationDeposits ??
+    financialReport.value?.breakdown?.reservationDeposits ??
     0,
 );
 const generalExpensesSeparate = computed(
-  () =>
-    financialReport.value?.separate?.generalExpenses ??
-    financials.value.generalExpenses ??
-    0,
+  () => financialReport.value?.separate?.generalExpenses ?? 0,
 );
 const isBranchScoped = computed(
   () => Boolean(selectedBranch.value && selectedBranch.value !== "all"),
 );
 
 const paymentMethodItems = computed(() =>
-  Array.isArray(summary.value.paymentsByMethod)
-    ? summary.value.paymentsByMethod
+  Array.isArray(payments.value?.paymentsByMethod)
+    ? payments.value.paymentsByMethod
     : [],
 );
 
 const customersByYearLabels = computed(() =>
-  (report.value?.customersByYear || []).map((row) =>
+  (customers.value?.customersByYear || []).map((row) =>
     row.label === "unspecified" || !row.label ? UNSPECIFIED_LABEL : row.label,
   ),
 );
 
 const customersByYearValues = computed(() =>
-  (report.value?.customersByYear || []).map((row) => Number(row.value || 0)),
+  (customers.value?.customersByYear || []).map((row) => Number(row.value || 0)),
 );
 
 const studentRows = computed(() =>
-  Array.isArray(report.value?.studentPurchases)
-    ? report.value.studentPurchases
+  Array.isArray(customers.value?.studentPurchases)
+    ? customers.value.studentPurchases
     : [],
 );
 
@@ -180,11 +253,9 @@ const dateRangeParams = () => {
   };
 };
 
-/** API query params: from, to, branchId?, productId?, academicYearId?, section */
 const reportParams = () => {
   const params = {
     ...dateRangeParams(),
-    section: "summary",
   };
   if (selectedBranch.value && selectedBranch.value !== "all") {
     params.branchId = selectedBranch.value;
@@ -198,12 +269,10 @@ const reportParams = () => {
   return params;
 };
 
-/** Keep the page URL in sync with filters including academic year */
 const syncRouteQuery = () => {
   const query = {
     from: dateFrom.value || todayInputValue(),
     to: dateTo.value || dateFrom.value || todayInputValue(),
-    section: "summary",
   };
   if (selectedBranch.value && selectedBranch.value !== "all") {
     query.branchId = selectedBranch.value;
@@ -219,7 +288,6 @@ const syncRouteQuery = () => {
   const same =
     String(current.from || "") === query.from &&
     String(current.to || "") === query.to &&
-    String(current.section || "summary") === query.section &&
     String(current.branchId || "") === String(query.branchId || "") &&
     String(current.productId || "") === String(query.productId || "") &&
     String(current.academicYearId || "") === String(query.academicYearId || "");
@@ -229,47 +297,82 @@ const syncRouteQuery = () => {
   }
 };
 
+const loadSection = async (key, loader) => {
+  loading[key] = true;
+  try {
+    return await loader();
+  } catch (error) {
+    showError(error?.message || "تعذر تحميل جزء من التقارير.");
+    return null;
+  } finally {
+    loading[key] = false;
+  }
+};
+
+const reloadAll = async () => {
+  syncRouteQuery();
+  const params = reportParams();
+
+  const [kpisData, inventoryData, financialData, paymentsData, customersData] =
+    await Promise.all([
+      loadSection("kpis", () => reportService.getAdminKpis(params)),
+      loadSection("inventory", () => reportService.getAdminInventory(params)),
+      loadSection("financial", () =>
+        reportService.getFinancialReport(params).catch(() => null),
+      ),
+      loadSection("payments", () => reportService.getAdminPayments(params)),
+      loadSection("customers", () => reportService.getAdminCustomers(params)),
+    ]);
+
+  kpis.value = kpisData;
+  inventory.value = inventoryData;
+  financialReport.value = financialData;
+  payments.value = paymentsData;
+  customers.value = customersData;
+};
+
 const onFiltersChange = (payload) => {
   if (payload && typeof payload === "object") {
-    if ("from" in payload) {
-      dateFrom.value = payload.from || null;
-    }
-    if ("to" in payload) {
-      dateTo.value = payload.to || payload.from || null;
-    }
+    if ("from" in payload) dateFrom.value = payload.from || null;
+    if ("to" in payload) dateTo.value = payload.to || payload.from || null;
   }
 
-  if (!dateFrom.value && !dateTo.value) {
-    dateFrom.value = yearStartInputValue();
-    dateTo.value = todayInputValue();
+  if (!dateFrom.value && !dateTo.value && academicYearRange.value) {
+    dateFrom.value = academicYearRange.value.from;
+    dateTo.value = academicYearRange.value.to;
   }
 
-  loadReport();
+  reloadAll();
 };
 
-const loadReport = async () => {
-  loading.value = true;
-  syncRouteQuery();
+const loadAcademicYears = async () => {
   try {
-    const params = reportParams();
-    const [daily, financial] = await Promise.all([
-      reportService.getDailyReport(params),
-      reportService.getFinancialReport(params).catch(() => null),
-    ]);
-    report.value = daily;
-    financialReport.value = financial;
-  } catch (error) {
-    report.value = null;
-    financialReport.value = null;
-    showError(error?.message || "تعذر تحميل التقارير.");
-  } finally {
-    loading.value = false;
+    academicYears.value = await academicYearService.getAcademicYears();
+  } catch {
+    academicYears.value = [];
+  }
+
+  if (!dateFrom.value || !dateTo.value) {
+    if (academicYearRange.value) {
+      dateFrom.value = academicYearRange.value.from;
+      dateTo.value = academicYearRange.value.to;
+    } else {
+      dateFrom.value = today;
+      dateTo.value = today;
+    }
   }
 };
 
-watch(currentAcademicYearId, () => {
-  loadReport();
+watch(currentAcademicYearId, async () => {
+  if (academicYearRange.value) {
+    dateFrom.value = academicYearRange.value.from;
+    dateTo.value = academicYearRange.value.to;
+  }
+  await reloadAll();
 });
 
-onMounted(loadReport);
+onMounted(async () => {
+  await loadAcademicYears();
+  await reloadAll();
+});
 </script>

@@ -6,28 +6,7 @@
         <p class="mt-1 text-sm text-slate-400">{{ subtitle }}</p>
       </div>
 
-      <div
-        class="flex w-full min-w-0 flex-col gap-2 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center sm:justify-end"
-      >
-        <PeriodDateFilter
-          :from="dateFrom"
-          :to="dateTo"
-          default-period="day"
-          wrapper-class="w-full min-w-0 sm:w-72 sm:shrink-0"
-          select-class="w-full"
-          @update:from="emit('update:dateFrom', $event)"
-          @update:to="emit('update:dateTo', $event)"
-          @change="emit('date-change', $event)"
-        />
-
-        <Button
-          icon="pi pi-refresh"
-          severity="secondary"
-          class="h-11 w-11 shrink-0 self-end"
-          :loading="loading"
-          @click="$emit('refresh')"
-        />
-      </div>
+      <slot name="filters" />
     </div>
 
     <DailyReportSkeleton v-if="loading" />
@@ -49,6 +28,8 @@
         <DailyReportActivitySection
           class="xl:col-span-2"
           :title="activityTitle"
+          :loading="sectionsLoading"
+          :skeleton-tiles="activitySkeletonTiles"
           :metrics="activityMetrics"
           :activity="activity"
           @open-detail="$emit('open-detail', $event)"
@@ -69,9 +50,6 @@
 </template>
 
 <script setup>
-import Button from "primevue/button";
-import PeriodDateFilter from "~/components/shared/period-date-filter/index.vue";
-
 defineOptions({ name: "DailyReportShell" });
 
 const DailyReportSkeleton = defineAsyncComponent(() =>
@@ -97,8 +75,8 @@ const props = defineProps({
   activityTitle: { type: String, default: "توزيع نشاط اليوم" },
   paymentTotalLabel: { type: String, default: "إجمالي المحصل" },
   loading: { type: Boolean, default: false },
-  dateFrom: { type: String, default: null },
-  dateTo: { type: String, default: null },
+  sectionsLoading: { type: Boolean, default: false },
+  activitySkeletonTiles: { type: Number, default: 9 },
   paymentsTotal: { type: [Number, String], default: 0 },
   refundsTotal: { type: [Number, String], default: 0 },
   heroChips: { type: Array, default: () => [] },
@@ -113,10 +91,6 @@ const props = defineProps({
 });
 
 const emit = defineEmits([
-  "update:dateFrom",
-  "update:dateTo",
-  "date-change",
-  "refresh",
   "open-detail",
   "close-detail",
   "update:detailVisible",
