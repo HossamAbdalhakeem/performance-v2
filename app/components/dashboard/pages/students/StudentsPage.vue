@@ -8,6 +8,7 @@
             label="إضافة طالب جديد"
             icon="pi pi-user-plus"
             severity="info"
+            :disabled="!currentAcademicYearId"
             @click="openCreate"
           />
         </div>
@@ -62,6 +63,7 @@ import SearchInput from "~/components/shared/search-input/index.vue";
 import StudentsTable from "~/components/dashboard/pages/students/StudentsTable.vue";
 import { studentService } from "~/services/studentService";
 import { useAppToast } from "~/composables/useAppToast";
+import { useAcademicYearId } from "~/composables/useAcademicYearId";
 import { getStatusTagLabel } from "~/utils/statusTags";
 
 const StudentForm = defineAsyncComponent(() =>
@@ -72,6 +74,7 @@ const StudentTransactionsDialog = defineAsyncComponent(() =>
 );
 
 const { showError, showSuccess } = useAppToast();
+const { academicYearId: currentAcademicYearId } = useAcademicYearId();
 const loading = ref(true);
 const deactivating = ref(false);
 const drawerVisible = ref(false);
@@ -101,6 +104,13 @@ const normalizeStudent = (student) => ({
 });
 
 const loadData = async () => {
+  if (!currentAcademicYearId.value) {
+    students.value = [];
+    pagination.total = 0;
+    loading.value = false;
+    return;
+  }
+
   loading.value = true;
   try {
     const result = await studentService.getStudents({
@@ -138,6 +148,10 @@ const onSearch = (value) => {
 };
 
 const openCreate = () => {
+  if (!currentAcademicYearId.value) {
+    showError("اختر العام الدراسي أولاً.");
+    return;
+  }
   editingItem.value = null;
   drawerVisible.value = true;
 };
@@ -177,6 +191,12 @@ const handleDeactivate = async (item) => {
 
 watch(drawerVisible, (visible) => {
   if (!visible) editingItem.value = null;
+});
+
+watch(currentAcademicYearId, () => {
+  drawerVisible.value = false;
+  resetPagination();
+  loadData();
 });
 
 onMounted(loadData);

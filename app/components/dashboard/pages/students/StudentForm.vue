@@ -60,8 +60,10 @@ import InputText from "primevue/inputtext";
 import { Form, Field, ErrorMessage } from "vee-validate";
 import { studentService } from "~/services/studentService";
 import { useAppToast } from "~/composables/useAppToast";
+import { useAcademicYearId } from "~/composables/useAcademicYearId";
 
 const { showError } = useAppToast();
+const { academicYearId: currentAcademicYearId } = useAcademicYearId();
 
 const props = defineProps({
   student: { type: Object, default: null },
@@ -103,6 +105,11 @@ const submit = async () => {
     return;
   }
 
+  if (!isEdit.value && !currentAcademicYearId.value) {
+    showError("اختر العام الدراسي أولاً.");
+    return;
+  }
+
   saving.value = true;
   try {
     const payload = {
@@ -110,6 +117,9 @@ const submit = async () => {
       phone: form.phone || undefined,
       studyYearId: form.studyYearId,
     };
+    if (!isEdit.value) {
+      payload.academicYearId = currentAcademicYearId.value;
+    }
     const result = isEdit.value
       ? await studentService.updateStudent(props.student.id, payload)
       : await studentService.createStudent(payload);

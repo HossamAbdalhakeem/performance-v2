@@ -18,6 +18,11 @@ const studentBody = (payload: Record<string, any>) => {
     body.studyYearId = payload.studyYearId ?? payload.study_year_id;
   }
 
+  const academicYearId = payload.academicYearId ?? payload.academic_year_id;
+  if (academicYearId) {
+    body.academicYearId = academicYearId;
+  }
+
   return body;
 };
 
@@ -55,10 +60,14 @@ export const studentService = {
   },
 
   async createStudent(payload: Record<string, any>) {
+    const body = studentBody(payload);
+    if (!body.academicYearId) {
+      throw new Error("academicYearId is required when creating a student.");
+    }
     return firstRow(
       await apiFetch("/students", {
         method: "POST",
-        body: studentBody(payload),
+        body,
       }),
     );
   },

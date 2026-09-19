@@ -78,6 +78,7 @@ import Skeleton from "primevue/skeleton";
 import { notificationService } from "~/services/notificationService";
 import { useAuthStore } from "~/store/auth.js";
 import { useAppToast } from "~/composables/useAppToast";
+import { useAcademicYearId } from "~/composables/useAcademicYearId";
 import { formatDateTime } from "~/utils/format";
 import { formatLowStockNotification } from "~/utils/domainLabels";
 
@@ -87,6 +88,7 @@ const POLL_MS = 10 * 60 * 1000;
 
 const authStore = useAuthStore();
 const { toast } = useAppToast();
+const { academicYearId: currentAcademicYearId } = useAcademicYearId();
 
 const open = ref(false);
 const loading = ref(false);
@@ -213,6 +215,14 @@ watch(
     startPolling();
   },
 );
+
+watch(currentAcademicYearId, () => {
+  lastFirstId.value = null;
+  notifications.value = [];
+  if (authStore.isLoggedIn) {
+    loadNotifications({ showLoading: open.value });
+  }
+});
 
 onBeforeUnmount(() => {
   stopPolling();

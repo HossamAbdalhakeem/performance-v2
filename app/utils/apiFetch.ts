@@ -110,11 +110,12 @@ const cleanParams = (params: Record<string, any> = {}) => {
 
 /**
  * Only attach academicYearId to endpoints that actually filter by it.
- * Do NOT send it to branches, students, expense-categories, study-years, users, etc.
+ * Do NOT send it to branches, expense-categories, study-years, users, etc.
  */
 const ACADEMIC_YEAR_SCOPED_PATHS = [
   "/products",
   "/teachers",
+  "/students",
   "/sales",
   "/reservations",
   "/inventory",
@@ -122,6 +123,7 @@ const ACADEMIC_YEAR_SCOPED_PATHS = [
   "/exchanges",
   "/expenses",
   "/reports",
+  "/notifications",
 ];
 
 const shouldAttachAcademicYear = (path: string) => {
