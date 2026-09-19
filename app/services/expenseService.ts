@@ -15,10 +15,23 @@ const expenseBody = (payload: Record<string, any>) => {
 
   if (payload.branchId || payload.branch_id) {
     body.branchId = payload.branchId ?? payload.branch_id;
+  } else if (
+    Object.prototype.hasOwnProperty.call(payload, "branchId") ||
+    Object.prototype.hasOwnProperty.call(payload, "branch_id")
+  ) {
+    body.branchId = null;
   }
 
   if (payload.description != null && payload.description !== "") {
     body.description = payload.description;
+  }
+
+  if (
+    Object.prototype.hasOwnProperty.call(payload, "academicYearId") ||
+    Object.prototype.hasOwnProperty.call(payload, "academic_year_id")
+  ) {
+    body.academicYearId =
+      payload.academicYearId ?? payload.academic_year_id ?? null;
   }
 
   return body;

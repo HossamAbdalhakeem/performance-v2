@@ -48,6 +48,22 @@
       />
     </Field>
 
+    <div
+      class="flex items-center justify-between rounded-xl border border-slate-200 px-3 py-3"
+    >
+      <div class="text-right">
+        <p class="text-sm font-medium text-slate-800">مصروف مرتبط بالفترة الحالية</p>
+        <p class="text-xs text-slate-500">
+          {{
+            form.linkToAcademicYear
+              ? "يُحسب ضمن تقرير الأرباح"
+              : "مصروف عام — لا يُخصم من صافي الربح تلقائياً"
+          }}
+        </p>
+      </div>
+      <ToggleSwitch v-model="form.linkToAcademicYear" />
+    </div>
+
     <Field
       v-slot="{ errorMessage }"
       v-model="form.amount"
@@ -135,11 +151,14 @@ import DatePicker from "primevue/datepicker";
 import Dialog from "primevue/dialog";
 import AppInputNumber from "~/components/dashboard/AppInputNumber.vue";
 import AppGlobalSelectBranch from "~/components/shared/app-global-select-branch/index.vue";
+import ToggleSwitch from "primevue/toggleswitch";
 import { Form, Field, ErrorMessage } from "vee-validate";
 import { expenseService } from "~/services/expenseService";
 import { useAppToast } from "~/composables/useAppToast";
+import { useAcademicYearId } from "~/composables/useAcademicYearId";
 
 const { showError } = useAppToast();
+const { academicYearId: currentAcademicYearId } = useAcademicYearId();
 
 const props = defineProps({
   expense: { type: Object, default: null },
@@ -176,6 +195,7 @@ const form = reactive({
   amount: null,
   expenseDate: new Date(),
   description: "",
+  linkToAcademicYear: true,
 });
 
 const initialValues = computed(() => ({
@@ -184,6 +204,9 @@ const initialValues = computed(() => ({
   amount: props.expense?.amount != null ? Number(props.expense.amount) : null,
   expenseDate: toDate(props.expense?.expenseDate),
   description: props.expense?.description || "",
+  linkToAcademicYear: props.expense
+    ? Boolean(props.expense.academicYearId || props.expense.academicYear?.id)
+    : true,
 }));
 
 const loadLookups = async () => {
@@ -226,6 +249,9 @@ watch(
     form.amount = value?.amount != null ? Number(value.amount) : null;
     form.expenseDate = toDate(value?.expenseDate);
     form.description = value?.description || "";
+    form.linkToAcademicYear = value
+      ? Boolean(value.academicYearId || value.academicYear?.id)
+      : true;
     formKey.value += 1;
   },
   { immediate: true },
@@ -234,12 +260,30 @@ watch(
 const submit = async () => {
   saving.value = true;
   try {
+    if (
+      form.linkToAcademicYear &&
+      !(
+        props.expense?.academicYearId ||
+        props.expense?.academicYear?.id ||
+        currentAcademicYearId.value
+      )
+    ) {
+      throw new Error(
+        "اختر العام الدراسي أولاً أو ألغِ الربط للمصروف العام.",
+      );
+    }
+
     const payload = {
       categoryId: form.categoryId,
-      branchId: form.branchId || undefined,
+      branchId: form.branchId || null,
       amount: form.amount,
       expenseDate: toIsoDate(form.expenseDate),
       description: form.description || undefined,
+      academicYearId: form.linkToAcademicYear
+        ? props.expense?.academicYearId ||
+          props.expense?.academicYear?.id ||
+          currentAcademicYearId.value
+        : null,
     };
     const result = isEdit.value
       ? await expenseService.updateExpense(props.expense.id, payload)

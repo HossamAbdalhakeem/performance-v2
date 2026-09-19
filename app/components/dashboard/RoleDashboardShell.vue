@@ -30,8 +30,7 @@
       </div>
 
       <nav
-        class="flex-1 space-y-2 overflow-y-auto px-3 py-4 sm:px-4 sm:py-5"
-        :class="normalizedRole === 'admin' ? 'pb-44' : 'pb-28'"
+        class="flex-1 space-y-2 overflow-y-auto px-3 py-4 pb-44 sm:px-4 sm:py-5"
         aria-label="القائمة الرئيسية"
       >
         <div
@@ -85,7 +84,7 @@
       <div
         class="absolute bottom-0 left-0 right-0 space-y-3 border-t border-white/10 bg-[#0b1220] p-3 sm:p-4"
       >
-        <AcademicYearSwitcher v-if="normalizedRole === 'admin'" />
+        <AcademicYearSwitcher />
         <button
           type="button"
           class="flex w-full items-center justify-between rounded-xl bg-red-500/10 px-3 py-3 text-sm font-medium text-red-200 hover:bg-red-500/20"
@@ -135,6 +134,12 @@
                 </p>
                 <p class="text-xs text-slate-400">{{ roleLabel }}</p>
               </div>
+            </div>
+            <div
+              v-if="contextLabel"
+              class="rounded-2xl border border-sky-500/30 bg-sky-500/10 px-3 py-1.5 text-sm font-semibold text-sky-100 shadow-sm sm:px-4 sm:py-2"
+            >
+              {{ contextLabel }}
             </div>
           </div>
         </div>
@@ -372,6 +377,17 @@ const userInitials = computed(() => {
     ?.toUpperCase();
 });
 const roleLabel = computed(() => roleMeta.value.label);
+
+/** Top-left context: branch name for employees, Customer Service for CS role */
+const contextLabel = computed(() => {
+  const branchName =
+    authStore.user?.branch?.name ||
+    authStore.user?.branches?.[0]?.name ||
+    "";
+  if (branchName) return branchName;
+  if (normalizedRole.value === "social") return "خدمة العملاء";
+  return "";
+});
 
 watch(
   () => [route.path, normalizedRole.value],

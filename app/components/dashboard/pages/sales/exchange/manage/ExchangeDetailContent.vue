@@ -3,26 +3,7 @@
     <div
       class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700"
     >
-      <div class="grid gap-2 sm:grid-cols-2">
-        <div class="flex items-center justify-between gap-2">
-          <span class="text-slate-500">رقم العملية</span>
-          <span class="font-semibold text-slate-900">
-            {{ sale.saleNumber }}
-          </span>
-        </div>
-        <div class="flex items-center justify-between gap-2">
-          <span class="text-slate-500">الطالب</span>
-          <span class="font-medium">{{ sale.studentName }}</span>
-        </div>
-        <div class="flex items-center justify-between gap-2">
-          <span class="text-slate-500">الفرع</span>
-          <span class="font-medium">{{ sale.branchName }}</span>
-        </div>
-        <div class="flex items-center justify-between gap-2">
-          <span class="text-slate-500">الكمية المتاحة للاستبدال</span>
-          <span class="font-medium">{{ maxQuantity }}</span>
-        </div>
-      </div>
+      <AppDetailRows :items="summaryRows" :columns="2" />
     </div>
 
     <div class="flex flex-col gap-2 text-right">
@@ -57,16 +38,12 @@
         <p class="mt-1 text-xs text-slate-400">
           أ/ {{ sale.teacherName || "—" }}
         </p>
-        <div class="mt-3 space-y-1.5">
-          <div class="flex items-center justify-between gap-2">
-            <span class="text-slate-400">سعر الوحدة</span>
-            <span class="font-semibold text-slate-100">{{ sale.unitPriceLabel }}</span>
-          </div>
-          <div class="flex items-center justify-between gap-2">
-            <span class="text-slate-400">كمية الاستبدال</span>
-            <span class="font-semibold text-rose-300">{{ exchangeQuantity || 0 }}</span>
-          </div>
-        </div>
+        <AppDetailRows
+          class="mt-3"
+          :items="currentProductRows"
+          label-class="text-slate-400"
+          value-class="font-semibold text-slate-100"
+        />
       </div>
 
       <div
@@ -90,31 +67,25 @@
           <p class="mt-1 text-xs text-slate-400">
             أ/ {{ selectedNewProduct.teacherName || "—" }}
           </p>
-          <div class="mt-3 space-y-1.5">
-            <div class="flex items-center justify-between gap-2">
-              <span class="text-slate-400">التوفر</span>
+          <AppDetailRows
+            class="mt-3"
+            :items="newProductRows"
+            label-class="text-slate-400"
+            value-class="font-semibold text-slate-100"
+          >
+            <template #availability="{ item }">
               <span
                 class="rounded-full px-2 py-0.5 text-xs font-semibold"
                 :class="
-                  selectedNewProduct.isAvailable
+                  item.meta?.isAvailable
                     ? 'bg-emerald-500/20 text-emerald-300'
                     : 'bg-amber-500/20 text-amber-300'
                 "
               >
-                {{ selectedNewProduct.availabilityLabel }}
+                {{ item.value }}
               </span>
-            </div>
-            <div class="flex items-center justify-between gap-2">
-              <span class="text-slate-400">سعر الوحدة</span>
-              <span class="font-semibold text-slate-100">
-                {{ formatMoney(selectedNewProduct.unitPrice) }}
-              </span>
-            </div>
-            <div class="flex items-center justify-between gap-2">
-              <span class="text-slate-400">كمية الاستبدال</span>
-              <span class="font-semibold text-emerald-300">{{ exchangeQuantity || 0 }}</span>
-            </div>
-          </div>
+            </template>
+          </AppDetailRows>
         </template>
         <p v-else class="text-sm text-slate-400">
           {{ previewLoading ? "جاري حساب فرق السعر..." : "اختر منتجًا متاحًا من نفس الفرع" }}
@@ -130,28 +101,12 @@
       <p class="font-semibold" :class="priceComparison.titleClass">
         {{ priceComparison.title }}
       </p>
-      <div class="mt-2 grid gap-1 text-slate-300">
-        <div class="flex items-center justify-between gap-2">
-          <span>إجمالي المنتج الحالي (×{{ exchangeQuantity || 0 }})</span>
-          <span class="font-medium text-slate-100">{{
-            formatMoney(priceComparison.oldTotal)
-          }}</span>
-        </div>
-        <div class="flex items-center justify-between gap-2">
-          <span>إجمالي المنتج الجديد (×{{ exchangeQuantity || 0 }})</span>
-          <span class="font-medium text-slate-100">{{
-            formatMoney(priceComparison.newTotal)
-          }}</span>
-        </div>
-        <div
-          class="flex items-center justify-between gap-2 border-t border-white/10 pt-1"
-        >
-          <span>{{ priceComparison.diffLabel }}</span>
-          <span class="font-bold" :class="priceComparison.diffClass">
-            {{ formatMoney(Math.abs(priceComparison.difference)) }}
-          </span>
-        </div>
-      </div>
+      <AppDetailRows
+        class="mt-2"
+        :items="priceComparisonRows"
+        label-class="text-slate-300"
+        value-class="font-medium text-slate-100"
+      />
     </div>
 
     <div class="flex flex-col gap-2 text-right">
@@ -200,6 +155,7 @@
 
 <script setup>
 import AppInputNumber from "~/components/dashboard/AppInputNumber.vue";
+import AppDetailRows from "~/components/shared/app-detail-rows/index.vue";
 import PaymentFields from "~/components/shared/payment-fields/index.vue";
 import ProductSelect from "~/components/shared/product-select/index.vue";
 import { PaymentMethod } from "~/utils/paymentMethods";
@@ -233,4 +189,87 @@ defineEmits([
 const maxQuantity = computed(() =>
   Math.max(1, Number(props.sale?.remainingQuantity || 1)),
 );
+
+const summaryRows = computed(() => {
+  const sale = props.sale || {};
+  return [
+    {
+      key: "saleNumber",
+      label: "رقم العملية",
+      value: sale.saleNumber,
+      valueClass: "font-semibold text-slate-900",
+    },
+    { key: "student", label: "الطالب", value: sale.studentName },
+    { key: "branch", label: "الفرع", value: sale.branchName },
+    {
+      key: "maxQuantity",
+      label: "الكمية المتاحة للاستبدال",
+      value: maxQuantity.value,
+    },
+  ];
+});
+
+const currentProductRows = computed(() => [
+  {
+    key: "unitPrice",
+    label: "سعر الوحدة",
+    value: props.sale?.unitPriceLabel,
+  },
+  {
+    key: "qty",
+    label: "كمية الاستبدال",
+    value: props.exchangeQuantity || 0,
+    valueClass: "font-semibold text-rose-300",
+  },
+]);
+
+const newProductRows = computed(() => {
+  const product = props.selectedNewProduct;
+  if (!product) return [];
+  return [
+    {
+      key: "availability",
+      label: "التوفر",
+      value: product.availabilityLabel,
+      slot: "availability",
+      meta: { isAvailable: product.isAvailable },
+    },
+    {
+      key: "unitPrice",
+      label: "سعر الوحدة",
+      value: formatMoney(product.unitPrice),
+    },
+    {
+      key: "qty",
+      label: "كمية الاستبدال",
+      value: props.exchangeQuantity || 0,
+      valueClass: "font-semibold text-emerald-300",
+    },
+  ];
+});
+
+const priceComparisonRows = computed(() => {
+  const comparison = props.priceComparison;
+  if (!comparison) return [];
+  const qty = props.exchangeQuantity || 0;
+  return [
+    {
+      key: "oldTotal",
+      label: `إجمالي المنتج الحالي (×${qty})`,
+      value: formatMoney(comparison.oldTotal),
+    },
+    {
+      key: "newTotal",
+      label: `إجمالي المنتج الجديد (×${qty})`,
+      value: formatMoney(comparison.newTotal),
+    },
+    {
+      key: "diff",
+      label: comparison.diffLabel,
+      value: formatMoney(Math.abs(comparison.difference)),
+      rowClass: "border-t border-white/10 pt-1",
+      valueClass: `font-bold ${comparison.diffClass || ""}`.trim(),
+    },
+  ];
+});
 </script>

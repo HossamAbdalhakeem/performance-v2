@@ -100,9 +100,11 @@ export const useDailyReportPage = () => {
       );
       const rows = Array.isArray(sectionPayload?.rows)
         ? sectionPayload.rows
-        : Array.isArray(sectionPayload?.reservations)
-          ? mapUndeliveredReservationRows(sectionPayload.reservations)
-          : [];
+        : Array.isArray(sectionPayload?.stockMovements)
+          ? sectionPayload.stockMovements
+          : Array.isArray(sectionPayload?.reservations)
+            ? mapUndeliveredReservationRows(sectionPayload.reservations)
+            : [];
 
       const filteredRows =
         key === "undelivered"

@@ -64,6 +64,33 @@ const AppDataTable = defineAsyncComponent(() =>
 
 defineOptions({ name: "DailyReportDetailDialog" });
 
+const formatMovementQty = (change) => {
+  const n = Number(change || 0);
+  return n > 0 ? `+${n}` : String(n);
+};
+
+/** Prefer reserved qty for reservation movements (physical change is often 0). */
+const resolveMovementQuantity = (row = {}) => {
+  const type = String(
+    row.type || row.typeKey || row.movementType || "",
+  ).toUpperCase();
+  const physical = Number(row.physicalQuantityChange ?? 0);
+  const reserved = Number(row.reservedQuantityChange ?? 0);
+
+  if (type === "RESERVATION" || type === "RESERVATION_RELEASE") {
+    if (reserved !== 0) return reserved;
+    const mapped = Number(row.quantityChange);
+    return Number.isFinite(mapped) && mapped !== 0 ? mapped : physical;
+  }
+
+  if (row.quantityChange != null && row.quantityChange !== "") {
+    return Number(row.quantityChange);
+  }
+
+  if (physical === 0 && reserved !== 0) return reserved;
+  return physical;
+};
+
 const props = defineProps({
   visible: { type: Boolean, default: false },
   loading: { type: Boolean, default: false },
@@ -329,20 +356,22 @@ const displayRows = computed(() => {
           : null;
 
     return rows.map((row) => {
-      const rawType = String(row.type || row.typeKey || "").toUpperCase();
-      const qtyChange = Number(row.quantityChange ?? 0);
+      const rawType = String(
+        row.type || row.typeKey || row.movementType || "",
+      ).toUpperCase();
+      const qtyChange = resolveMovementQuantity(row);
       const inferredType =
         sectionTypeOverride ||
         rawType ||
         (qtyChange > 0 ? "STOCK_IN" : qtyChange < 0 ? "STOCK_OUT" : "");
 
       return {
-        time: formatDateTime(row.time, "time"),
-        product: row.product || "-",
+        time: formatDateTime(row.time || row.createdAt, "time"),
+        product: row.product?.name || row.product || "-",
         type: getStockMovementLabel(inferredType),
         typeKey: inferredType,
-        qty: row.quantityLabel ?? String(row.quantityChange ?? 0),
-        by: row.by || "-",
+        qty: row.quantityLabel ?? formatMovementQty(qtyChange),
+        by: row.by || row.createdBy?.fullName || row.createdBy?.name || "-",
       };
     });
   }

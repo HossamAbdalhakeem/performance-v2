@@ -52,10 +52,10 @@
             </span>
             <span
               class="inline-flex h-7 w-7 items-center justify-center rounded-lg text-slate-400 opacity-0 transition hover:bg-white/10 hover:text-sky-300 group-hover:opacity-100"
-              title="تعديل"
+              title="إدارة"
               @click.stop="openEdit(year)"
             >
-              <i class="pi pi-pencil text-xs" />
+              <i class="pi pi-cog text-xs" />
             </span>
           </span>
         </button>
@@ -132,7 +132,7 @@ const selectedLabel = computed(
 );
 
 const dialogTitle = computed(() =>
-  editingItem.value?.id ? "تعديل العام الدراسي" : "إضافة عام دراسي",
+  editingItem.value?.id ? "إدارة العام الدراسي" : "إضافة عام دراسي",
 );
 
 const isActiveYear = (year) =>
@@ -157,10 +157,14 @@ const loadYears = async () => {
       return;
     }
 
-    // UI default: highlight ACTIVE, but do not write storage until user selects
-    if (yearStorage.value) yearStorage.value = null;
-    selectedId.value =
+    // Persist ACTIVE (or first year) so apiFetch can scope all lists
+    const fallbackId =
       activeId.value || (years.value[0]?.id ? String(years.value[0].id) : null);
+    if (fallbackId) {
+      writeStorage(fallbackId);
+    } else {
+      selectedId.value = null;
+    }
   } finally {
     loading.value = false;
   }

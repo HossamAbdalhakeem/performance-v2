@@ -27,8 +27,8 @@ export const exchangeService = {
     );
   },
 
-  async getExchanges() {
-    return asList(await apiFetch("/exchanges", { method: "GET" }));
+  async getExchanges(params: Record<string, any> = {}) {
+    return asList(await apiFetch("/exchanges", { method: "GET", params }));
   },
 
   async getExchange(id: string) {

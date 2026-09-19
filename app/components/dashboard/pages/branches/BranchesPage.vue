@@ -2,18 +2,36 @@
   <div class="space-y-6">
     <Card>
       <template #title>
-        <span class="text-lg font-bold text-slate-900">الفروع</span>
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <span class="text-lg font-bold text-slate-900">الفروع</span>
+          <Button
+            label="إضافة فرع جديد"
+            icon="pi pi-plus"
+            severity="info"
+            @click="openCreate"
+          />
+        </div>
       </template>
 
       <template #content>
         <BranchesTable
           :branches="branches"
           :loading="loading"
+          @edit="openEdit"
           @add-stock="openAddStock"
           @remove-stock="openRemoveStock"
         />
       </template>
     </Card>
+
+    <EntityDrawer v-model:visible="formDrawerVisible" :title="formDrawerTitle">
+      <BranchForm
+        v-if="formDrawerVisible"
+        :branch="editingBranch"
+        @saved="handleBranchSaved"
+        @cancel="closeFormDrawer"
+      />
+    </EntityDrawer>
 
     <Drawer
       v-model:visible="addDrawerVisible"
@@ -71,12 +89,17 @@
 
 <script setup>
 import Card from "primevue/card";
+import Button from "primevue/button";
 import Drawer from "primevue/drawer";
+import EntityDrawer from "~/components/dashboard/EntityDrawer.vue";
 import BranchesTable from "~/components/dashboard/pages/branches/BranchesTable.vue";
 import { branchService } from "~/services/branchService";
 import { useAppToast } from "~/composables/useAppToast";
 import { getStatusTagMeta } from "~/utils/statusTags";
 
+const BranchForm = defineAsyncComponent(() =>
+  import("~/components/dashboard/pages/branches/BranchForm.vue"),
+);
 const AddStockForm = defineAsyncComponent(() =>
   import("~/components/dashboard/pages/inventory/AddStockForm.vue"),
 );
@@ -88,8 +111,14 @@ const { showError, showSuccess } = useAppToast();
 const loading = ref(true);
 const branches = ref([]);
 const selectedBranch = ref(null);
+const editingBranch = ref(null);
+const formDrawerVisible = ref(false);
 const addDrawerVisible = ref(false);
 const removeDrawerVisible = ref(false);
+
+const formDrawerTitle = computed(() =>
+  editingBranch.value?.id ? "تعديل الفرع" : "إضافة فرع جديد",
+);
 
 const statusMeta = (status) => getStatusTagMeta("entity", status);
 
@@ -131,6 +160,8 @@ const loadData = async () => {
       return {
         id: branch.id,
         name: branch.name || "-",
+        address: branch.address || "",
+        phone: branch.phone || "",
         status: branch.status,
         statusLabel: meta.label,
         productsCount: Number(summary.productsCount ?? items.length),
@@ -146,6 +177,27 @@ const loadData = async () => {
   } finally {
     loading.value = false;
   }
+};
+
+const openCreate = () => {
+  editingBranch.value = null;
+  formDrawerVisible.value = true;
+};
+
+const openEdit = (branch) => {
+  editingBranch.value = branch;
+  formDrawerVisible.value = true;
+};
+
+const closeFormDrawer = () => {
+  formDrawerVisible.value = false;
+  editingBranch.value = null;
+};
+
+const handleBranchSaved = async () => {
+  closeFormDrawer();
+  showSuccess("تم حفظ الفرع بنجاح.");
+  await loadData();
 };
 
 const openAddStock = (branch) => {
@@ -176,6 +228,10 @@ const handleRemoveSaved = async () => {
 
 watch([addDrawerVisible, removeDrawerVisible], ([addVisible, removeVisible]) => {
   if (!addVisible && !removeVisible) selectedBranch.value = null;
+});
+
+watch(formDrawerVisible, (visible) => {
+  if (!visible) editingBranch.value = null;
 });
 
 onMounted(() => {

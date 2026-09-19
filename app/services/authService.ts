@@ -33,8 +33,19 @@ const normalizeAuth = (
 ) => {
   const user = payload.user || payload;
   const roles = toRoleList(user);
-  const branchId = user.branchId || user.branch_id || null;
-  const branches = branchId ? [{ id: branchId }] : payload.branches || [];
+  const branch =
+    user.branch && user.branch.id
+      ? {
+          id: user.branch.id,
+          name: user.branch.name || "",
+        }
+      : null;
+  const branchId = branch?.id || user.branchId || user.branch_id || null;
+  const branches = branch
+    ? [branch]
+    : branchId
+      ? [{ id: branchId, name: "" }]
+      : payload.branches || [];
 
   return {
     user: {
@@ -44,9 +55,11 @@ const normalizeAuth = (
       name: user.fullName || user.full_name || user.name || user.email,
       phone: user.phone || "",
       roles,
+      branch,
       branches,
       role: mapDashboardRole(roles),
       branch_id: branchId,
+      branchId,
       status: user.status,
     },
     roles,

@@ -1,7 +1,18 @@
 import { apiFetch, firstRow } from "~/utils/apiFetch";
 
-const teacherBody = (payload: Record<string, any>) => ({
-  name: payload.name,
+const teacherCreateBody = (payload: Record<string, any>) => {
+  const body: Record<string, any> = {
+    name: String(payload.name || "").trim(),
+  };
+
+  const academicYearId = payload.academicYearId ?? payload.academic_year_id;
+  if (academicYearId) body.academicYearId = academicYearId;
+
+  return body;
+};
+
+const teacherUpdateBody = (payload: Record<string, any>) => ({
+  name: String(payload.name || "").trim(),
 });
 
 const statusBody = (payload: Record<string, any> | string | boolean) => {
@@ -28,10 +39,14 @@ export const teacherService = {
   },
 
   async createTeacher(payload: Record<string, any>) {
+    const body = teacherCreateBody(payload);
+    if (!body.academicYearId) {
+      throw new Error("academicYearId is required when creating a teacher.");
+    }
     return firstRow(
       await apiFetch("/teachers", {
         method: "POST",
-        body: teacherBody(payload),
+        body,
       }),
     );
   },
@@ -40,7 +55,7 @@ export const teacherService = {
     return firstRow(
       await apiFetch(`/teachers/${id}`, {
         method: "PATCH",
-        body: teacherBody(payload),
+        body: teacherUpdateBody(payload),
       }),
     );
   },

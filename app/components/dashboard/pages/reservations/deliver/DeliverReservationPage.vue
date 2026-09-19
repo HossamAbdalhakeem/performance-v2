@@ -190,11 +190,10 @@ import {
   PaymentMethod,
   paymentMethodNeedsProof,
 } from "~/utils/paymentMethods";
-import { formatMoney, formatDateTime } from "~/utils/format";
-import { getUserRoleLabel } from "~/enums/userRole";
+import { formatMoney } from "~/utils/format";
 import PaymentProofThumb from "~/components/shared/payment-proof-thumb/index.vue";
 import AppStatusTag from "~/components/shared/app-status-tag/index.vue";
-import { getStatusTagMeta } from "~/utils/statusTags";
+import { normalizeReservation } from "~/utils/normalizeReservation";
 
 const DeliverReservationDetailContent = defineAsyncComponent(() =>
   import("~/components/dashboard/pages/reservations/deliver/manage/DeliverReservationDetailContent.vue"),
@@ -219,8 +218,6 @@ const confirmVisible = ref(false);
 const dialogError = ref("");
 const selectedReservation = ref(null);
 const reservations = ref([]);
-
-const roundMoney = (value) => Math.round(Number(value || 0) * 100) / 100;
 
 const methodLabel = computed(
   () => PAYMENT_METHOD_LABELS[paymentMethod.value] || paymentMethod.value || "-",
@@ -258,19 +255,15 @@ const needsRemainingPayment = computed(() =>
   Boolean(selectedReservation.value?.hasRemaining),
 );
 
+const isDeliverable = (item) => item?.status === "READY";
+
 const canConfirmDeliver = computed(() => {
   if (!selectedReservation.value || !isDeliverable(selectedReservation.value)) {
     return false;
   }
-
-  if (!needsRemainingPayment.value) {
-    return true;
-  }
-
+  if (!needsRemainingPayment.value) return true;
   return Boolean(paymentMethod.value);
 });
-
-const isDeliverable = (item) => item?.status === "READY";
 
 const buildQuery = () => {
   const params = { per_page: 20 };
@@ -281,87 +274,6 @@ const buildQuery = () => {
 const onSearch = (value) => {
   search.value = value;
   loadReservations();
-};
-
-const getRemainingAmount = (item) => {
-  const total = Number(item.totalAmount ?? item.total_amount ?? 0);
-  const paid = Number(item.paidAmount ?? item.paid_amount ?? 0);
-  return roundMoney(Math.max(total - paid, 0));
-};
-
-const normalizeReservation = (item) => {
-  const remainingAmount = getRemainingAmount(item);
-  const status = String(item.status || "").toUpperCase();
-  const meta = getStatusTagMeta("reservation", status);
-  const paidAmount = Number(item.paidAmount ?? item.paid_amount ?? 0);
-  const totalAmount = Number(item.totalAmount ?? item.total_amount ?? 0);
-  const sellingPrice = Number(
-    item.product?.sellingPrice ??
-      item.product?.selling_price ??
-      item.reservationPrice ??
-      item.reservation_price ??
-      totalAmount ??
-      0,
-  );
-
-  const createdBy = item.createdBy || item.created_by || {};
-  const createdByName =
-    createdBy.fullName ||
-    createdBy.full_name ||
-    createdBy.name ||
-    item.createdByName ||
-    "-";
-  const createdByRole = createdBy.role || item.createdByRole || "";
-  const paymentMethodValue = String(
-    item.paymentMethod || item.payments?.[0]?.method || "CASH",
-  ).toUpperCase();
-  const createdAt = item.createdAt || item.created_at || null;
-
-  return {
-    ...item,
-    id: item.id,
-    reservationNumber:
-      item.reservationNumber || item.reservation_number || item.code || item.id,
-    createdAt,
-    createdAtLabel: formatDateTime(createdAt),
-    studentName: item.student?.name || item.student_name || "-",
-    phone: item.student?.phone || item.phone || "",
-    teacherName:
-      item.product?.teacher?.fullName ||
-      item.product?.teacher?.name ||
-      item.teacher_name ||
-      "-",
-    productName: item.product?.name || item.product_name || "-",
-    createdByName,
-    createdByRole,
-    createdByRoleLabel: getUserRoleLabel(createdByRole),
-    createdByLabel: createdByName,
-    totalAmount,
-    paidAmount,
-    remainingAmount,
-    sellingPrice,
-    sellingPriceLabel: sellingPrice > 0 ? formatMoney(sellingPrice) : "—",
-    paymentId: item.paymentId || item.payments?.[0]?.id || null,
-    paymentMethod: paymentMethodValue,
-    paymentMethodLabel:
-      item.paymentMethodLabel ||
-      PAYMENT_METHOD_LABELS[paymentMethodValue] ||
-      paymentMethodValue ||
-      "—",
-    proofUrl: item.proofUrl || item.payments?.[0]?.proofUrl || null,
-    hasProof: Boolean(
-      item.hasProof ??
-        item.payments?.[0]?.hasProof ??
-        (paymentMethodValue !== "CASH" &&
-          (item.proofReference || item.payments?.[0]?.proofReference)),
-    ),
-    hasRemaining: remainingAmount > 0,
-    status,
-    statusLabel:
-      remainingAmount > 0 && status === "READY"
-        ? "جاهز · متبقي مبلغ"
-        : meta.label,
-  };
 };
 
 const resetPaymentFields = () => {
@@ -376,7 +288,6 @@ const resetPaymentFields = () => {
 
 const openDeliverDialog = (item) => {
   if (!isDeliverable(item)) return;
-
   selectedReservation.value = item;
   resetPaymentFields();
   dialogError.value = "";
@@ -395,22 +306,22 @@ const validateRemainingPayment = () => {
   methodError.value = "";
   proofRequiredError.value = false;
 
-  if (!needsRemainingPayment.value) {
-    return true;
-  }
+  if (!needsRemainingPayment.value) return true;
 
   if (!paymentMethod.value) {
     methodError.value = "اختر طريقة دفع المبلغ المتبقي.";
     return false;
   }
 
-  if (deliverDetailContentRef.value && !deliverDetailContentRef.value.validatePayment()) {
+  if (
+    deliverDetailContentRef.value &&
+    !deliverDetailContentRef.value.validatePayment()
+  ) {
     proofRequiredError.value = true;
     return false;
   }
 
-  const needsProof = paymentMethodNeedsProof(paymentMethod.value);
-  if (needsProof && !proofKey.value) {
+  if (paymentMethodNeedsProof(paymentMethod.value) && !proofKey.value) {
     proofRequiredError.value = true;
     return false;
   }
@@ -422,24 +333,16 @@ const requestDeliverConfirmation = () => {
   if (!selectedReservation.value || !isDeliverable(selectedReservation.value)) {
     return;
   }
-
-  if (!validateRemainingPayment()) {
-    return;
-  }
-
+  if (!validateRemainingPayment()) return;
   dialogError.value = "";
   confirmVisible.value = true;
 };
 
 const loadReservations = async () => {
   loading.value = true;
-
   try {
     const result = await reservationService.getReservations(buildQuery());
-    const list = result.data || [];
-    reservations.value = list
-      .map(normalizeReservation)
-      // .filter((item) => item.status !== "DELIVERED" && item.status !== "CANCELLED");
+    reservations.value = (result.data || []).map(normalizeReservation);
   } catch (error) {
     reservations.value = [];
     showError(error?.message || "تعذر تحميل الحجوزات.");
@@ -452,7 +355,6 @@ const deliverReservation = async () => {
   if (!selectedReservation.value || !isDeliverable(selectedReservation.value)) {
     return;
   }
-
   if (!validateRemainingPayment()) {
     confirmVisible.value = false;
     return;
@@ -463,14 +365,11 @@ const deliverReservation = async () => {
 
   try {
     const payload = {};
-
     if (needsRemainingPayment.value) {
-      const needsProof = paymentMethodNeedsProof(paymentMethod.value);
-
       payload.method = paymentMethod.value;
-      payload.proofReference = needsProof
-        ? proofKey.value || undefined
-        : undefined;
+      if (paymentMethodNeedsProof(paymentMethod.value) && proofKey.value) {
+        payload.proofReference = proofKey.value;
+      }
     }
 
     await reservationService.deliverReservation(
@@ -484,7 +383,9 @@ const deliverReservation = async () => {
     reservations.value = reservations.value.filter(
       (item) => item.id !== deliveredId,
     );
-    showSuccess("تم تسليم الحجز بنجاح وتحصيل المبلغ المتبقي وخصم الكمية من المخزون.");
+    showSuccess(
+      "تم تسليم الحجز بنجاح وتحصيل المبلغ المتبقي وخصم الكمية من المخزون.",
+    );
   } catch (error) {
     const message = error?.message || "تعذر تسليم الحجز.";
     confirmVisible.value = false;

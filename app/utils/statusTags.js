@@ -61,6 +61,7 @@ export const PRODUCT_AVAILABILITY_TAGS = Object.freeze({
 export const PRODUCT_TYPE_TAGS = Object.freeze({
   BOOK: { label: "كتاب", severity: "info" },
   CARD: { label: "كارت", severity: "secondary" },
+  BOOKLET: { label: "ملزمة", severity: "warn" },
 });
 
 /** @type {Record<StatusTagKind, Record<string, { label: string, severity: string }>>} */

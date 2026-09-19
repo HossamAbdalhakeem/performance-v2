@@ -2,8 +2,8 @@ import { apiFetch, firstRow, asList } from "~/utils/apiFetch";
 import { normalizePaymentMethod } from "~/utils/paymentMethods";
 
 export const returnService = {
-  async getReturns() {
-    return asList(await apiFetch("/returns", { method: "GET" }));
+  async getReturns(params: Record<string, any> = {}) {
+    return asList(await apiFetch("/returns", { method: "GET", params }));
   },
 
   async getReturn(id: string) {

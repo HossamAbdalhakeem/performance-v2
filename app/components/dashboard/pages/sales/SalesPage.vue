@@ -616,7 +616,8 @@ const submitSale = async () => {
     };
     successDialogVisible.value = true;
 
-    resetForm();
+    // Temporarily disabled — keep form values after successful sale
+    // resetForm();
   } catch (error) {
     showError(error?.message || "تعذر تسجيل البيع.");
   } finally {

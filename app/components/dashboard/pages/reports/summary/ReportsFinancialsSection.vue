@@ -4,7 +4,7 @@
       <div class="min-w-0">
         <p class="font-bold text-white">الأرباح والخسائر</p>
         <p class="mt-1 text-xs text-slate-400">
-          الإيرادات − تكلفة البضاعة = إجمالي الربح، ثم خصم المصروفات التشغيلية
+          الإيرادات − تكلفة البضاعة = إجمالي الربح، ثم خصم المصروفات
         </p>
       </div>
       <p
@@ -44,25 +44,24 @@
 
     <div class="mt-4 grid grid-cols-1 gap-2 text-sm text-slate-200 sm:grid-cols-2 lg:grid-cols-3">
       <p class="min-w-0 break-words">
-        مصروفات الفروع:
+        مصروفات مرتبطة:
         <strong class="text-white">
-          {{ formatMoney(financials.branchExpenses, "locale") }}
+          {{
+            formatMoney(
+              financials.academicYearExpenses ?? financials.branchExpenses,
+              "locale",
+            )
+          }}
         </strong>
       </p>
       <p class="min-w-0 break-words">
-        مصروفات عامة:
+        مصروفات عامة (منفصلة):
         <strong class="text-white">
-          {{ formatMoney(financials.generalExpenses, "locale") }}
+          {{ formatMoney(separateGeneralExpenses, "locale") }}
         </strong>
-        <span v-if="isBranchScoped" class="text-xs text-slate-500">
-          (غير مخصومة من صافي الفرع)
+        <span class="text-xs text-slate-500">
+          (لا تُخصم تلقائياً من صافي الربح)
         </span>
-      </p>
-      <p class="min-w-0 break-words">
-        إجمالي المصروفات التشغيلية:
-        <strong class="text-white">
-          {{ formatMoney(financials.operatingExpenses, "locale") }}
-        </strong>
       </p>
       <p class="min-w-0 break-words">
         عربونات الحجوزات (منفصلة عن الإيرادات):
@@ -79,9 +78,15 @@ import { formatMoney } from "~/utils/format";
 
 defineOptions({ name: "ReportsFinancialsSection" });
 
-defineProps({
+const props = defineProps({
   financials: { type: Object, default: () => ({}) },
   reservationDeposits: { type: [Number, String], default: 0 },
+  generalExpenses: { type: [Number, String], default: null },
   isBranchScoped: { type: Boolean, default: false },
+});
+
+const separateGeneralExpenses = computed(() => {
+  if (props.generalExpenses != null) return props.generalExpenses;
+  return props.financials?.generalExpenses ?? 0;
 });
 </script>

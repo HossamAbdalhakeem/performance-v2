@@ -36,11 +36,21 @@
     <template #actions="{ data }">
       <div class="flex flex-wrap justify-center gap-1">
         <Button
-          icon="pi pi-box"
+          icon="pi pi-pencil"
           rounded
           text
           size="small"
           severity="info"
+          title="تعديل"
+          aria-label="تعديل"
+          @click="$emit('edit', data)"
+        />
+        <Button
+          icon="pi pi-box"
+          rounded
+          text
+          size="small"
+          severity="success"
           title="إضافة منتج"
           aria-label="إضافة منتج"
           @click="$emit('add-stock', data)"
@@ -94,7 +104,7 @@ defineProps({
   loading: { type: Boolean, default: false },
 });
 
-defineEmits(["add-stock", "remove-stock"]);
+defineEmits(["edit", "add-stock", "remove-stock"]);
 
 const expandedRows = ref({});
 

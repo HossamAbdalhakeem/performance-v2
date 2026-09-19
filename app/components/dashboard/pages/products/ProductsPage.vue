@@ -51,6 +51,7 @@ import ProductsFilters from "~/components/dashboard/pages/products/ProductsFilte
 import ProductsTable from "~/components/dashboard/pages/products/ProductsTable.vue";
 import { productService } from "~/services/productService";
 import { useAppToast } from "~/composables/useAppToast";
+import { useAcademicYearId } from "~/composables/useAcademicYearId";
 import { formatMoney } from "~/utils/format";
 import { getProductTypeLabel } from "~/enums/productType";
 
@@ -59,6 +60,7 @@ const ProductDrawer = defineAsyncComponent(() =>
 );
 
 const { showError, showSuccess } = useAppToast();
+const { academicYearId: currentAcademicYearId } = useAcademicYearId();
 const loading = ref(true);
 const drawerVisible = ref(false);
 const editingProduct = ref(null);
@@ -152,6 +154,12 @@ const openEdit = (product) => {
 
 watch(drawerVisible, (visible) => {
   if (!visible) editingProduct.value = null;
+});
+
+watch(currentAcademicYearId, () => {
+  filters.teacherId = null;
+  resetPagination();
+  loadProducts();
 });
 
 const handleSaved = async () => {

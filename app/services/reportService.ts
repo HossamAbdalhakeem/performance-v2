@@ -79,6 +79,17 @@ export const reportService = {
     );
   },
 
+  /**
+   * Academic-year financial P&L:
+   * Revenue − COGS = Gross Profit − AY expenses = Net Profit
+   * General expenses (null academicYearId) stay separate.
+   */
+  async getFinancialReport(params: Record<string, any> = {}) {
+    return asData(
+      await apiFetch("/reports/financial", { method: "GET", params }),
+    );
+  },
+
   async getGeneralSummary() {
     return asData(await apiFetch("/reports/general/summary", { method: "GET" }));
   },

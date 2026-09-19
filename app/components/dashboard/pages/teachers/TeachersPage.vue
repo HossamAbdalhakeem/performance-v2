@@ -8,6 +8,7 @@
             label="إضافة مدرس جديد"
             icon="pi pi-plus"
             severity="info"
+            :disabled="!currentAcademicYearId"
             @click="openCreate"
           />
         </div>
@@ -34,11 +35,12 @@
       position="right"
       class="!w-[400px] max-w-[400px]"
       :style="{ width: '400px' }"
-      :blockScroll="true"
+      :block-scroll="true"
     >
       <TeacherForm
         v-if="drawerVisible"
         :teacher="editingTeacher"
+        :locked-academic-year-id="currentAcademicYearId"
         @saved="handleSaved"
         @cancel="closeDrawer"
       />
@@ -54,6 +56,7 @@ import TeachersFilters from "~/components/dashboard/pages/teachers/TeachersFilte
 import TeachersTable from "~/components/dashboard/pages/teachers/TeachersTable.vue";
 import { teacherService } from "~/services/teacherService";
 import { useAppToast } from "~/composables/useAppToast";
+import { useAcademicYearId } from "~/composables/useAcademicYearId";
 import { getStatusTagLabel } from "~/utils/statusTags";
 
 const TeacherForm = defineAsyncComponent(() =>
@@ -61,6 +64,8 @@ const TeacherForm = defineAsyncComponent(() =>
 );
 
 const { showError, showSuccess } = useAppToast();
+const { academicYearId: currentAcademicYearId } = useAcademicYearId();
+
 const loading = ref(true);
 const drawerVisible = ref(false);
 const editingTeacher = ref(null);
@@ -82,12 +87,21 @@ const normalizeTeacher = (teacher) => ({
 
 const buildQuery = () => {
   const params = {};
+  if (currentAcademicYearId.value) {
+    params.academicYearId = currentAcademicYearId.value;
+  }
   if (filters.search?.trim()) params.search = filters.search.trim();
   if (filters.status) params.status = filters.status;
   return params;
 };
 
 const loadTeachers = async () => {
+  if (!currentAcademicYearId.value) {
+    teachers.value = [];
+    loading.value = false;
+    return;
+  }
+
   loading.value = true;
   try {
     const items = await teacherService.getTeachers(buildQuery());
@@ -107,6 +121,10 @@ const onSearch = (value) => {
 };
 
 const openCreate = () => {
+  if (!currentAcademicYearId.value) {
+    showError("اختر العام الدراسي أولاً.");
+    return;
+  }
   editingTeacher.value = null;
   drawerVisible.value = true;
 };
@@ -127,7 +145,10 @@ const handleSaved = async () => {
   await loadTeachers();
 };
 
-onMounted(() => {
+watch(currentAcademicYearId, () => {
+  closeDrawer();
   loadTeachers();
 });
+
+onMounted(loadTeachers);
 </script>

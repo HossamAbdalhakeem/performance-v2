@@ -1,11 +1,13 @@
 export const ProductType = Object.freeze({
   BOOK: "BOOK",
   CARD: "CARD",
+  BOOKLET: "BOOKLET",
 });
 
 export const PRODUCT_TYPE_LABELS = Object.freeze({
   [ProductType.BOOK]: "كتاب",
   [ProductType.CARD]: "كارت",
+  [ProductType.BOOKLET]: "ملزمة",
 });
 
 export const PRODUCT_TYPE_OPTIONS = Object.freeze(
@@ -34,5 +36,8 @@ export const isBookProduct = (value) =>
 export const isCardProduct = (value) =>
   normalizeProductType(value, "") === ProductType.CARD;
 
+export const isBookletProduct = (value) =>
+  normalizeProductType(value, "") === ProductType.BOOKLET;
+
 export const productTypeRequiresStudyYear = (value) =>
-  isBookProduct(value) || isCardProduct(value);
+  isBookProduct(value) || isCardProduct(value) || isBookletProduct(value);

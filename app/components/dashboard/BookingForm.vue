@@ -767,7 +767,8 @@ const handleSubmit = async () => {
     };
 
     successDialogVisible.value = true;
-    resetForm();
+    // Temporarily disabled — keep form values after successful reservation
+    // resetForm();
   } catch (error) {
     showError(error?.message || "تعذر تسجيل الحجز.");
   } finally {

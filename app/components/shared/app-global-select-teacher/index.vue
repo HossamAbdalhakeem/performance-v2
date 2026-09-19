@@ -29,6 +29,7 @@ import Select from "primevue/select";
 import { teacherService } from "~/services/teacherService";
 import { useAppToast } from "~/composables/useAppToast";
 import { useThrottledCallback } from "~/composables/useThrottledCallback";
+import { useAcademicYearId } from "~/composables/useAcademicYearId";
 
 defineOptions({ name: "AppGlobalSelectTeacher" });
 
@@ -57,6 +58,7 @@ const props = defineProps({
 const emit = defineEmits(["update:modelValue", "change", "loaded", "search"]);
 
 const { showError } = useAppToast();
+const { academicYearId: currentAcademicYearId } = useAcademicYearId();
 
 const internalOptions = ref([]);
 const internalLoading = ref(false);
@@ -66,6 +68,14 @@ const requestId = ref(0);
 
 const isLoading = computed(() => props.loading || internalLoading.value);
 const usesRemoteSearch = computed(() => !Array.isArray(props.options));
+
+const scopedQuery = computed(() => {
+  const query = { ...(props.query || {}) };
+  if (!query.academicYearId && currentAcademicYearId.value) {
+    query.academicYearId = currentAcademicYearId.value;
+  }
+  return query;
+});
 
 const activeFilterFields = computed(() => {
   if (usesRemoteSearch.value && searchTerm.value) return ["_remoteMatch"];
@@ -105,7 +115,7 @@ const loadTeachers = async (term = searchTerm.value) => {
   try {
     const query = String(term || "").trim();
     const teachers = await teacherService.getTeachers({
-      ...(props.query || {}),
+      ...scopedQuery.value,
       ...(query ? { search: query } : {}),
     });
     if (currentRequest !== requestId.value) return;
@@ -175,6 +185,12 @@ watch(
   },
   { deep: true },
 );
+
+watch(currentAcademicYearId, () => {
+  if (props.modelValue) emit("update:modelValue", null);
+  selectedOptionCache.value = null;
+  loadTeachers(searchTerm.value);
+});
 
 watch(
   () => props.modelValue,

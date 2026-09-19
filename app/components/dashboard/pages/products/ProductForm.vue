@@ -74,7 +74,9 @@
               label="اختر المدرس"
               placeholder="اختر المدرس ▾"
               wrapper-class="min-w-0 flex-1"
+              :query="teacherQuery"
               :invalid="!!(errorMessage || fieldErrors.teacherId)"
+              @loaded="onTeachersLoaded"
             />
             <Button
               type="button"
@@ -225,6 +227,7 @@
     >
       <TeacherForm
         v-if="showTeacherDrawer"
+        :locked-academic-year-id="teacherCreateAcademicYearId"
         @saved="onTeacherSaved"
         @cancel="showTeacherDrawer = false"
       />
@@ -261,9 +264,10 @@ import AppInputNumber from "~/components/dashboard/AppInputNumber.vue";
 import { Form, Field, ErrorMessage } from "vee-validate";
 import { productService } from "~/services/productService";
 import { useAppToast } from "~/composables/useAppToast";
+import { useAcademicYearId } from "~/composables/useAcademicYearId";
 import {
   ProductType,
-  isBookProduct,
+  isBookletProduct,
   isCardProduct,
   isProductType,
   normalizeProductType,
@@ -278,6 +282,7 @@ const StudyYearForm = defineAsyncComponent(() =>
 );
 
 const { showError } = useAppToast();
+const { academicYearId: currentAcademicYearId } = useAcademicYearId();
 
 const props = defineProps({
   product: { type: Object, default: null },
@@ -295,6 +300,7 @@ const emptyForm = () => ({
   type: ProductType.BOOK,
   teacherId: "",
   studyYearId: "",
+  academicYearId: "",
   name: "",
   purchasePrice: null,
   sellingPrice: null,
@@ -309,7 +315,14 @@ const formKey = ref(0);
 
 const isEdit = computed(() => Boolean(props.product?.id));
 const requiresStudyYear = computed(() => productTypeRequiresStudyYear(form.type));
-
+const teacherQuery = computed(() => {
+  const academicYearId =
+    form.academicYearId || currentAcademicYearId.value || null;
+  return academicYearId ? { academicYearId } : {};
+});
+const teacherCreateAcademicYearId = computed(
+  () => form.academicYearId || currentAcademicYearId.value || null,
+);
 const profitPercentage = computed(() => {
   const purchase = Number(form.purchasePrice || 0);
   const selling = Number(form.sellingPrice || 0);
@@ -327,6 +340,11 @@ const applyProduct = (product) => {
     type: normalizeProductType(product?.type),
     teacherId: product?.teacherId || product?.teacher?.id || "",
     studyYearId: product?.studyYearId || product?.studyYear?.id || "",
+    academicYearId:
+      product?.academicYearId ||
+      product?.academicYear?.id ||
+      currentAcademicYearId.value ||
+      "",
     name: product?.name || "",
     purchasePrice: toNumber(product?.purchasePrice),
     sellingPrice: toNumber(product?.sellingPrice),
@@ -364,7 +382,20 @@ watch(
   },
 );
 
+const onTeachersLoaded = (options) => {
+  // Keep existing product teacher on edit even if filtered out (e.g. INACTIVE).
+  if (isEdit.value || !form.teacherId) return;
+  const stillValid = (options || []).some(
+    (option) => String(option.value) === String(form.teacherId),
+  );
+  if (!stillValid) form.teacherId = "";
+};
+
 const openTeacherDialog = () => {
+  if (!teacherCreateAcademicYearId.value) {
+    showError("اختر العام الدراسي أولاً.");
+    return;
+  }
   showStudyYearDrawer.value = false;
   showTeacherDrawer.value = true;
 };
@@ -374,7 +405,7 @@ const openStudyYearDrawer = () => {
   showStudyYearDrawer.value = true;
 };
 
-const onTeacherSaved = (created) => {
+const onTeacherSaved = async (created) => {
   if (!created?.id) {
     showError("تعذر إنشاء المدرس.");
     return;
@@ -385,6 +416,7 @@ const onTeacherSaved = (created) => {
     value: created.id,
   });
   form.teacherId = created.id;
+  teacherSelectRef.value?.reload?.();
   showTeacherDrawer.value = false;
 };
 
@@ -415,7 +447,15 @@ const buildPayload = () => {
       form.minStockQuantity == null ? null : Number(form.minStockQuantity),
   };
 
-  // CARD always requires study year on create/update; BOOK keeps it when set.
+  // Create: always send selected / current academic year.
+  // Edit: do not change academic year (historical lock on backend).
+  if (!isEdit.value) {
+    const academicYearId =
+      form.academicYearId || currentAcademicYearId.value || null;
+    if (academicYearId) payload.academicYearId = academicYearId;
+  }
+
+  // CARD always requires study year on create/update; BOOK/BOOKLET keep it when set.
   if (isCardProduct(form.type) || form.studyYearId) {
     payload.studyYearId = form.studyYearId || null;
   } else if (isEdit.value) {
@@ -435,12 +475,18 @@ const submit = async () => {
   saving.value = true;
 
   try {
-    if (isCardProduct(form.type) && !form.studyYearId) {
-      throw new Error("السنة الدراسية مطلوبة عند إنشاء كارت.");
+    if (productTypeRequiresStudyYear(form.type) && !form.studyYearId) {
+      if (isCardProduct(form.type)) {
+        throw new Error("السنة الدراسية مطلوبة عند إنشاء كارت.");
+      }
+      if (isBookletProduct(form.type)) {
+        throw new Error("السنة الدراسية مطلوبة للملزمة.");
+      }
+      throw new Error("السنة الدراسية مطلوبة للكتب.");
     }
 
-    if (isBookProduct(form.type) && !form.studyYearId) {
-      throw new Error("السنة الدراسية مطلوبة للكتب.");
+    if (!isEdit.value && !form.academicYearId && !currentAcademicYearId.value) {
+      throw new Error("اختر العام الدراسي أولاً.");
     }
 
     const payload = buildPayload();
@@ -455,7 +501,15 @@ const submit = async () => {
 
     emit("saved", result);
   } catch (error) {
-    showError(error?.message || "تعذر حفظ المنتج.");
+    const message = error?.message || "";
+    if (
+      /not assigned to this academic year/i.test(message) ||
+      /Teacher is not assigned/i.test(message)
+    ) {
+      showError("المدرس غير مرتبط بهذا العام الدراسي.");
+    } else {
+      showError(message || "تعذر حفظ المنتج.");
+    }
   } finally {
     saving.value = false;
   }

@@ -90,7 +90,7 @@
               <p class="font-semibold text-slate-800">بيانات تجريبية:</p>
               <ul class="mt-2 space-y-2">
                 <li>مدير: admin@library.local </li>
-                <li>خدمة العملاء: hossamabdalhakeem99+098@gmail.com</li>
+                <li>خدمة العملاء: hossamabdalhakeem99+098@gmail.com /hossamabdalhakeem99+099@gmail.com</li>
                 <li>موظف فرع: hossamabdalhakeem99+123@gmail.com  /  hossamabdalhakeem99+547@gmail.com</li>
               </ul>
             </div>

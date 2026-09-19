@@ -9,23 +9,34 @@
     >
       <Field v-slot="{ field, errorMessage }" name="name" rules="required">
         <div class="flex flex-col gap-2 text-right">
-          <label class="text-sm font-medium">اسم المدرس</label>
+          <label class="text-sm font-medium text-slate-700">اسم الفرع</label>
           <InputText
             v-bind="field"
             v-model="form.name"
             class="w-full"
+            placeholder="مثال: الفرع الرئيسي"
             :class="{ 'p-invalid': errorMessage || fieldErrors.name }"
           />
-          <ErrorMessage name="name" class="text-xs text-red-400" />
+          <ErrorMessage name="name" class="text-xs text-red-500" />
         </div>
       </Field>
+
+      <div class="flex flex-col gap-2 text-right">
+        <label class="text-sm font-medium text-slate-700">العنوان</label>
+        <InputText v-model="form.address" class="w-full" placeholder="اختياري" />
+      </div>
+
+      <div class="flex flex-col gap-2 text-right">
+        <label class="text-sm font-medium text-slate-700">الهاتف</label>
+        <InputText v-model="form.phone" class="w-full" placeholder="اختياري" />
+      </div>
 
       <div
         v-if="isEdit"
         class="flex items-center justify-between rounded-xl border border-slate-200 px-3 py-3"
       >
         <div class="text-right">
-          <p class="text-sm font-medium text-slate-800">حالة المدرس</p>
+          <p class="text-sm font-medium text-slate-800">حالة الفرع</p>
           <p class="text-xs text-slate-500">
             {{ form.isActive ? "نشط" : "غير نشط" }}
           </p>
@@ -42,7 +53,7 @@
           @click="$emit('cancel')"
         />
         <FormSubmitButton
-          :label="isEdit ? 'تحديث المدرس' : 'حفظ المدرس'"
+          :label="isEdit ? 'تحديث الفرع' : 'حفظ الفرع'"
           :loading="saving"
           :valid="meta.valid"
         />
@@ -57,16 +68,13 @@ import FormSubmitButton from "~/components/shared/form-submit-button/index.vue";
 import InputText from "primevue/inputtext";
 import ToggleSwitch from "primevue/toggleswitch";
 import { Form, Field, ErrorMessage } from "vee-validate";
-import { teacherService } from "~/services/teacherService";
+import { branchService } from "~/services/branchService";
 import { useAppToast } from "~/composables/useAppToast";
-import { useAcademicYearId } from "~/composables/useAcademicYearId";
 
 const { showError } = useAppToast();
-const { academicYearId: currentAcademicYearId } = useAcademicYearId();
 
 const props = defineProps({
-  teacher: { type: Object, default: null },
-  lockedAcademicYearId: { type: [String, Number], default: null },
+  branch: { type: Object, default: null },
 });
 
 const emit = defineEmits(["saved", "cancel"]);
@@ -76,76 +84,64 @@ const formKey = ref(0);
 
 const emptyForm = () => ({
   name: "",
+  address: "",
+  phone: "",
   isActive: true,
 });
 
 const form = reactive(emptyForm());
 const initialValues = reactive(emptyForm());
 
-const isEdit = computed(() => Boolean(props.teacher?.id));
+const isEdit = computed(() => Boolean(props.branch?.id));
 
-const resolvedAcademicYearId = computed(() => {
-  if (props.teacher?.academicYearId || props.teacher?.academicYear?.id) {
-    return String(
-      props.teacher.academicYearId || props.teacher.academicYear.id,
-    );
-  }
-  if (props.lockedAcademicYearId) return String(props.lockedAcademicYearId);
-  if (currentAcademicYearId.value) return String(currentAcademicYearId.value);
-  return null;
-});
-
-const applyTeacher = (teacher) => {
+const applyBranch = (branch) => {
   const next = {
-    name: teacher?.name || "",
-    isActive: teacher ? teacher.status !== "INACTIVE" : true,
+    name: branch?.name || "",
+    address: branch?.address || "",
+    phone: branch?.phone || "",
+    isActive: branch ? branch.status !== "INACTIVE" : true,
   };
-
   Object.assign(form, next);
-  Object.assign(initialValues, { ...next });
+  Object.assign(initialValues, next);
   formKey.value += 1;
 };
 
 watch(
-  () => props.teacher,
-  (teacher) => {
-    applyTeacher(teacher);
+  () => props.branch,
+  (branch) => {
+    applyBranch(branch);
   },
   { immediate: true },
 );
 
 const submit = async () => {
   saving.value = true;
-
   try {
     const name = form.name.trim();
-    if (!name) throw new Error("اسم المدرس مطلوب.");
+    if (!name) throw new Error("اسم الفرع مطلوب.");
+
+    const payload = {
+      name,
+      address: form.address?.trim() || undefined,
+      phone: form.phone?.trim() || undefined,
+    };
 
     let result;
-
     if (isEdit.value) {
-      result = await teacherService.updateTeacher(props.teacher.id, { name });
-
+      result = await branchService.updateBranch(props.branch.id, payload);
       const nextStatus = form.isActive ? "ACTIVE" : "INACTIVE";
-      if (props.teacher.status !== nextStatus) {
-        result = await teacherService.updateTeacherStatus(props.teacher.id, {
+      if (props.branch.status !== nextStatus) {
+        result = await branchService.updateBranchStatus(props.branch.id, {
           status: nextStatus,
         });
       }
     } else {
-      const academicYearId = resolvedAcademicYearId.value;
-      if (!academicYearId) {
-        throw new Error("اختر العام الدراسي أولاً.");
-      }
-      result = await teacherService.createTeacher({
-        name,
-        academicYearId,
-      });
+      result = await branchService.createBranch(payload);
     }
 
     emit("saved", result);
   } catch (error) {
-    showError(error?.message || "تعذر حفظ المدرس.");
+    showError(error?.message || "تعذر حفظ الفرع.");
   } finally {
     saving.value = false;
   }

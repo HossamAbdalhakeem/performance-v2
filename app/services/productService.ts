@@ -32,8 +32,9 @@ const productBody = (payload: Record<string, any>) => {
     body.studyYearId = null;
   }
 
-  if (payload.academicYearId || payload.academic_year_id) {
-    body.academicYearId = payload.academicYearId ?? payload.academic_year_id;
+  const academicYearId = payload.academicYearId ?? payload.academic_year_id;
+  if (academicYearId) {
+    body.academicYearId = academicYearId;
   }
 
   if (Object.prototype.hasOwnProperty.call(payload, "reservationPrice")) {
@@ -82,10 +83,14 @@ export const productService = {
   },
 
   async createProduct(payload: Record<string, any>) {
+    const body = productBody(payload);
+    if (!body.academicYearId) {
+      throw new Error("academicYearId is required when creating a product.");
+    }
     return firstRow(
       await apiFetch("/products", {
         method: "POST",
-        body: productBody(payload),
+        body,
       }),
     );
   },

@@ -195,10 +195,9 @@ import ReservationsTable from "~/components/dashboard/pages/reservations/Reserva
 import SearchInput from "~/components/shared/search-input/index.vue";
 import { reservationService } from "~/services/reservationService";
 import { useAppToast } from "~/composables/useAppToast";
-import { PaymentMethod, PAYMENT_METHOD_LABELS } from "~/utils/paymentMethods";
-import { formatMoney, formatDateTime } from "~/utils/format";
-import { getUserRoleLabel } from "~/enums/userRole";
-import { getStatusTagMeta } from "~/utils/statusTags";
+import { PaymentMethod } from "~/utils/paymentMethods";
+import { formatMoney } from "~/utils/format";
+import { normalizeReservation } from "~/utils/normalizeReservation";
 
 defineOptions({ name: "ReservationsManagePage" });
 
@@ -250,91 +249,10 @@ const exchangeConfirmVisible = ref(false);
 
 const roundMoney = (value) => Math.round(Number(value || 0) * 100) / 100;
 
-const getRemainingAmount = (item) => {
-  const total = Number(item.totalAmount ?? item.total_amount ?? 0);
-  const paid = Number(item.paidAmount ?? item.paid_amount ?? 0);
-  return roundMoney(Math.max(total - paid, 0));
-};
-
-const normalizeReservation = (item) => {
-  const status = String(item.status || "").toUpperCase();
-  const meta = getStatusTagMeta("reservation", status);
-  const sellingPrice = Number(
-    item.product?.sellingPrice ??
-      item.product?.selling_price ??
-      item.reservationPrice ??
-      item.reservation_price ??
-      0,
-  );
-  const totalAmount = Number(item.totalAmount ?? item.total_amount ?? 0);
-  const paidAmount = Number(item.paidAmount ?? item.paid_amount ?? 0);
-  const remainingAmount = getRemainingAmount(item);
-  const createdAt = item.createdAt || item.created_at;
-  const productId = item.productId || item.product_id || item.product?.id || null;
-  const branchId = item.branchId || item.branch_id || item.branch?.id || null;
-
-  const createdBy = item.createdBy || item.created_by || {};
-  const createdByName =
-    createdBy.fullName ||
-    createdBy.full_name ||
-    createdBy.name ||
-    "-";
-  const createdByRole = createdBy.role || "";
-
-  const paymentMethod = String(
-    item.paymentMethod || item.payments?.[0]?.method || "CASH",
-  ).toUpperCase();
-
-  return {
-    ...item,
-    productId,
-    branchId,
-    reservationNumber:
-      item.reservationNumber || item.reservation_number || item.code || item.id,
-    studentName: item.student?.name || "-",
-    phone: item.student?.phone || item.phone || "",
-    productName: item.product?.name || "-",
-    teacherName:
-      item.product?.teacher?.name ||
-      item.product?.teacherName ||
-      item.teacher?.name ||
-      "-",
-    branchName: item.branch?.name || "-",
-    createdByName,
-    createdByRole,
-    createdByRoleLabel: getUserRoleLabel(createdByRole),
-    quantity: item.quantity ?? 1,
-    totalAmount,
-    paidAmount,
-    createdAt,
-    createdAtLabel: formatDateTime(createdAt, { empty: "—" }),
-    sellingPriceLabel: sellingPrice > 0 ? formatMoney(sellingPrice) : "—",
-    paidAmountLabel: formatMoney(paidAmount),
-    remainingAmount,
-    remainingAmountLabel: formatMoney(remainingAmount),
-    paymentId: item.paymentId || item.payments?.[0]?.id || null,
-    paymentMethod,
-    paymentMethodLabel:
-      item.paymentMethodLabel ||
-      PAYMENT_METHOD_LABELS[paymentMethod] ||
-      paymentMethod ||
-      "—",
-    proofReference:
-      item.proofReference || item.payments?.[0]?.proofReference || null,
-    proofUrl: item.proofUrl || item.payments?.[0]?.proofUrl || null,
-    hasProof: Boolean(
-      item.hasProof ??
-        item.payments?.[0]?.hasProof ??
-        (paymentMethod !== "CASH" &&
-          (item.proofReference || item.payments?.[0]?.proofReference)),
-    ),
-    status,
-    statusLabel: meta.label,
-  };
-};
-
-const selectedNewProduct = computed(() =>
-  productOptions.value.find((item) => item.value === newProductId.value) || null,
+const selectedNewProduct = computed(
+  () =>
+    productOptions.value.find((item) => item.value === newProductId.value) ||
+    null,
 );
 
 const priceComparison = computed(() => {
@@ -382,8 +300,8 @@ const loadData = async () => {
   loading.value = true;
   try {
     const result = await reservationService.getReservations(buildQuery());
-    reservations.value = result.data.map(normalizeReservation);
-    pagination.total = result.pagination.total;
+    reservations.value = (result.data || []).map(normalizeReservation);
+    pagination.total = result.pagination?.total || 0;
   } catch (error) {
     showError(error?.message || "تعذر تحميل الحجوزات.");
     reservations.value = [];
@@ -431,13 +349,10 @@ const closeCancelFlow = () => {
 
 const requestCancelConfirm = () => {
   cancelRefundError.value = "";
-  const paidAmount = Number(selectedReservation.value?.paidAmount || 0);
-
-  if (paidAmount > 0 && !cancelRefundMethod.value) {
+  if (selectedReservation.value?.paidAmount > 0 && !cancelRefundMethod.value) {
     cancelRefundError.value = "اختر طريقة رد المبلغ.";
     return;
   }
-
   cancelConfirmVisible.value = true;
 };
 
@@ -446,8 +361,7 @@ const confirmCancel = async () => {
   busy.value = true;
   try {
     const payload = {};
-    const paidAmount = Number(selectedReservation.value?.paidAmount || 0);
-    if (paidAmount > 0) {
+    if (selectedReservation.value.paidAmount > 0) {
       payload.refundMethod = cancelRefundMethod.value;
       if (cancelProofKey.value) {
         payload.proofReference = cancelProofKey.value;
@@ -518,7 +432,6 @@ const requestExchangeConfirm = () => {
     exchangeError.value = "المنتج المختار غير متاح في مخزون الفرع.";
     return;
   }
-
   if (priceComparison.value?.kind === "less" && !exchangeRefundMethod.value) {
     exchangePaymentError.value = "اختر طريقة رد فرق السعر.";
     return;
@@ -531,9 +444,7 @@ const confirmExchange = async () => {
   if (!selectedReservation.value?.id || !newProductId.value) return;
   busy.value = true;
   try {
-    const payload = {
-      newProductId: newProductId.value,
-    };
+    const payload = { newProductId: newProductId.value };
 
     if (priceComparison.value?.kind === "less") {
       payload.refundMethod = exchangeRefundMethod.value;

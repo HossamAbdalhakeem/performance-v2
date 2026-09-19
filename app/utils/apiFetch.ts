@@ -108,13 +108,30 @@ const cleanParams = (params: Record<string, any> = {}) => {
   return out;
 };
 
+/**
+ * Only attach academicYearId to endpoints that actually filter by it.
+ * Do NOT send it to branches, students, expense-categories, study-years, users, etc.
+ */
+const ACADEMIC_YEAR_SCOPED_PATHS = [
+  "/products",
+  "/teachers",
+  "/sales",
+  "/reservations",
+  "/inventory",
+  "/returns",
+  "/exchanges",
+  "/expenses",
+  "/reports",
+];
+
 const shouldAttachAcademicYear = (path: string) => {
-  const normalized = String(path || "").split("?")[0];
+  const normalized = String(path || "").split("?")[0] || "";
   if (!normalized) return false;
-  if (normalized.startsWith("/auth")) return false;
-  if (normalized.startsWith("/academic-years")) return false;
-  if (normalized.startsWith("/uploads")) return false;
-  return true;
+  // expense-categories is under /expense-categories, not /expenses — excluded
+  return ACADEMIC_YEAR_SCOPED_PATHS.some(
+    (prefix) =>
+      normalized === prefix || normalized.startsWith(`${prefix}/`),
+  );
 };
 
 const getAcademicYearId = () => {
@@ -128,8 +145,24 @@ const getAcademicYearId = () => {
 const withAcademicYearParams = (
   path: string,
   params: Record<string, any> = {},
+  method?: string,
 ) => {
   const next = { ...params };
+
+  // Opt out of auto academic-year scoping when explicitly requested
+  if (next.skipAcademicYearFilter) {
+    delete next.skipAcademicYearFilter;
+    return next;
+  }
+
+  // Create/update/delete: never send academicYearId as a query param.
+  // Callers must put it in the request body when needed.
+  const verb = String(method || "GET").toUpperCase();
+  if (verb !== "GET" && verb !== "HEAD") {
+    delete next.academicYearId;
+    return next;
+  }
+
   if (!shouldAttachAcademicYear(path)) return next;
   if (next.academicYearId != null && next.academicYearId !== "") return next;
 
@@ -154,6 +187,7 @@ const request = async <T = any>(
         withAcademicYearParams(
           path,
           (options.params || {}) as Record<string, any>,
+          options.method as string | undefined,
         ),
       ),
       baseURL,
@@ -180,4 +214,101 @@ export const authFetch = async <T = any>(
   options: FetchOptions = {},
 ) => {
   return request<T>(getApiOrigin(), path, options);
+};
+
+export type BlobDownloadResult = {
+  blob: Blob;
+  headers: Headers;
+  filename: string | null;
+};
+
+const parseContentDispositionFilename = (header: string | null) => {
+  if (!header) return null;
+
+  const utf8Match = /filename\*\s*=\s*UTF-8''([^;]+)/i.exec(header);
+  if (utf8Match?.[1]) {
+    try {
+      return decodeURIComponent(utf8Match[1].trim().replace(/^"|"$/g, ""));
+    } catch {
+      return utf8Match[1].trim().replace(/^"|"$/g, "");
+    }
+  }
+
+  const plainMatch = /filename\s*=\s*("?)([^";]+)\1/i.exec(header);
+  if (plainMatch?.[2]) return plainMatch[2].trim();
+
+  return null;
+};
+
+const blobLooksLikeJsonError = async (blob: Blob) => {
+  const type = String(blob.type || "").toLowerCase();
+  if (type.includes("json") || type.includes("text")) return true;
+  if (blob.size > 0 && blob.size < 4096) {
+    try {
+      const text = await blob.slice(0, 64).text();
+      const trimmed = text.trim();
+      return trimmed.startsWith("{") || trimmed.startsWith("[");
+    } catch {
+      return false;
+    }
+  }
+  return false;
+};
+
+/**
+ * Binary download helper (Excel, etc.).
+ * Uses $fetch.raw so Content-Disposition filename is available.
+ */
+export const apiFetchBlob = async (
+  path: string,
+  options: FetchOptions = {},
+): Promise<BlobDownloadResult> => {
+  const baseURL = getApiOrigin();
+  if (!baseURL) {
+    throw new ApiError("MISSING_API_BASE", "API base URL is not configured.");
+  }
+
+  try {
+    const response = await $fetch.raw(path, {
+      ...options,
+      responseType: "blob",
+      params: cleanParams(
+        withAcademicYearParams(
+          path,
+          (options.params || {}) as Record<string, any>,
+          options.method as string | undefined,
+        ),
+      ),
+      baseURL,
+      headers: getAuthHeaders({
+        ...((options.headers || {}) as Record<string, string>),
+      }),
+    });
+
+    const blob = response._data as Blob;
+    if (!blob) {
+      throw new ApiError("EMPTY_RESPONSE", "Empty file response.");
+    }
+
+    if (await blobLooksLikeJsonError(blob)) {
+      try {
+        const body = JSON.parse(await blob.text());
+        throw toApiError({ data: body, status: response.status });
+      } catch (error) {
+        if (error instanceof ApiError) throw error;
+        throw new ApiError("REQUEST_FAILED", "Request failed.", response.status);
+      }
+    }
+
+    return {
+      blob,
+      headers: response.headers,
+      filename: parseContentDispositionFilename(
+        response.headers.get("content-disposition"),
+      ),
+    };
+  } catch (error) {
+    if (error instanceof ApiError) throw error;
+    throw toApiError(error);
+  }
 };

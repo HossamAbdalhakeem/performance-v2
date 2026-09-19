@@ -26,7 +26,8 @@
 
       <ReportsFinancialsSection
         :financials="financials"
-        :reservation-deposits="summary.reservationDeposits"
+        :reservation-deposits="reservationDeposits"
+        :general-expenses="generalExpensesSeparate"
         :is-branch-scoped="isBranchScoped"
       />
 
@@ -49,13 +50,21 @@
       />
 
       <Button
-        label="⬇ تصدير كل التقارير Excel"
+        label="⬇ تصدير Excel"
         class="w-full justify-center"
         severity="secondary"
         :disabled="loading"
-        @click="exportReports"
+        @click="openExportDialog"
       />
     </template>
+
+    <AcademicYearExportDialog
+      v-model:visible="exportDialogVisible"
+      :branch-id="selectedBranch"
+      :from="dateFrom"
+      :to="dateTo"
+      :preview="exportPreview"
+    />
   </div>
 </template>
 
@@ -83,6 +92,9 @@ const PaymentMethodsReport = defineAsyncComponent(() =>
 );
 const ReportsCustomersSection = defineAsyncComponent(() =>
   import("~/components/dashboard/pages/reports/summary/ReportsCustomersSection.vue"),
+);
+const AcademicYearExportDialog = defineAsyncComponent(() =>
+  import("~/components/dashboard/pages/reports/AcademicYearExportDialog.vue"),
 );
 
 defineOptions({ name: "AdminReportsPage" });
@@ -119,15 +131,59 @@ const selectedBook = ref(
 );
 const loading = ref(true);
 const report = ref(null);
+const financialReport = ref(null);
+const exportDialogVisible = ref(false);
 
 const summary = computed(() => report.value?.summary || {});
 const books = computed(() => summary.value.books || {});
 const cards = computed(() => summary.value.cards || {});
 const salesBreakdown = computed(() => summary.value.salesBreakdown || {});
-const financials = computed(() => summary.value.financials || {});
+const financials = computed(() => {
+  const fromFinancial = financialReport.value?.financials;
+  if (fromFinancial) {
+    return {
+      ...fromFinancial,
+      branchExpenses: fromFinancial.academicYearExpenses,
+      operatingExpenses: fromFinancial.academicYearExpenses,
+      generalExpenses: financialReport.value?.separate?.generalExpenses ?? 0,
+    };
+  }
+  return summary.value.financials || {};
+});
+const reservationDeposits = computed(
+  () =>
+    financialReport.value?.separate?.reservationDeposits ??
+    summary.value.reservationDeposits ??
+    0,
+);
+const generalExpensesSeparate = computed(
+  () =>
+    financialReport.value?.separate?.generalExpenses ??
+    financials.value.generalExpenses ??
+    0,
+);
 const isBranchScoped = computed(
   () => Boolean(selectedBranch.value && selectedBranch.value !== "all"),
 );
+
+/** Preview values from the loaded report endpoint — not recalculated for Excel. */
+const exportPreview = computed(() => {
+  const s = summary.value;
+  const f = financials.value;
+  return {
+    revenue: f.revenue ?? s.salesAmount ?? null,
+    cogs: f.cogs ?? null,
+    grossProfit: f.grossProfit ?? null,
+    expenses: f.operatingExpenses ?? null,
+    netProfit: f.netProfit ?? salesBreakdown.value.netProfit ?? null,
+    sales: s.sales ?? null,
+    reservations: s.reservations ?? null,
+    students: Array.isArray(report.value?.studentPurchases)
+      ? report.value.studentPurchases.length
+      : null,
+    products: books.value?.total ?? books.value?.count ?? null,
+  };
+});
 
 const paymentMethodItems = computed(() =>
   Array.isArray(summary.value.paymentsByMethod)
@@ -226,57 +282,24 @@ const loadReport = async () => {
   loading.value = true;
   syncRouteQuery();
   try {
-    report.value = await reportService.getDailyReport(reportParams());
+    const params = reportParams();
+    const [daily, financial] = await Promise.all([
+      reportService.getDailyReport(params),
+      reportService.getFinancialReport(params).catch(() => null),
+    ]);
+    report.value = daily;
+    financialReport.value = financial;
   } catch (error) {
     report.value = null;
+    financialReport.value = null;
     showError(error?.message || "تعذر تحميل التقارير.");
   } finally {
     loading.value = false;
   }
 };
 
-const exportReports = () => {
-  const s = summary.value;
-  const breakdown = salesBreakdown.value;
-  const f = financials.value;
-  const rows = [
-    ["اسم الطالب", "المدرس", "الموبايل", "اشترى ايه"],
-    ...studentRows.value.map((row) => [
-      row.student,
-      row.teacher,
-      row.phone,
-      row.product,
-    ]),
-    [],
-    ["إجمالي المبيعات (إيراد صافي)", s.salesAmount ?? f.revenue ?? 0],
-    ["عدد عمليات البيع", s.sales ?? 0],
-    ["تكلفة البضاعة COGS", f.cogs ?? 0],
-    ["إجمالي الربح", f.grossProfit ?? 0],
-    ["مصروفات الفروع", f.branchExpenses ?? 0],
-    ["مصروفات عامة", f.generalExpenses ?? 0],
-    ["المصروفات التشغيلية", f.operatingExpenses ?? 0],
-    ["صافي الربح", f.netProfit ?? breakdown.netProfit ?? 0],
-    ["إجمالي الحجوزات", s.reservations ?? 0],
-    ["مدفوعات الحجوزات", s.reservationsPaidAmount ?? 0],
-    ["عربونات حجوزات معلقة", s.reservationDeposits ?? 0],
-    ["إجمالي المخزون", s.inventoryTotal ?? 0],
-    ["مبيعات فرع", breakdown.branchSales ?? 0],
-    ["محجوزات", breakdown.reservations ?? 0],
-    ["مرتجعات", s.refundsTotal ?? 0],
-    ["صافي المدفوعات", s.paymentsTotal ?? 0],
-    [],
-    ["طريقة الدفع", "المبلغ"],
-    ...paymentMethodItems.value.map((item) => [item.method, item.amount]),
-  ];
-
-  const csv = rows.map((row) => row.join(",")).join("\n");
-  const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = "library-reports.csv";
-  link.click();
-  URL.revokeObjectURL(url);
+const openExportDialog = () => {
+  exportDialogVisible.value = true;
 };
 
 onMounted(loadReport);
