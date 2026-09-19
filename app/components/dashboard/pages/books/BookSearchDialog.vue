@@ -143,9 +143,7 @@ const emptyMessage = computed(() =>
 
 const normalizeBook = (item) => {
   const status = String(item.status || "").toUpperCase();
-  const meta = getStatusTagMeta("product-availability", status, {
-    label: item.status || "-",
-  });
+  const meta = getStatusTagMeta("product-availability", status);
 
   return {
     id: item.id,

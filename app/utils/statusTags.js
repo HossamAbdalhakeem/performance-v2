@@ -87,8 +87,8 @@ export const getStatusTagMeta = (kind, code, fallback = {}) => {
 
   return {
     code: key || "",
-    label: fallback.label || meta?.label || key || "—",
-    severity: fallback.severity || meta?.severity || "secondary",
+    label: meta?.label || fallback.label || key || "—",
+    severity: meta?.severity || fallback.severity || "secondary",
   };
 };
 

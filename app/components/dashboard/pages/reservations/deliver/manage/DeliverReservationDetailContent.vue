@@ -1,50 +1,31 @@
 <template>
   <div v-if="reservation" class="flex flex-col gap-4">
     <div class="rounded-xl border border-slate-700 bg-slate-900/60 px-3 py-3 text-sm text-slate-300">
-      <p>
-        <span class="text-slate-400">رقم الحجز:</span>
-        {{ reservation.reservationNumber }}
-      </p>
-      <p class="mt-1">
-        <span class="text-slate-400">الطالب:</span>
-        {{ reservation.studentName }}
-      </p>
-      <p class="mt-1">
-        <span class="text-slate-400">أنشئ بواسطة:</span>
-        {{ reservation.createdByName || "—" }}
+      <DeliverReservationDetailInfoRow
+        v-for="(row, index) in infoRows"
+        :key="row.key"
+        :label="row.label"
+        :value="row.value"
+        :root-class="index === 0 ? '' : 'mt-1'"
+      >
         <span
-          v-if="reservation.createdByRoleLabel"
+          v-if="row.key === 'createdBy' && reservation.createdByRoleLabel"
           class="mr-1 rounded-md bg-slate-700/80 px-1.5 py-0.5 text-[11px] text-slate-300"
         >
           {{ reservation.createdByRoleLabel }}
         </span>
-      </p>
-      <p class="mt-1">
-        <span class="text-slate-400">المنتج:</span>
-        {{ reservation.productName }}
-      </p>
+      </DeliverReservationDetailInfoRow>
+
       <div class="mt-3 grid gap-2 rounded-lg border border-slate-700/80 bg-slate-950/40 p-3 text-sm">
-        <div class="flex items-center justify-between gap-2">
-          <span class="text-slate-400">إجمالي المبلغ</span>
-          <span class="font-semibold text-slate-100">
-            {{ formatMoney(reservation.totalAmount) }}
-          </span>
-        </div>
-        <div class="flex items-center justify-between gap-2">
-          <span class="text-slate-400">المدفوع مسبقاً</span>
-          <span class="font-semibold text-emerald-300">
-            {{ formatMoney(reservation.paidAmount) }}
-          </span>
-        </div>
-        <div class="flex items-center justify-between gap-2 border-t border-slate-700 pt-3">
-          <span class="text-base font-bold text-slate-200">المتبقي</span>
-          <span
-            class="text-2xl font-extrabold tracking-tight"
-            :class="needsRemainingPayment ? 'text-orange-300' : 'text-emerald-300'"
-          >
-            {{ formatMoney(reservation.remainingAmount) }}
-          </span>
-        </div>
+        <DeliverReservationDetailAmountRow
+          v-for="row in amountRows"
+          :key="row.key"
+          :label="row.label"
+          :value="row.value"
+          :bordered="row.bordered"
+          :label-class="row.labelClass"
+          :value-class="row.valueClass"
+        />
       </div>
     </div>
 
@@ -85,7 +66,16 @@ import PaymentFields from "~/components/shared/payment-fields/index.vue";
 import { PaymentMethod } from "~/utils/paymentMethods";
 import { formatMoney } from "~/utils/format";
 
-defineProps({
+defineOptions({ name: "DeliverReservationDetailContent" });
+
+const DeliverReservationDetailInfoRow = defineAsyncComponent(() =>
+  import("./partials/DeliverReservationDetailInfoRow.vue"),
+);
+const DeliverReservationDetailAmountRow = defineAsyncComponent(() =>
+  import("./partials/DeliverReservationDetailAmountRow.vue"),
+);
+
+const props = defineProps({
   reservation: { type: Object, default: null },
   needsRemainingPayment: { type: Boolean, default: false },
   paymentMethod: { type: String, default: PaymentMethod.CASH },
@@ -105,6 +95,50 @@ defineEmits([
 ]);
 
 const paymentFieldsRef = ref(null);
+
+const infoRows = computed(() => {
+  const r = props.reservation;
+  if (!r) return [];
+  return [
+    { key: "number", label: "رقم الحجز", value: r.reservationNumber },
+    { key: "student", label: "الطالب", value: r.studentName },
+    {
+      key: "createdBy",
+      label: "أنشئ بواسطة",
+      value: r.createdByName || "—",
+    },
+    { key: "product", label: "المنتج", value: r.productName },
+  ];
+});
+
+const amountRows = computed(() => {
+  const r = props.reservation;
+  if (!r) return [];
+  return [
+    {
+      key: "total",
+      label: "إجمالي المبلغ",
+      value: formatMoney(r.totalAmount),
+      valueClass: "font-semibold text-slate-100",
+    },
+    {
+      key: "paid",
+      label: "المدفوع مسبقاً",
+      value: formatMoney(r.paidAmount),
+      valueClass: "font-semibold text-emerald-300",
+    },
+    {
+      key: "remaining",
+      label: "المتبقي",
+      value: formatMoney(r.remainingAmount),
+      bordered: true,
+      labelClass: "text-base font-bold text-slate-200",
+      valueClass: `text-2xl font-extrabold tracking-tight ${
+        props.needsRemainingPayment ? "text-orange-300" : "text-emerald-300"
+      }`,
+    },
+  ];
+});
 
 defineExpose({
   validatePayment: () => paymentFieldsRef.value?.validate?.() ?? true,

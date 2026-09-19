@@ -2,102 +2,42 @@
   <div v-if="reservation" class="flex flex-col gap-4">
     <div class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
       <div class="grid gap-2 sm:grid-cols-2">
-        <div class="flex items-center justify-between gap-2">
-          <span class="text-slate-500">رقم الحجز</span>
-          <span class="font-semibold text-slate-900">
-            {{ reservation.reservationNumber }}
-          </span>
-        </div>
-        <div class="flex items-center justify-between gap-2">
-          <span class="text-slate-500">الطالب</span>
-          <span class="font-medium">{{ reservation.studentName }}</span>
-        </div>
-        <div class="flex items-center justify-between gap-2">
-          <span class="text-slate-500">الفرع</span>
-          <span class="font-medium">{{ reservation.branchName }}</span>
-        </div>
-        <div class="flex items-center justify-between gap-2">
-          <span class="text-slate-500">الحالة</span>
-          <span class="font-medium">{{ reservation.statusLabel }}</span>
-        </div>
+        <ExchangeReservationDetailRow
+          v-for="row in headerRows"
+          :key="row.key"
+          :label="row.label"
+          :value="row.value"
+          :label-class="row.labelClass || 'text-slate-500'"
+          :value-class="row.valueClass || 'font-medium'"
+        />
       </div>
     </div>
 
     <div class="grid gap-3 md:grid-cols-2">
-      <div class="rounded-xl border border-white/10 bg-slate-900 p-4 text-sm text-slate-200">
-        <p class="mb-3 text-xs font-semibold text-rose-300">
-          المنتج الحالي
-        </p>
-        <p class="text-base font-bold text-white">
-          {{ reservation.productName }}
-        </p>
-        <p class="mt-1 text-xs text-slate-400">
-          مقدم من أ/ {{ reservation.teacherName || "—" }}
-        </p>
-        <div class="mt-3 space-y-1.5">
-          <div class="flex items-center justify-between gap-2">
-            <span class="text-slate-400">السعر</span>
-            <span class="font-semibold text-slate-100">{{ reservation.sellingPriceLabel }}</span>
-          </div>
-          <div class="flex items-center justify-between gap-2">
-            <span class="text-slate-400">المدفوع</span>
-            <span class="font-semibold text-slate-100">{{ reservation.paidAmountLabel }}</span>
-          </div>
-          <div class="flex items-center justify-between gap-2">
-            <span class="text-slate-400">المتبقي</span>
-            <span class="font-semibold text-slate-100">{{ reservation.remainingAmountLabel }}</span>
-          </div>
-        </div>
-      </div>
+      <ExchangeReservationProductCard
+        title="المنتج الحالي"
+        title-class="text-rose-300"
+        :name="reservation.productName"
+        :teacher-name="reservation.teacherName"
+        :rows="currentProductRows"
+      />
 
-      <div
-        class="rounded-xl border p-4 text-sm"
-        :class="
+      <ExchangeReservationProductCard
+        title="المنتج الجديد"
+        :title-class="
+          selectedNewProduct ? 'text-emerald-300' : 'text-slate-400'
+        "
+        :card-class="
           selectedNewProduct
             ? 'border-white/10 bg-slate-900 text-slate-200'
             : 'border-dashed border-slate-600 bg-slate-900/70 text-slate-300'
         "
-      >
-        <p
-          class="mb-3 text-xs font-semibold"
-          :class="selectedNewProduct ? 'text-emerald-300' : 'text-slate-400'"
-        >
-          المنتج الجديد
-        </p>
-        <template v-if="selectedNewProduct">
-          <p class="text-base font-bold text-white">
-            {{ selectedNewProduct.name }}
-          </p>
-          <p class="mt-1 text-xs text-slate-400">
-            مقدم من أ/ {{ selectedNewProduct.teacherName || "—" }}
-          </p>
-          <div class="mt-3 space-y-1.5">
-            <div class="flex items-center justify-between gap-2">
-              <span class="text-slate-400">التوفر</span>
-              <span
-                class="rounded-full px-2 py-0.5 text-xs font-semibold"
-                :class="
-                  selectedNewProduct.isAvailable
-                    ? 'bg-emerald-500/20 text-emerald-300'
-                    : 'bg-amber-500/20 text-amber-300'
-                "
-              >
-                {{ selectedNewProduct.availabilityLabel }}
-              </span>
-            </div>
-            <div class="flex items-center justify-between gap-2">
-              <span class="text-slate-400">السعر</span>
-              <span class="font-semibold text-slate-100">
-                {{ selectedNewProduct.priceKindLabel }}
-                {{ selectedNewProduct.priceLabel || "—" }}
-              </span>
-            </div>
-          </div>
-        </template>
-        <p v-else class="text-sm text-slate-400">
-          اختر المنتج البديل من قائمة منتجات الفرع المتاحة للحجز
-        </p>
-      </div>
+        :has-product="Boolean(selectedNewProduct)"
+        :name="selectedNewProduct?.name"
+        :teacher-name="selectedNewProduct?.teacherName"
+        :rows="newProductRows"
+        empty-message="اختر المنتج البديل من قائمة منتجات الفرع المتاحة للحجز"
+      />
     </div>
 
     <div
@@ -109,26 +49,15 @@
         {{ priceComparison.title }}
       </p>
       <div class="mt-2 grid gap-1 text-slate-300">
-        <div class="flex items-center justify-between gap-2">
-          <span>المدفوع على الحجز</span>
-          <span class="font-medium text-slate-100">{{
-            formatMoney(priceComparison.oldTotal)
-          }}</span>
-        </div>
-        <div class="flex items-center justify-between gap-2">
-          <span>سعر المنتج الجديد</span>
-          <span class="font-medium text-slate-100">{{
-            formatMoney(priceComparison.newTotal)
-          }}</span>
-        </div>
-        <div
-          class="flex items-center justify-between gap-2 border-t border-white/10 pt-1"
-        >
-          <span>{{ priceComparison.diffLabel }}</span>
-          <span class="font-bold" :class="priceComparison.diffClass">
-            {{ formatMoney(Math.abs(priceComparison.difference)) }}
-          </span>
-        </div>
+        <ExchangeReservationDetailRow
+          v-for="row in comparisonRows"
+          :key="row.key"
+          :label="row.label"
+          :value="row.value"
+          :bordered="row.bordered"
+          :label-class="row.labelClass || 'text-slate-300'"
+          :value-class="row.valueClass"
+        />
       </div>
     </div>
 
@@ -181,7 +110,16 @@ import ProductSelect from "~/components/shared/product-select/index.vue";
 import { PaymentMethod } from "~/utils/paymentMethods";
 import { formatMoney } from "~/utils/format";
 
-defineProps({
+defineOptions({ name: "ExchangeReservationDetailContent" });
+
+const ExchangeReservationDetailRow = defineAsyncComponent(() =>
+  import("./partials/ExchangeReservationDetailRow.vue"),
+);
+const ExchangeReservationProductCard = defineAsyncComponent(() =>
+  import("./partials/ExchangeReservationProductCard.vue"),
+);
+
+const props = defineProps({
   reservation: { type: Object, default: null },
   newProductId: { type: [String, Number], default: null },
   selectedNewProduct: { type: Object, default: null },
@@ -201,4 +139,77 @@ defineEmits([
   "products-loaded",
   "products-loading",
 ]);
+
+const headerRows = computed(() => {
+  const r = props.reservation;
+  if (!r) return [];
+  return [
+    {
+      key: "number",
+      label: "رقم الحجز",
+      value: r.reservationNumber,
+      valueClass: "font-semibold text-slate-900",
+    },
+    { key: "student", label: "الطالب", value: r.studentName },
+    { key: "branch", label: "الفرع", value: r.branchName },
+    { key: "status", label: "الحالة", value: r.statusLabel },
+  ];
+});
+
+const currentProductRows = computed(() => {
+  const r = props.reservation;
+  if (!r) return [];
+  return [
+    { key: "price", label: "السعر", value: r.sellingPriceLabel },
+    { key: "paid", label: "المدفوع", value: r.paidAmountLabel },
+    { key: "remaining", label: "المتبقي", value: r.remainingAmountLabel },
+  ];
+});
+
+const newProductRows = computed(() => {
+  const p = props.selectedNewProduct;
+  if (!p) return [];
+  return [
+    {
+      key: "availability",
+      label: "التوفر",
+      value: p.availabilityLabel,
+      slot: "availability",
+      badgeClass: p.isAvailable
+        ? "bg-emerald-500/20 text-emerald-300"
+        : "bg-amber-500/20 text-amber-300",
+    },
+    {
+      key: "price",
+      label: "السعر",
+      value: `${p.priceKindLabel} ${p.priceLabel || "—"}`,
+    },
+  ];
+});
+
+const comparisonRows = computed(() => {
+  const c = props.priceComparison;
+  if (!c) return [];
+  return [
+    {
+      key: "old",
+      label: "المدفوع على الحجز",
+      value: formatMoney(c.oldTotal),
+      valueClass: "font-medium text-slate-100",
+    },
+    {
+      key: "new",
+      label: "سعر المنتج الجديد",
+      value: formatMoney(c.newTotal),
+      valueClass: "font-medium text-slate-100",
+    },
+    {
+      key: "diff",
+      label: c.diffLabel,
+      value: formatMoney(Math.abs(c.difference)),
+      bordered: true,
+      valueClass: `font-bold ${c.diffClass}`,
+    },
+  ];
+});
 </script>
