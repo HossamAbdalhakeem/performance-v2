@@ -71,6 +71,7 @@
     </div>
 
     <BookSearchDialog
+      v-if="showSearchDialog"
       v-model:visible="showSearchDialog"
       @select="onProductSelect"
     />
@@ -80,8 +81,11 @@
 <script setup>
 import Button from "primevue/button";
 import BookReservationPage from "~/components/dashboard/pages/reservations/BookReservationPage.vue";
-import BookSearchDialog from "~/components/dashboard/pages/books/BookSearchDialog.vue";
 import { formatMoney } from "~/utils/format";
+
+const BookSearchDialog = defineAsyncComponent(() =>
+  import("~/components/dashboard/pages/books/BookSearchDialog.vue"),
+);
 
 const route = useRoute();
 const showSearchDialog = ref(false);

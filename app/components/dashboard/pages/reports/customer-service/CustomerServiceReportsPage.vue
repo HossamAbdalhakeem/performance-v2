@@ -1,12 +1,14 @@
 <template>
   <DailyReportShell
-    title="تقرير اليوم"
-    subtitle="نظرة سريعة على نشاط الفرع — اضغط أي بطاقة لعرض التفاصيل"
-    hero-title="صافي المدفوعات"
+    title="تقرير خدمة العملاء"
+    subtitle="نشاطك عبر كل الفروع — اضغط أي بطاقة لعرض التفاصيل"
+    hero-title="مدفوعات حجوزاتك"
+    payment-total-label="إجمالي المحصل"
+    activity-title="توزيع حجوزاتك ونشاطك"
     :loading="loading"
     :sections-loading="sectionsLoading"
-    :activity-skeleton-tiles="9"
-    :payments-total="summary.paymentsTotal"
+    :activity-skeleton-tiles="5"
+    :payments-total="summary.paymentsTotal ?? 0"
     :refunds-total="Number(summary.refundsTotal || 0)"
     :hero-chips="heroChips"
     :payment-method-items="paymentMethodItems"
@@ -16,7 +18,7 @@
     :detail-loading="detailLoading"
     :active-detail-key="activeDetailKey"
     :active-detail-rows="activeDetailRows"
-    :is-customer-service="false"
+    :is-customer-service="true"
     @update:detail-visible="detailVisible = $event"
     @open-detail="openDetail"
     @close-detail="closeDetail"
@@ -33,42 +35,25 @@
 
 <script setup>
 import {
-  buildBranchActivityMetrics,
-  buildBranchHeroChips,
+  buildCustomerServiceActivityMetrics,
+  buildCustomerServiceHeroChips,
 } from "~/utils/dailyReportMetrics";
 import { reportService } from "~/services/reportService";
 import { useAppToast } from "~/composables/useAppToast";
-import DailyReportFilters from "~/components/dashboard/pages/reports/DailyReportFilters.vue";
+import DailyReportFilters from "~/components/dashboard/pages/reports/daily/DailyReportFilters/index.vue";
 
-defineOptions({ name: "BranchEmployeeReportsPage" });
+defineOptions({ name: "CustomerServiceReportsPage" });
 
 const DailyReportShell = defineAsyncComponent(() =>
-  import("~/components/dashboard/pages/reports/daily/DailyReportShell.vue"),
+  import("~/components/dashboard/pages/reports/daily/DailyReportShell/index.vue"),
 );
 
-const SECTION_KEYS = [
-  "sales",
-  "reservations",
-  "delivered",
-  "cancelled",
-  "received",
-  "stockOut",
-  "allMovements",
-  "returns",
-  "exchanges",
-];
-
+const SECTION_KEYS = ["reservations", "delivered", "cancelled"];
 const DETAIL_KEYS = [
-  "sales",
   "reservations",
-  "undelivered",
   "delivered",
   "cancelled",
-  "received",
-  "stockOut",
-  "allMovements",
-  "returns",
-  "exchanges",
+  "undelivered",
 ];
 
 const { showError } = useAppToast();
@@ -94,25 +79,19 @@ const activeDetailRows = computed(() => {
   return detailCache.value[activeDetailKey.value] || [];
 });
 
-const heroChips = computed(() => buildBranchHeroChips(summary.value));
+const heroChips = computed(() =>
+  buildCustomerServiceHeroChips(summary.value),
+);
 const activityMetrics = computed(() =>
-  buildBranchActivityMetrics(summary.value),
+  buildCustomerServiceActivityMetrics(summary.value),
 );
 
 const extractRows = (payload) => {
   if (!payload) return [];
   if (Array.isArray(payload.rows)) return payload.rows;
-  if (Array.isArray(payload.stockMovements)) return payload.stockMovements;
+  if (Array.isArray(payload.reservations)) return payload.reservations;
   return [];
 };
-
-const sumQuantity = (rows) =>
-  rows.reduce((sum, row) => {
-    const qty = Number(
-      row.quantityChange ?? row.quantity ?? row.physicalQuantityChange ?? 0,
-    );
-    return sum + Math.abs(qty);
-  }, 0);
 
 const isUndeliveredStatus = (status) => {
   const value = String(status || "").toUpperCase();
@@ -123,22 +102,17 @@ const buildActivitySummary = (sectionsMap) => {
   const reservationRows = extractRows(sectionsMap.reservations);
   const deliveredRows = extractRows(sectionsMap.delivered);
   const cancelledRows = extractRows(sectionsMap.cancelled);
-  const receivedRows = extractRows(sectionsMap.received);
-  const stockOutRows = extractRows(sectionsMap.stockOut);
 
   return {
-    sales: extractRows(sectionsMap.sales).length,
     reservations: reservationRows.length,
     deliveredReservations: deliveredRows.length,
     cancelledReservations: cancelledRows.length,
     undeliveredReservations: reservationRows.filter((row) =>
       isUndeliveredStatus(row.status || row.statusKey),
     ).length,
-    receivedQty: sumQuantity(receivedRows) || receivedRows.length,
-    stockOutQty: sumQuantity(stockOutRows) || stockOutRows.length,
-    stockMovements: extractRows(sectionsMap.allMovements).length,
-    returns: extractRows(sectionsMap.returns).length,
-    exchanges: extractRows(sectionsMap.exchanges).length,
+    readyReservations: reservationRows.filter(
+      (row) => String(row.status || "").toUpperCase() === "READY",
+    ).length,
   };
 };
 
@@ -170,7 +144,7 @@ const openDetail = async (key) => {
   detailLoading.value = true;
   try {
     const section = apiSectionForDetailKey(key);
-    const payload = await reportService.getBranchSection(
+    const payload = await reportService.getCustomerServiceSection(
       section,
       filterParams.value,
     );
@@ -196,7 +170,7 @@ const loadSectionsInBackground = async (params, generation) => {
   try {
     const sectionResults = await Promise.allSettled(
       SECTION_KEYS.map((section) =>
-        reportService.getBranchSection(section, params),
+        reportService.getCustomerServiceSection(section, params),
       ),
     );
 
@@ -240,7 +214,8 @@ const loadReport = async () => {
   const params = filterParams.value;
 
   try {
-    const paymentsPayload = await reportService.getBranchSummary(params);
+    const paymentsPayload =
+      await reportService.getCustomerServiceSummary(params);
     if (generation !== loadGeneration) return;
 
     summary.value = { ...(paymentsPayload?.summary || {}) };

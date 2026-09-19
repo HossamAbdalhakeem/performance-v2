@@ -20,7 +20,7 @@
 </template>
 
 <script setup>
-import DailyReportKpiCard from "./DailyReportKpiCard.vue";
+import DailyReportKpiCard from "./partials/DailyReportKpiCard.vue";
 
 defineOptions({ name: "DailyReportKpiGrid" });
 

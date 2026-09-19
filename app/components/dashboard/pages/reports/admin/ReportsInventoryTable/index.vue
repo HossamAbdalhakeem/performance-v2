@@ -18,6 +18,8 @@
 <script setup>
 import Skeleton from "primevue/skeleton";
 import { PRODUCT_TYPE_LABELS, ProductType } from "~/enums/productType";
+import { reportService } from "~/services/reportService";
+import { useAdminReportSection } from "~/composables/useAdminReportSection";
 
 defineOptions({ name: "ReportsInventoryTable" });
 
@@ -26,12 +28,20 @@ const AppDataTable = defineAsyncComponent(() =>
 );
 
 const props = defineProps({
-  byType: { type: Array, default: () => [] },
-  books: { type: Object, default: null },
-  cards: { type: Object, default: null },
-  booklets: { type: Object, default: null },
-  loading: { type: Boolean, default: false },
+  params: { type: Object, default: () => ({}) },
+  reloadKey: { type: Number, default: 0 },
 });
+
+const emit = defineEmits(["loading"]);
+
+const { loading, data } = useAdminReportSection(
+  (params) => reportService.getAdminInventory(params),
+  {
+    params: toRef(props, "params"),
+    reloadKey: toRef(props, "reloadKey"),
+    emit,
+  },
+);
 
 const columns = [
   { field: "type", header: "النوع" },
@@ -43,8 +53,9 @@ const columns = [
 const emptyBucket = () => ({ total: 0, reserved: 0, available: 0 });
 
 const rows = computed(() => {
-  if (Array.isArray(props.byType) && props.byType.length) {
-    return props.byType.map((row) => ({
+  const inventory = data.value || {};
+  if (Array.isArray(inventory.byType) && inventory.byType.length) {
+    return inventory.byType.map((row) => ({
       type: PRODUCT_TYPE_LABELS[row.type] || row.type || "-",
       total: row.total ?? 0,
       reserved: row.reserved ?? 0,
@@ -52,9 +63,9 @@ const rows = computed(() => {
     }));
   }
 
-  const books = props.books || emptyBucket();
-  const cards = props.cards || emptyBucket();
-  const booklets = props.booklets || emptyBucket();
+  const books = inventory.books || emptyBucket();
+  const cards = inventory.cards || emptyBucket();
+  const booklets = inventory.booklets || emptyBucket();
 
   return [
     {

@@ -53,19 +53,19 @@
 defineOptions({ name: "DailyReportShell" });
 
 const DailyReportSkeleton = defineAsyncComponent(() =>
-  import("~/components/dashboard/pages/reports/daily/DailyReportSkeleton.vue"),
+  import("./partials/DailyReportSkeleton.vue"),
 );
 const DailyReportHero = defineAsyncComponent(() =>
-  import("~/components/dashboard/pages/reports/daily/DailyReportHero.vue"),
+  import("./partials/DailyReportHero.vue"),
 );
 const DailyReportActivitySection = defineAsyncComponent(() =>
-  import("~/components/dashboard/pages/reports/daily/DailyReportActivitySection.vue"),
+  import("~/components/dashboard/pages/reports/daily/DailyReportActivitySection/index.vue"),
 );
 const PaymentMethodsReport = defineAsyncComponent(() =>
   import("~/components/shared/payment-methods-report/index.vue"),
 );
 const DailyReportDetailDialog = defineAsyncComponent(() =>
-  import("~/components/dashboard/pages/reports/daily/DailyReportDetailDialog.vue"),
+  import("./partials/DailyReportDetailDialog.vue"),
 );
 
 const props = defineProps({

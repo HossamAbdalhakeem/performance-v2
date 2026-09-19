@@ -1,18 +1,17 @@
-import { useLocalStorage } from "~/composables/useLocalStorage";
+import { useAcademicYearStore } from "~/store/academicYear";
 
 const STORAGE_KEY = "academicYearId";
 
-/** Current academic year id from localStorage (used by apiFetch + forms). */
+/** Current academic year id (Pinia store, synced to localStorage). */
 export const useAcademicYearId = () => {
-  const storage = useLocalStorage(STORAGE_KEY);
+  const store = useAcademicYearStore();
 
-  const academicYearId = computed(() => {
-    const value = storage.value;
-    return value ? String(value) : null;
-  });
+  const academicYearId = computed(() =>
+    store.selectedId ? String(store.selectedId) : null,
+  );
 
   const setAcademicYearId = (id) => {
-    storage.value = id ? String(id) : null;
+    store.setSelectedId(id);
   };
 
   return {

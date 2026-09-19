@@ -94,9 +94,10 @@
 
 <script setup>
 import Dialog from "primevue/dialog";
-import { academicYearService } from "~/services/academicYearService";
+import { storeToRefs } from "pinia";
 import { useAppToast } from "~/composables/useAppToast";
 import { useAuthStore } from "~/store/auth.js";
+import { useAcademicYearStore } from "~/store/academicYear.js";
 
 const AcademicYearForm = defineAsyncComponent(() =>
   import("~/components/dashboard/AcademicYearForm.vue"),
@@ -104,9 +105,10 @@ const AcademicYearForm = defineAsyncComponent(() =>
 
 defineOptions({ name: "AcademicYearSwitcher" });
 
-const STORAGE_KEY = "academicYearId";
-const yearStorage = useLocalStorage(STORAGE_KEY);
 const authStore = useAuthStore();
+const academicYearStore = useAcademicYearStore();
+const { years, loading, selectedId, selectedYear, activeId } =
+  storeToRefs(academicYearStore);
 
 const { showSuccess, showError } = useAppToast();
 
@@ -114,18 +116,6 @@ const open = ref(false);
 const rootRef = ref(null);
 const dialogVisible = ref(false);
 const editingItem = ref(null);
-const loading = ref(false);
-const years = ref([]);
-const selectedId = ref(yearStorage.value || null);
-
-const selectedYear = computed(
-  () => years.value.find((y) => String(y.id) === String(selectedId.value)) || null,
-);
-
-const activeId = computed(() => {
-  const active = years.value.find((y) => String(y.status).toUpperCase() === "ACTIVE");
-  return active?.id ? String(active.id) : null;
-});
 
 const selectedLabel = computed(
   () =>
@@ -140,40 +130,6 @@ const dialogTitle = computed(() =>
 const isActiveYear = (year) =>
   activeId.value && String(year.id) === String(activeId.value);
 
-const writeStorage = (id) => {
-  yearStorage.value = id ? String(id) : null;
-  selectedId.value = yearStorage.value;
-};
-
-const loadYears = async () => {
-  if (!authStore.isLoggedIn) return;
-
-  loading.value = true;
-  try {
-    years.value = await academicYearService.getAcademicYears();
-    const storedId = yearStorage.value ? String(yearStorage.value) : null;
-    const storedExists = storedId
-      ? years.value.some((y) => String(y.id) === storedId)
-      : false;
-
-    if (storedExists) {
-      selectedId.value = storedId;
-      return;
-    }
-
-    // Persist ACTIVE (or first year) so apiFetch can scope all lists
-    const fallbackId =
-      activeId.value || (years.value[0]?.id ? String(years.value[0].id) : null);
-    if (fallbackId) {
-      writeStorage(fallbackId);
-    } else {
-      selectedId.value = null;
-    }
-  } finally {
-    loading.value = false;
-  }
-};
-
 const toggle = () => {
   open.value = !open.value;
 };
@@ -183,10 +139,9 @@ const onSelect = (year) => {
   const nextId = year?.id ? String(year.id) : null;
   if (!nextId) return;
 
-  const alreadySaved = yearStorage.value && String(yearStorage.value) === nextId;
-  if (alreadySaved) return;
+  if (selectedId.value && String(selectedId.value) === nextId) return;
 
-  writeStorage(nextId);
+  academicYearStore.setSelectedId(nextId);
   if (import.meta.client) window.location.reload();
 };
 
@@ -207,7 +162,7 @@ const handleSaved = async () => {
   editingItem.value = null;
   showSuccess("تم حفظ العام الدراسي بنجاح.");
   try {
-    await loadYears();
+    await academicYearStore.fetchYears({ force: true });
   } catch (error) {
     showError(error?.message || "تعذر تحديث قائمة الأعوام الدراسية.");
   }
@@ -220,8 +175,9 @@ const onDocumentClick = (event) => {
 
 onMounted(async () => {
   document.addEventListener("click", onDocumentClick);
+  if (!authStore.isLoggedIn) return;
   try {
-    await loadYears();
+    await academicYearStore.fetchYears();
   } catch (error) {
     showError(error?.message || "تعذر تحميل الأعوام الدراسية.");
   }

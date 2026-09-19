@@ -1,6 +1,7 @@
 import { defineStore } from "pinia";
 import { authService } from "~/services/authService";
 import { useLocalStorage } from "~/composables/useLocalStorage";
+import { useAcademicYearStore } from "~/store/academicYear.js";
 
 export const useAuthStore = defineStore("authStore", {
   state: () => ({
@@ -28,6 +29,12 @@ export const useAuthStore = defineStore("authStore", {
         });
 
         this.setUser(response.user, response.token);
+
+        const academicYearStore = useAcademicYearStore();
+        await academicYearStore.fetchYears({ force: true }).catch((error) => {
+          console.error("Failed to load academic years:", error);
+        });
+
         await navigateTo("/");
         return response;
       } finally {
@@ -78,6 +85,12 @@ export const useAuthStore = defineStore("authStore", {
       useLocalStorage("dashboard_role").value = null;
       useLocalStorage("dashboard_user").value = null;
       useLocalStorage("academicYearId").value = null;
+
+      try {
+        useAcademicYearStore().clear();
+      } catch {
+        // Pinia may not be ready during very early boot
+      }
     },
     async logout() {
       try {
@@ -97,7 +110,12 @@ export const useAuthStore = defineStore("authStore", {
       const token = useLocalStorage("token");
 
       if (!token.value || !dashboardRole.value || !dashboardUser.value) {
-        if (this.loggedIn || this.token || dashboardUser.value || dashboardRole.value) {
+        if (
+          this.loggedIn ||
+          this.token ||
+          dashboardUser.value ||
+          dashboardRole.value
+        ) {
           this.removeUser();
         }
         return;

@@ -45,54 +45,12 @@
         </div>
       </div>
       <div class="space-y-4">
-        <div
+        <DailyReportActivityLegendGroup
           v-for="group in legendGroups"
           :key="group.key"
-          class="space-y-2"
-        >
-          <p class="text-xs font-semibold tracking-wide text-slate-400">
-            {{ group.label }}
-          </p>
-          <div
-            class="grid gap-2.5"
-            :class="
-              group.items.length === 1
-                ? 'sm:grid-cols-1'
-                : group.items.length === 2
-                  ? 'sm:grid-cols-2'
-                  : 'sm:grid-cols-2 xl:grid-cols-3'
-            "
-          >
-            <button
-              v-for="item in group.items"
-              :key="item.key"
-              type="button"
-              class="flex w-full items-center justify-between gap-3 rounded-xl border border-white/5 bg-slate-950/40 px-3 py-2.5 text-right transition"
-              :disabled="!isClickable(item)"
-              :class="
-                isClickable(item)
-                  ? 'cursor-pointer hover:border-white/20 hover:bg-slate-950/70'
-                  : 'cursor-default opacity-80'
-              "
-              @click="isClickable(item) && $emit('open-detail', item.sectionKey)"
-            >
-              <div class="flex min-w-0 items-center gap-2">
-                <span
-                  class="h-2.5 w-2.5 shrink-0 rounded-full"
-                  :style="{ backgroundColor: item.color }"
-                />
-                <span class="truncate text-sm text-slate-300">{{
-                  item.label
-                }}</span>
-              </div>
-              <div class="flex shrink-0 items-baseline gap-2">
-                <span class="text-sm font-bold text-white">{{
-                  item.value
-                }}</span>
-              </div>
-            </button>
-          </div>
-        </div>
+          :group="group"
+          @open-detail="$emit('open-detail', $event)"
+        />
       </div>
     </div>
   </div>
@@ -110,6 +68,10 @@ import {
 ChartJS.register(ArcElement, Tooltip, Legend);
 
 defineOptions({ name: "DailyReportActivitySection" });
+
+const DailyReportActivityLegendGroup = defineAsyncComponent(() =>
+  import("./partials/DailyReportActivityLegendGroup.vue"),
+);
 
 const SECTION_MAP = {
   sales: "sales",
@@ -144,9 +106,6 @@ const props = defineProps({
 });
 
 defineEmits(["open-detail"]);
-
-const isClickable = (item) =>
-  Boolean(item?.sectionKey) && Number(item?.value || 0) > 0;
 
 const activityByKey = computed(() => {
   const map = {};

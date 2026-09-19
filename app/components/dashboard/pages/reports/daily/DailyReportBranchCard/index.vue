@@ -48,26 +48,13 @@
 
     <!-- Reservation status -->
     <div class="mt-3 grid grid-cols-3 gap-2">
-      <div class="rounded-xl bg-emerald-500/[0.06] px-2.5 py-2.5">
-        <p class="text-[11px] text-slate-500">مسلّمة</p>
-        <p class="mt-1 text-lg font-bold text-emerald-400">
-          {{ Number(branch.delivered || 0) }}
-        </p>
-      </div>
-
-      <div class="rounded-xl bg-amber-500/[0.06] px-2.5 py-2.5">
-        <p class="text-[11px] text-slate-500">جاهزة</p>
-        <p class="mt-1 text-lg font-bold text-amber-400">
-          {{ Number(branch.ready || 0) }}
-        </p>
-      </div>
-
-      <div class="rounded-xl bg-rose-500/[0.06] px-2.5 py-2.5">
-        <p class="text-[11px] text-slate-500">ملغاة</p>
-        <p class="mt-1 text-lg font-bold text-rose-400">
-          {{ Number(branch.cancelled || 0) }}
-        </p>
-      </div>
+      <DailyReportBranchStatCard
+        v-for="stat in statusStats"
+        :key="stat.key"
+        :label="stat.label"
+        :value="stat.value"
+        :tone="stat.tone"
+      />
     </div>
 
     <!-- Secondary info -->
@@ -117,9 +104,34 @@ import { formatMoney } from "~/utils/format";
 
 defineOptions({ name: "DailyReportBranchCard" });
 
+const DailyReportBranchStatCard = defineAsyncComponent(() =>
+  import("./partials/DailyReportBranchStatCard.vue"),
+);
+
 const props = defineProps({
   branch: { type: Object, required: true },
 });
+
+const statusStats = computed(() => [
+  {
+    key: "delivered",
+    label: "مسلّمة",
+    value: props.branch?.delivered ?? 0,
+    tone: "emerald",
+  },
+  {
+    key: "ready",
+    label: "جاهزة",
+    value: props.branch?.ready ?? 0,
+    tone: "amber",
+  },
+  {
+    key: "cancelled",
+    label: "ملغاة",
+    value: props.branch?.cancelled ?? 0,
+    tone: "rose",
+  },
+]);
 
 const netPayments = computed(
   () =>

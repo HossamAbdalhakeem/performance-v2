@@ -26,9 +26,10 @@
 
 <script setup>
 import Button from "primevue/button";
+import { storeToRefs } from "pinia";
 import PeriodDateFilter from "~/components/shared/period-date-filter/index.vue";
-import { academicYearService } from "~/services/academicYearService";
 import { useAcademicYearId } from "~/composables/useAcademicYearId";
+import { useAcademicYearStore } from "~/store/academicYear.js";
 
 defineOptions({ name: "DailyReportFilters" });
 
@@ -41,6 +42,8 @@ defineProps({
 const emit = defineEmits(["change", "refresh"]);
 
 const { academicYearId } = useAcademicYearId();
+const academicYearStore = useAcademicYearStore();
+const { years: academicYears } = storeToRefs(academicYearStore);
 
 const toDateInput = (value) => {
   if (!value) return null;
@@ -56,7 +59,6 @@ const toDateInput = (value) => {
 
 const todayInputValue = () => toDateInput(new Date()) || "2026-01-01";
 
-const academicYears = ref([]);
 const from = ref(todayInputValue());
 const to = ref(todayInputValue());
 const ready = ref(false);
@@ -107,14 +109,6 @@ const onPeriodChange = ({ from: nextFrom, to: nextTo } = {}) => {
   emitChange();
 };
 
-const loadAcademicYears = async () => {
-  try {
-    academicYears.value = await academicYearService.getAcademicYears();
-  } catch {
-    academicYears.value = [];
-  }
-};
-
 watch(academicYearId, () => {
   if (!ready.value) return;
   if (academicYearRange.value) {
@@ -125,7 +119,7 @@ watch(academicYearId, () => {
 });
 
 onMounted(async () => {
-  await loadAcademicYears();
+  await academicYearStore.fetchYears().catch(() => {});
   ready.value = true;
   emitChange();
 });

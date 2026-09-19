@@ -84,7 +84,9 @@
       <div
         class="absolute bottom-0 left-0 right-0 space-y-3 border-t border-white/10 bg-[#0b1220] p-3 sm:p-4"
       >
+        <!-- Hidden for now
         <AcademicYearSwitcher />
+        -->
         <button
           type="button"
           class="flex w-full items-center justify-between rounded-xl bg-red-500/10 px-3 py-3 text-sm font-medium text-red-200 hover:bg-red-500/20"
@@ -214,9 +216,10 @@ import { useAuthStore } from "~/store/auth.js";
 const NotificationBell = defineAsyncComponent(() =>
   import("~/components/dashboard/NotificationBell.vue"),
 );
-const AcademicYearSwitcher = defineAsyncComponent(() =>
-  import("~/components/dashboard/AcademicYearSwitcher.vue"),
-);
+// Hidden for now with the sidebar switcher
+// const AcademicYearSwitcher = defineAsyncComponent(() =>
+//   import("~/components/dashboard/AcademicYearSwitcher.vue"),
+// );
 
 const props = defineProps({
   role: { type: String, default: "admin" },
