@@ -6,12 +6,21 @@
         icon="pi pi-search"
         severity="info"
         outlined
+        :disabled="hydratingProduct"
         @click="showSearchDialog = true"
       />
     </div>
 
     <div
-      v-if="selectedProduct"
+      v-if="hydratingProduct"
+      class="flex items-center justify-center gap-3 rounded-2xl border border-sky-400/20 bg-sky-500/10 px-4 py-6 text-sky-200"
+    >
+      <i class="pi pi-spin pi-spinner text-xl" />
+      <span class="text-sm font-medium">جاري تحميل المنتج في نموذج الحجز…</span>
+    </div>
+
+    <div
+      v-else-if="selectedProduct"
       class="rounded-2xl border border-sky-400/30 bg-sky-500/10 px-4 py-3 text-right text-slate-100"
     >
       <p class="mb-2 text-sm font-semibold text-sky-200">المنتج المحدد</p>
@@ -43,13 +52,23 @@
       </div>
     </div>
 
-    <BookReservationPage
-      title="احجز كتاب"
-      show-header
-      show-receipt
-      :initial-product="selectedProductId"
-      :initial-selection="selectedProduct"
-    />
+    <div class="relative">
+      <div
+        v-if="hydratingProduct"
+        class="absolute inset-0 z-10 flex min-h-[12rem] items-center justify-center rounded-xl bg-slate-950/40"
+      >
+        <i class="pi pi-spin pi-spinner text-3xl text-sky-300" />
+      </div>
+
+      <BookReservationPage
+        title="احجز كتاب"
+        show-header
+        show-receipt
+        :initial-product="selectedProductId"
+        :initial-selection="selectedProduct"
+        @hydrating="onFormHydrating"
+      />
+    </div>
 
     <BookSearchDialog
       v-model:visible="showSearchDialog"
@@ -67,6 +86,7 @@ import { formatMoney } from "~/utils/format";
 const route = useRoute();
 const showSearchDialog = ref(false);
 const selectedProduct = ref(null);
+const hydratingProduct = ref(false);
 
 const selectedProductId = computed(
   () => selectedProduct.value?.productId || route.query.book || "",
@@ -74,5 +94,12 @@ const selectedProductId = computed(
 
 const onProductSelect = (selection) => {
   selectedProduct.value = selection || null;
+  if (selection?.productId) {
+    hydratingProduct.value = true;
+  }
+};
+
+const onFormHydrating = (value) => {
+  hydratingProduct.value = Boolean(value);
 };
 </script>

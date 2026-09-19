@@ -16,6 +16,7 @@
     </template>
     <template #actions="{ data }">
       <Button
+        v-if="canEdit(data)"
         label="تعديل"
         icon="pi pi-pencil"
         text
@@ -31,6 +32,7 @@
 import Button from "primevue/button";
 import AppDataTable from "~/components/shared/app-data-table/index.vue";
 import AppStatusTag from "~/components/shared/app-status-tag/index.vue";
+import { isAdminRole } from "~/enums/userRole";
 
 defineProps({
   users: { type: Array, default: () => [] },
@@ -38,6 +40,8 @@ defineProps({
 });
 
 defineEmits(["edit"]);
+
+const canEdit = (user) => !isAdminRole(user?.role);
 
 const columns = [
   { field: "fullName", header: "الاسم" },

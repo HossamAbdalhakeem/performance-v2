@@ -36,7 +36,7 @@ import UsersTable from "~/components/dashboard/pages/users/UsersTable.vue";
 import { userService } from "~/services/userService";
 import { branchService } from "~/services/branchService";
 import { useAppToast } from "~/composables/useAppToast";
-import { getUserRoleLabel } from "~/enums/userRole";
+import { getUserRoleLabel, isAdminRole } from "~/enums/userRole";
 import { getStatusTagLabel } from "~/utils/statusTags";
 
 const UserForm = defineAsyncComponent(() =>
@@ -85,13 +85,16 @@ const loadData = async () => {
       branchList.map((branch) => [branch.id, branch.name]),
     );
 
-    users.value = list.map((user) => {
-      const normalized = normalizeUser(user);
-      return {
-        ...normalized,
-        branchName: branchNameById[user.branchId] || normalized.branchName || "-",
-      };
-    });
+    users.value = list
+      .filter((user) => !isAdminRole(user.role))
+      .map((user) => {
+        const normalized = normalizeUser(user);
+        return {
+          ...normalized,
+          branchName:
+            branchNameById[user.branchId] || normalized.branchName || "-",
+        };
+      });
   } catch (error) {
     showError(error?.message || "تعذر تحميل المستخدمين.");
     users.value = [];

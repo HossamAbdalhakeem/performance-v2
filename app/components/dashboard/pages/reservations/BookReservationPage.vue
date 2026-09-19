@@ -12,6 +12,7 @@
           :initial-selection="initialSelection"
           :role="bookingRole"
           :submit-fn="submitReservation"
+          @hydrating="$emit('hydrating', $event)"
         >
           <template v-if="$slots['header-actions']" #header-actions>
             <slot name="header-actions" />
@@ -37,6 +38,8 @@ defineProps({
   initialProduct: { type: [String, Number], default: "" },
   initialSelection: { type: Object, default: null },
 });
+
+defineEmits(["hydrating"]);
 
 const { bookingRole, isCustomerService } = useBookingRole();
 

@@ -1,5 +1,21 @@
 <template>
-  <div class="space-y-4" dir="rtl">
+  <div class="relative space-y-4" dir="rtl">
+    <div
+      v-if="hydratingInitial"
+      class="absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 rounded-xl bg-slate-950/55 backdrop-blur-[1px]"
+    >
+      <i
+        class="pi pi-spin pi-spinner text-3xl"
+        :class="isCustomerService ? 'text-sky-300' : 'text-sky-600'"
+      />
+      <p
+        class="text-sm font-medium"
+        :class="isCustomerService ? 'text-slate-200' : 'text-slate-700'"
+      >
+        جاري تحميل بيانات المنتج…
+      </p>
+    </div>
+
     <div
       v-if="showHeader"
       class="flex flex-wrap items-center justify-between gap-3"
@@ -166,13 +182,22 @@
 
         <div
           v-if="selectedProductOption"
-          class="md:col-span-2 rounded-2xl border border-amber-400/40 bg-gradient-to-l from-amber-500/20 via-orange-500/10 to-slate-900 px-4 py-5 text-center sm:px-6 sm:py-8"
+          class="md:col-span-2 rounded-2xl px-4 py-5 text-center sm:px-6 sm:py-8"
+          :class="
+            isCustomerService
+              ? 'border border-sky-400/25 bg-black'
+              : 'border border-slate-700 bg-black'
+          "
         >
-          <p class="mb-2 text-sm font-medium text-amber-100/80">
+          <p
+            class="mb-2 text-sm font-medium"
+            :class="isCustomerService ? 'text-sky-200/80' : 'text-slate-300'"
+          >
             {{ selectedProductOption.priceKindLabel || "مبلغ المنتج" }}
           </p>
           <p
-            class="text-3xl font-extrabold tracking-tight text-amber-300 sm:text-4xl md:text-5xl"
+            class="text-3xl font-extrabold tracking-tight sm:text-4xl md:text-5xl"
+            :class="isCustomerService ? 'text-sky-300' : 'text-white'"
           >
             {{ formatMoney(productDisplayPrice, "rtl") }}
           </p>
@@ -303,6 +328,7 @@ const props = defineProps({
 
 const { showError } = useAppToast();
 const authStore = useAuthStore();
+const emit = defineEmits(["hydrating"]);
 
 const isCustomerService = computed(() => {
   const role = String(props.role || "").toUpperCase();
@@ -323,6 +349,7 @@ const employeeBranchId = computed(
 
 const saving = ref(false);
 const loadingProducts = ref(false);
+const hydratingInitial = ref(false);
 const formKey = ref(0);
 const receiptCode = ref("");
 const reservationSummary = ref(null);
@@ -538,20 +565,30 @@ const onProductTypeChange = async (value) => {
   await loadProducts();
 };
 
+const setHydrating = (value) => {
+  hydratingInitial.value = Boolean(value);
+  emit("hydrating", hydratingInitial.value);
+};
+
 const hydrateFromInitialSelection = async () => {
   const selection = props.initialSelection;
   if (!selection?.productId) return;
 
-  if (selection.branchId) {
-    form.branchId = selection.branchId;
-  }
-  form.studyYearId = selection.studyYearId || null;
-  form.teacherId = selection.teacherId || null;
-  form.productType = String(selection.type || "").toUpperCase() || null;
-  form.productId = selection.productId;
+  setHydrating(true);
+  try {
+    if (selection.branchId) {
+      form.branchId = selection.branchId;
+    }
+    form.studyYearId = selection.studyYearId || null;
+    form.teacherId = selection.teacherId || null;
+    form.productType = String(selection.type || "").toUpperCase() || null;
+    form.productId = selection.productId;
 
-  if (canSelectProduct.value) {
-    await loadProducts();
+    if (canSelectProduct.value) {
+      await loadProducts();
+    }
+  } finally {
+    setHydrating(false);
   }
 };
 
@@ -562,6 +599,7 @@ const hydrateFromInitialProduct = async () => {
   }
   if (!props.initialProduct) return;
 
+  setHydrating(true);
   try {
     const product = await productService.getProduct(String(props.initialProduct));
     if (!product) return;
@@ -578,6 +616,8 @@ const hydrateFromInitialProduct = async () => {
     }
   } catch {
     // Keep manual filter flow if product details cannot be loaded.
+  } finally {
+    setHydrating(false);
   }
 };
 

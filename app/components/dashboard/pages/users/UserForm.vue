@@ -66,6 +66,7 @@
     <Field v-slot="{ field, errorMessage }" name="role" rules="required">
       <AppGlobalSelectUserRole
         :model-value="form.role"
+        :options="roleOptions"
         label="الدور"
         placeholder="اختر الدور"
         :invalid="!!(errorMessage || fieldErrors.role)"
@@ -135,6 +136,8 @@ import { userService } from "~/services/userService";
 import { useAppToast } from "~/composables/useAppToast";
 import {
   UserRole,
+  USER_ROLE_OPTIONS,
+  isAdminRole,
   normalizeUserRole,
   userRoleRequiresBranch,
 } from "~/enums/userRole";
@@ -151,6 +154,12 @@ const saving = ref(false);
 const formKey = ref(0);
 const isEdit = computed(() => Boolean(props.user?.id));
 
+const DEFAULT_CREATE_ROLE = UserRole.BRANCH_EMPLOYEE;
+
+const roleOptions = computed(() =>
+  USER_ROLE_OPTIONS.filter((option) => !isAdminRole(option.value)),
+);
+
 const statusOptions = [
   { label: "نشط", value: "ACTIVE" },
   { label: "غير نشط", value: "INACTIVE" },
@@ -161,19 +170,24 @@ const form = reactive({
   email: "",
   password: "",
   phone: "",
-  role: UserRole.ADMIN,
+  role: DEFAULT_CREATE_ROLE,
   branchId: null,
   status: "ACTIVE",
 });
 
 const needsBranch = computed(() => userRoleRequiresBranch(form.role));
 
+const resolveRole = (value) => {
+  const role = normalizeUserRole(value, DEFAULT_CREATE_ROLE);
+  return isAdminRole(role) ? DEFAULT_CREATE_ROLE : role;
+};
+
 const initialValues = computed(() => ({
   fullName: props.user?.fullName || "",
   email: props.user?.email || "",
   password: "",
   phone: props.user?.phone || "",
-  role: normalizeUserRole(props.user?.role),
+  role: resolveRole(props.user?.role),
   branchId: props.user?.branchId || null,
   status: props.user?.status || "ACTIVE",
 }));
@@ -185,7 +199,7 @@ watch(
     form.email = value?.email || "";
     form.password = "";
     form.phone = value?.phone || "";
-    form.role = normalizeUserRole(value?.role);
+    form.role = resolveRole(value?.role);
     form.branchId = value?.branchId || null;
     form.status = value?.status || "ACTIVE";
     formKey.value += 1;
