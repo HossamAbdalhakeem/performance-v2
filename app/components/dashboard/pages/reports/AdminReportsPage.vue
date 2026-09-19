@@ -48,28 +48,11 @@
         :year-values="customersByYearValues"
         :students="studentRows"
       />
-
-      <Button
-        label="⬇ تصدير Excel"
-        class="w-full justify-center"
-        severity="secondary"
-        :disabled="loading"
-        @click="openExportDialog"
-      />
     </template>
-
-    <AcademicYearExportDialog
-      v-model:visible="exportDialogVisible"
-      :branch-id="selectedBranch"
-      :from="dateFrom"
-      :to="dateTo"
-      :preview="exportPreview"
-    />
   </div>
 </template>
 
 <script setup>
-import Button from "primevue/button";
 import ReportsFilters from "~/components/dashboard/pages/reports/summary/ReportsFilters.vue";
 import { reportService } from "~/services/reportService";
 import { useAppToast } from "~/composables/useAppToast";
@@ -93,9 +76,6 @@ const PaymentMethodsReport = defineAsyncComponent(() =>
 );
 const ReportsCustomersSection = defineAsyncComponent(() =>
   import("~/components/dashboard/pages/reports/summary/ReportsCustomersSection.vue"),
-);
-const AcademicYearExportDialog = defineAsyncComponent(() =>
-  import("~/components/dashboard/pages/reports/AcademicYearExportDialog.vue"),
 );
 
 defineOptions({ name: "AdminReportsPage" });
@@ -134,7 +114,6 @@ const selectedBook = ref(
 const loading = ref(true);
 const report = ref(null);
 const financialReport = ref(null);
-const exportDialogVisible = ref(false);
 
 const summary = computed(() => report.value?.summary || {});
 const books = computed(() => summary.value.books || {});
@@ -167,25 +146,6 @@ const generalExpensesSeparate = computed(
 const isBranchScoped = computed(
   () => Boolean(selectedBranch.value && selectedBranch.value !== "all"),
 );
-
-/** Preview values from the loaded report endpoint — not recalculated for Excel. */
-const exportPreview = computed(() => {
-  const s = summary.value;
-  const f = financials.value;
-  return {
-    revenue: f.revenue ?? s.salesAmount ?? null,
-    cogs: f.cogs ?? null,
-    grossProfit: f.grossProfit ?? null,
-    expenses: f.operatingExpenses ?? null,
-    netProfit: f.netProfit ?? salesBreakdown.value.netProfit ?? null,
-    sales: s.sales ?? null,
-    reservations: s.reservations ?? null,
-    students: Array.isArray(report.value?.studentPurchases)
-      ? report.value.studentPurchases.length
-      : null,
-    products: books.value?.total ?? books.value?.count ?? null,
-  };
-});
 
 const paymentMethodItems = computed(() =>
   Array.isArray(summary.value.paymentsByMethod)
@@ -305,10 +265,6 @@ const loadReport = async () => {
   } finally {
     loading.value = false;
   }
-};
-
-const openExportDialog = () => {
-  exportDialogVisible.value = true;
 };
 
 watch(currentAcademicYearId, () => {

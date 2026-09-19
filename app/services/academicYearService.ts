@@ -1,17 +1,4 @@
-import { apiFetch, apiFetchBlob, firstRow, asList } from "~/utils/apiFetch";
-
-export type AcademicYearExportParams = {
-  format?: "xlsx";
-  branchId?: string;
-  dateFrom?: string;
-  dateTo?: string;
-  /** @deprecated use dateFrom */
-  from?: string;
-  /** @deprecated use dateTo */
-  to?: string;
-  /** Comma-separated section keys */
-  sections?: string;
-};
+import { apiFetch, firstRow, asList } from "~/utils/apiFetch";
 
 const academicYearBody = (payload: Record<string, any>) => {
   const body: Record<string, any> = {};
@@ -60,29 +47,5 @@ export const academicYearService = {
         method: "POST",
       }),
     );
-  },
-
-  /**
-   * Download the complete academic-year Excel business report.
-   * Backend owns all financial calculations.
-   */
-  async exportAcademicYear(
-    id: string,
-    params: AcademicYearExportParams = {},
-  ) {
-    const query: Record<string, any> = {
-      format: params.format || "xlsx",
-    };
-    if (params.branchId) query.branchId = params.branchId;
-    const dateFrom = params.dateFrom ?? params.from;
-    const dateTo = params.dateTo ?? params.to;
-    if (dateFrom) query.dateFrom = dateFrom;
-    if (dateTo) query.dateTo = dateTo;
-    if (params.sections) query.sections = params.sections;
-
-    return apiFetchBlob(`/academic-years/${id}/export`, {
-      method: "GET",
-      params: query,
-    });
   },
 };
