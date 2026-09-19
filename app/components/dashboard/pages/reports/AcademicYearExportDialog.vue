@@ -4,7 +4,7 @@
     modal
     dir="rtl"
     header="تصدير العام الدراسي"
-    :style="{ width: '28rem', maxWidth: '95vw' }"
+    :style="{ width: '34rem', maxWidth: '95vw' }"
     :dismissableMask="!exporting"
     :closable="!exporting"
     :pt="{
@@ -131,6 +131,58 @@
           @update:to="form.to = $event"
         />
       </div>
+
+      <div class="flex flex-col gap-2">
+        <div class="flex items-center justify-between gap-2">
+          <label class="text-sm font-medium text-slate-300">بيانات التصدير</label>
+          <div class="flex gap-2 text-xs">
+            <button
+              type="button"
+              class="text-sky-400 hover:underline disabled:opacity-50"
+              :disabled="exporting"
+              @click="selectAllSections"
+            >
+              تحديد الكل
+            </button>
+            <button
+              type="button"
+              class="text-slate-400 hover:underline disabled:opacity-50"
+              :disabled="exporting"
+              @click="clearSections"
+            >
+              إلغاء الكل
+            </button>
+          </div>
+        </div>
+        <div
+          class="max-h-56 space-y-2 overflow-y-auto rounded-xl border border-white/10 bg-slate-950/40 p-3"
+        >
+          <label
+            v-for="option in sectionOptions"
+            :key="option.key"
+            class="flex cursor-pointer items-start gap-2 text-sm text-slate-200"
+          >
+            <Checkbox
+              v-model="selectedSections"
+              :input-id="`export-section-${option.key}`"
+              :value="option.key"
+              :disabled="exporting"
+            />
+            <span class="leading-snug">
+              {{ option.label }}
+              <span
+                v-if="option.hint"
+                class="mt-0.5 block text-xs text-slate-500"
+              >
+                {{ option.hint }}
+              </span>
+            </span>
+          </label>
+        </div>
+        <p v-if="!selectedSections.length" class="text-xs text-amber-400">
+          اختر قسماً واحداً على الأقل للتصدير.
+        </p>
+      </div>
     </div>
 
     <template #footer>
@@ -146,7 +198,7 @@
           :label="exporting ? 'جاري التصدير...' : 'تصدير Excel'"
           icon="pi pi-download"
           :loading="exporting"
-          :disabled="exporting || !form.academicYearId"
+          :disabled="exporting || !form.academicYearId || !selectedSections.length"
           @click="runExport"
         />
       </div>
@@ -158,6 +210,7 @@
 import Dialog from "primevue/dialog";
 import Button from "primevue/button";
 import Select from "primevue/select";
+import Checkbox from "primevue/checkbox";
 import AppGlobalSelectBranch from "~/components/shared/app-global-select-branch/index.vue";
 import DateRangePicker from "~/components/shared/date-range-picker/index.vue";
 import { academicYearService } from "~/services/academicYearService";
@@ -169,19 +222,50 @@ import { formatMoney } from "~/utils/format";
 
 defineOptions({ name: "AcademicYearExportDialog" });
 
+const SECTION_OPTIONS = [
+  {
+    key: "summary",
+    label: "الملخص والإيرادات",
+    hint: "ملخص العام والأرباح",
+  },
+  { key: "branchPerformance", label: "أداء الفروع" },
+  {
+    key: "teachersBooks",
+    label: "المعلمون ومنتجاتهم",
+    hint: "كل معلم مع كتبه/منتجاته والأسعار",
+  },
+  {
+    key: "studentPurchases",
+    label: "الطلاب ومشترياتهم",
+    hint: "اسم الطالب، الهاتف، السنة الدراسية، وكل منتج اشتراه مع السعر",
+  },
+  {
+    key: "sales",
+    label: "المبيعات والمدفوعات",
+    hint: "المبيعات وبنودها والمدفوعات",
+  },
+  { key: "products", label: "المنتجات" },
+  { key: "teachers", label: "المعلمون (إجماليات)" },
+  {
+    key: "students",
+    label: "الطلاب (إجماليات)",
+    hint: "يشمل أيضاً ورقة مشتريات الطلاب بالتفصيل",
+  },
+  { key: "reservations", label: "الحجوزات" },
+  { key: "returns", label: "المرتجعات" },
+  { key: "exchanges", label: "الاستبدالات" },
+  { key: "expenses", label: "المصروفات" },
+  { key: "inventory", label: "المخزون وحركاته" },
+];
+
+const ALL_SECTION_KEYS = SECTION_OPTIONS.map((option) => option.key);
+
 const props = defineProps({
   visible: { type: Boolean, default: false },
-  /** Pre-selected academic year id (defaults to current storage value). */
   academicYearId: { type: [String, Number], default: null },
-  /** Optional branch filter seed from the reports page. */
   branchId: { type: [String, Number], default: "all" },
-  /** Optional date seeds; ignored when date mode is entire year. */
   from: { type: String, default: null },
   to: { type: String, default: null },
-  /**
-   * Optional preview numbers already loaded from the report endpoint.
-   * Frontend must not recalculate these for the Excel file.
-   */
   preview: {
     type: Object,
     default: () => ({}),
@@ -197,6 +281,8 @@ const exporting = ref(false);
 const loadingYears = ref(false);
 const years = ref([]);
 const dateMode = ref("entire");
+const selectedSections = ref([...ALL_SECTION_KEYS]);
+const sectionOptions = SECTION_OPTIONS;
 
 const form = reactive({
   academicYearId: null,
@@ -256,9 +342,17 @@ const exportErrorMessage = (error) => {
   if (status === 403) return "غير مصرح لك بتصدير تقرير العام الدراسي.";
   if (status === 404) return "العام الدراسي غير موجود.";
   if (status === 400 || status === 422) {
-    return "الفلاتر غير صالحة. يرجى مراجعة الفرع أو الفترة والمحاولة مرة أخرى.";
+    return "الفلاتر غير صالحة. يرجى مراجعة الأقسام أو الفرع أو الفترة والمحاولة مرة أخرى.";
   }
   return "تعذر تصدير تقرير العام الدراسي. يرجى المحاولة مرة أخرى.";
+};
+
+const selectAllSections = () => {
+  selectedSections.value = [...ALL_SECTION_KEYS];
+};
+
+const clearSections = () => {
+  selectedSections.value = [];
 };
 
 const close = () => {
@@ -278,10 +372,10 @@ const resetForm = () => {
       ? String(storedAcademicYearId.value)
       : null;
   form.branchId = props.branchId ? String(props.branchId) : "all";
-  // Default: entire academic year. Custom range seeds from page filters when chosen.
   form.from = props.from || null;
   form.to = props.to || props.from || null;
   dateMode.value = "entire";
+  selectedSections.value = [...ALL_SECTION_KEYS];
 };
 
 const loadYears = async () => {
@@ -305,18 +399,25 @@ const onShow = async () => {
 
 const runExport = async () => {
   if (exporting.value || !form.academicYearId) return;
+  if (!selectedSections.value.length) {
+    showError("اختر قسماً واحداً على الأقل للتصدير.");
+    return;
+  }
 
   exporting.value = true;
   try {
-    const params = { format: "xlsx" };
+    const params = {
+      format: "xlsx",
+      sections: selectedSections.value.join(","),
+    };
     if (form.branchId && form.branchId !== "all") {
       params.branchId = String(form.branchId);
     }
     if (dateMode.value === "custom") {
       const from = toIsoDateTime(form.from, false);
       const to = toIsoDateTime(form.to || form.from, true);
-      if (from) params.from = from;
-      if (to) params.to = to;
+      if (from) params.dateFrom = from;
+      if (to) params.dateTo = to;
     }
 
     const result = await academicYearService.exportAcademicYear(

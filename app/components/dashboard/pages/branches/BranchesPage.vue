@@ -95,6 +95,7 @@ import EntityDrawer from "~/components/dashboard/EntityDrawer.vue";
 import BranchesTable from "~/components/dashboard/pages/branches/BranchesTable.vue";
 import { branchService } from "~/services/branchService";
 import { useAppToast } from "~/composables/useAppToast";
+import { useAcademicYearId } from "~/composables/useAcademicYearId";
 import { getStatusTagMeta } from "~/utils/statusTags";
 
 const BranchForm = defineAsyncComponent(() =>
@@ -108,6 +109,7 @@ const RemoveStockForm = defineAsyncComponent(() =>
 );
 
 const { showError, showSuccess } = useAppToast();
+const { academicYearId: currentAcademicYearId } = useAcademicYearId();
 const loading = ref(true);
 const branches = ref([]);
 const selectedBranch = ref(null);
@@ -136,6 +138,12 @@ const normalizeInventoryItem = (item) => ({
 });
 
 const loadData = async () => {
+  if (!currentAcademicYearId.value) {
+    branches.value = [];
+    loading.value = false;
+    return;
+  }
+
   loading.value = true;
   try {
     const branchResult = await branchService.getBranches({
@@ -232,6 +240,13 @@ watch([addDrawerVisible, removeDrawerVisible], ([addVisible, removeVisible]) => 
 
 watch(formDrawerVisible, (visible) => {
   if (!visible) editingBranch.value = null;
+});
+
+watch(currentAcademicYearId, () => {
+  formDrawerVisible.value = false;
+  addDrawerVisible.value = false;
+  removeDrawerVisible.value = false;
+  loadData();
 });
 
 onMounted(() => {

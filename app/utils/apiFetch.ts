@@ -110,12 +110,14 @@ const cleanParams = (params: Record<string, any> = {}) => {
 
 /**
  * Only attach academicYearId to endpoints that actually filter by it.
- * Do NOT send it to branches, expense-categories, study-years, users, etc.
+ * Do NOT send it to expense-categories, study-years, users, etc.
+ * /branches uses it only when inventory_summary=true (plain branch lists ignore it).
  */
 const ACADEMIC_YEAR_SCOPED_PATHS = [
   "/products",
   "/teachers",
   "/students",
+  "/branches",
   "/sales",
   "/reservations",
   "/inventory",

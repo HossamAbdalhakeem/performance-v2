@@ -73,6 +73,7 @@ import Button from "primevue/button";
 import ReportsFilters from "~/components/dashboard/pages/reports/summary/ReportsFilters.vue";
 import { reportService } from "~/services/reportService";
 import { useAppToast } from "~/composables/useAppToast";
+import { useAcademicYearId } from "~/composables/useAcademicYearId";
 import { UNSPECIFIED_LABEL } from "~/utils/domainLabels";
 
 const ReportsLoadingSkeleton = defineAsyncComponent(() =>
@@ -102,6 +103,7 @@ defineOptions({ name: "AdminReportsPage" });
 const route = useRoute();
 const router = useRouter();
 const { showError } = useAppToast();
+const { academicYearId: currentAcademicYearId } = useAcademicYearId();
 
 const todayInputValue = () => {
   const now = new Date();
@@ -218,7 +220,7 @@ const dateRangeParams = () => {
   };
 };
 
-/** API query params: from, to, branchId?, productId?, section */
+/** API query params: from, to, branchId?, productId?, academicYearId?, section */
 const reportParams = () => {
   const params = {
     ...dateRangeParams(),
@@ -230,10 +232,13 @@ const reportParams = () => {
   if (selectedBook.value) {
     params.productId = selectedBook.value;
   }
+  if (currentAcademicYearId.value) {
+    params.academicYearId = String(currentAcademicYearId.value);
+  }
   return params;
 };
 
-/** Keep the page URL in sync: /reports?from=...&to=...&branchId=...&productId=...&section=summary */
+/** Keep the page URL in sync with filters including academic year */
 const syncRouteQuery = () => {
   const query = {
     from: dateFrom.value || todayInputValue(),
@@ -246,6 +251,9 @@ const syncRouteQuery = () => {
   if (selectedBook.value) {
     query.productId = String(selectedBook.value);
   }
+  if (currentAcademicYearId.value) {
+    query.academicYearId = String(currentAcademicYearId.value);
+  }
 
   const current = route.query;
   const same =
@@ -253,7 +261,8 @@ const syncRouteQuery = () => {
     String(current.to || "") === query.to &&
     String(current.section || "summary") === query.section &&
     String(current.branchId || "") === String(query.branchId || "") &&
-    String(current.productId || "") === String(query.productId || "");
+    String(current.productId || "") === String(query.productId || "") &&
+    String(current.academicYearId || "") === String(query.academicYearId || "");
 
   if (!same) {
     router.replace({ query });
@@ -301,6 +310,10 @@ const loadReport = async () => {
 const openExportDialog = () => {
   exportDialogVisible.value = true;
 };
+
+watch(currentAcademicYearId, () => {
+  loadReport();
+});
 
 onMounted(loadReport);
 </script>

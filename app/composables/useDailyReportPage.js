@@ -1,5 +1,6 @@
 import { reportService } from "~/services/reportService";
 import { useAppToast } from "~/composables/useAppToast";
+import { useAcademicYearId } from "~/composables/useAcademicYearId";
 
 const DETAIL_SECTIONS = new Set([
   "sales",
@@ -46,6 +47,7 @@ const mapUndeliveredReservationRows = (rows) =>
  */
 export const useDailyReportPage = () => {
   const { showError } = useAppToast();
+  const { academicYearId: currentAcademicYearId } = useAcademicYearId();
 
   const loading = ref(true);
   const detailLoading = ref(false);
@@ -81,6 +83,16 @@ export const useDailyReportPage = () => {
     };
   };
 
+  const withAcademicYear = (params = {}) => {
+    if (currentAcademicYearId.value) {
+      return {
+        ...params,
+        academicYearId: String(currentAcademicYearId.value),
+      };
+    }
+    return params;
+  };
+
   const openDetail = async (key) => {
     if (!DETAIL_SECTIONS.has(key)) return;
 
@@ -96,7 +108,7 @@ export const useDailyReportPage = () => {
       const apiSection = key === "undelivered" ? "reservations" : key;
       const sectionPayload = await reportService.getDailyReportSection(
         apiSection,
-        dateRangeParams(),
+        withAcademicYear(dateRangeParams()),
       );
       const rows = Array.isArray(sectionPayload?.rows)
         ? sectionPayload.rows
@@ -109,7 +121,9 @@ export const useDailyReportPage = () => {
       const filteredRows =
         key === "undelivered"
           ? rows.filter((row) => {
-              const status = String(row.status || row.statusKey || "").toUpperCase();
+              const status = String(
+                row.status || row.statusKey || "",
+              ).toUpperCase();
               return status && status !== "DELIVERED" && status !== "CANCELLED";
             })
           : rows;
@@ -140,10 +154,12 @@ export const useDailyReportPage = () => {
     detailVisible.value = false;
     activeDetailKey.value = null;
     try {
-      report.value = await reportService.getDailyReport({
-        ...dateRangeParams(),
-        section: "summary",
-      });
+      report.value = await reportService.getDailyReport(
+        withAcademicYear({
+          ...dateRangeParams(),
+          section: "summary",
+        }),
+      );
     } catch (error) {
       report.value = null;
       showError(error?.message || "تعذر تحميل تقرير اليوم.");
@@ -162,6 +178,10 @@ export const useDailyReportPage = () => {
     }
     loadReport();
   };
+
+  watch(currentAcademicYearId, () => {
+    loadReport();
+  });
 
   return {
     loading,
