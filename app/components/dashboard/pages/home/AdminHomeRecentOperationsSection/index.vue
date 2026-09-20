@@ -13,7 +13,7 @@
       <AppDataTable
         :value="displayRows"
         :columns="columns"
-        :empty-message="emptyMessage"
+        empty-message="لا توجد عمليات حديثة."
         :skeleton-rows="5"
       >
         <template #type="{ data }">
@@ -48,18 +48,16 @@ import {
   getTransactionTypeLabel,
   getReservationStatusLabel,
 } from "~/utils/domainLabels";
-import AdminHomeRecentOperationsSkeleton from "./skeletons/AdminHomeRecentOperationsSkeleton.vue";
+import { reportService } from "~/services/reportService";
 
 defineOptions({ name: "AdminHomeRecentOperationsSection" });
 
-const props = defineProps({
-  rows: { type: Array, default: () => [] },
-  loading: { type: Boolean, default: false },
-  emptyMessage: {
-    type: String,
-    default: "لا توجد عمليات حديثة.",
-  },
-});
+const AdminHomeRecentOperationsSkeleton = defineAsyncComponent(() =>
+  import("./skeletons/AdminHomeRecentOperationsSkeleton.vue"),
+);
+
+const loading = ref(true);
+const recentOperations = ref([]);
 
 const RESERVATION_TYPE_KEYS = new Set([
   "DELIVERED",
@@ -115,22 +113,38 @@ const resolveAmountClass = (typeKey, amount) => {
 };
 
 const displayRows = computed(() =>
-  (Array.isArray(props.rows) ? props.rows : []).map((row, index) => {
-    const typeKey = String(row.typeKey || row.type || "").toUpperCase();
-    const amount = resolveAmount(row);
-    const branch = row.branch || "—";
+  (recentOperations.value || []).map((row, index) => {
+    const typeKey = String(row.type || "").toUpperCase();
+    const amount = resolveAmount({
+      amountRaw: row.amount == null ? null : Number(row.amount),
+      amount: row.amount,
+    });
 
     return {
-      id: row.id ?? index + 1,
-      time: formatDateTime(row.timeRaw || row.time, "datetime"),
+      id: index + 1,
+      time: formatDateTime(row.time, "datetime"),
       typeKey,
-      typeLabel: row.typeLabel || resolveTypeLabel(typeKey),
+      typeLabel: resolveTypeLabel(typeKey),
       student: row.student || "—",
       product: row.product || "—",
       amountLabel: amount == null ? "—" : formatMoney(amount, "rtl"),
       amountClass: resolveAmountClass(typeKey, amount),
-      branch,
+      branch: row.branch || "—",
     };
   }),
 );
+
+const loadRecentOperations = async () => {
+  loading.value = true;
+  try {
+    const data = await reportService.getGeneralRecentOperations();
+    recentOperations.value = Array.isArray(data) ? data : [];
+  } catch {
+    recentOperations.value = [];
+  } finally {
+    loading.value = false;
+  }
+};
+
+onMounted(loadRecentOperations);
 </script>

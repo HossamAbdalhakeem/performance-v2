@@ -38,7 +38,7 @@ import {
 } from "chart.js";
 import { Line } from "vue-chartjs";
 import AppGlobalSelectBranch from "~/components/shared/app-global-select-branch/index.vue";
-import AdminHomeSalesTrendSkeleton from "./skeletons/AdminHomeSalesTrendSkeleton.vue";
+import { reportService } from "~/services/reportService";
 
 ChartJS.register(
   CategoryScale,
@@ -51,26 +51,44 @@ ChartJS.register(
 
 defineOptions({ name: "AdminHomeSalesTrendCard" });
 
+const AdminHomeSalesTrendSkeleton = defineAsyncComponent(() =>
+  import("./skeletons/AdminHomeSalesTrendSkeleton.vue"),
+);
+
 const props = defineProps({
   title: { type: String, default: "المبيعات خلال آخر 7 أيام" },
-  points: { type: Array, default: () => [] },
-  branchId: { type: String, default: null },
-  loading: { type: Boolean, default: false },
   lineColor: { type: String, default: "#38bdf8" },
 });
 
-const emit = defineEmits(["update:branchId"]);
+const loading = ref(true);
+const points = ref([]);
+const branchId = ref(null);
 
 const onBranchChange = (value) => {
-  emit("update:branchId", value === "all" || !value ? null : String(value));
+  branchId.value = value === "all" || !value ? null : String(value);
+  loadSalesTrend();
+};
+
+const loadSalesTrend = async () => {
+  loading.value = true;
+  try {
+    const data = await reportService.getGeneralSalesTrend({
+      branchId: branchId.value || undefined,
+    });
+    points.value = Array.isArray(data?.points) ? data.points : [];
+  } catch {
+    points.value = [];
+  } finally {
+    loading.value = false;
+  }
 };
 
 const labels = computed(() =>
-  (props.points || []).map((point) => point.label || point.date || ""),
+  (points.value || []).map((point) => point.label || point.date || ""),
 );
 
 const values = computed(() =>
-  (props.points || []).map((point) => Number(point.amount || 0)),
+  (points.value || []).map((point) => Number(point.amount || 0)),
 );
 
 const chartData = computed(() => ({
@@ -152,4 +170,6 @@ const chartOptions = {
     },
   },
 };
+
+onMounted(loadSalesTrend);
 </script>
