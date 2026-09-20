@@ -88,6 +88,18 @@
               severity="success"
             />
           </template>
+          <template #soldQuantity="{ data: item }">
+            <AppStatusTag
+              :label="String(item.soldQuantity ?? 0)"
+              severity="info"
+            />
+          </template>
+          <template #stockAlert="{ data: item }">
+            <AppStatusTag
+              :label="` ${item.lowStockThreshold}`"
+              severity="danger"
+            />
+          </template>
         </AppDataTable>
       </div>
     </template>
@@ -124,10 +136,21 @@ const inventoryColumns = [
     header: "المحجوز",
     slot: "reservedQuantity",
   },
+ 
+  {
+    field: "soldQuantity",
+    header: "المباع",
+    slot: "soldQuantity",
+  },
   {
     field: "availableQuantity",
     header: "المتاح",
     slot: "availableQuantity",
+  },
+  {
+    field: "isLowStock",
+    header: "تنبيه المخزون",
+    slot: "stockAlert",
   },
 ];
 </script>

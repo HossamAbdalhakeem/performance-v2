@@ -124,18 +124,29 @@ const formDrawerTitle = computed(() =>
 
 const statusMeta = (status) => getStatusTagMeta("entity", status);
 
-const normalizeInventoryItem = (item) => ({
-  productId: item.productId || item.product?.id,
-  productName: item.productName || item.product?.name || "-",
-  physicalQuantity: item.physicalQuantity ?? 0,
-  reservedQuantity: item.reservedQuantity ?? 0,
-  availableQuantity:
+const normalizeInventoryItem = (item) => {
+  const physicalQuantity = item.physicalQuantity ?? 0;
+  const reservedQuantity = item.reservedQuantity ?? 0;
+  const availableQuantity =
     item.availableQuantity ??
-    Math.max(
-      0,
-      (item.physicalQuantity || 0) - (item.reservedQuantity || 0),
-    ),
-});
+    Math.max(0, physicalQuantity - reservedQuantity);
+  const lowStockThreshold = Number(item.lowStockThreshold ?? 0);
+  const isLowStock =
+    typeof item.isLowStock === "boolean"
+      ? item.isLowStock
+      : lowStockThreshold > 0 && availableQuantity <= lowStockThreshold;
+
+  return {
+    productId: item.productId || item.product?.id,
+    productName: item.productName || item.product?.name || "-",
+    physicalQuantity,
+    reservedQuantity,
+    availableQuantity,
+    soldQuantity: Number(item.soldQuantity ?? 0),
+    lowStockThreshold,
+    isLowStock,
+  };
+};
 
 const loadData = async () => {
   if (!currentAcademicYearId.value) {
@@ -158,6 +169,7 @@ const loadData = async () => {
       const meta = statusMeta(branch.status);
       const summary = branch.inventorySummary || {
         productsCount: 0,
+        alertsCount: 0,
         preview: [],
         items: [],
       };
@@ -173,6 +185,7 @@ const loadData = async () => {
         status: branch.status,
         statusLabel: meta.label,
         productsCount: Number(summary.productsCount ?? items.length),
+        alertsCount: Number(summary.alertsCount ?? 0),
         inventoryPreview: (summary.preview || items.slice(0, 3)).map(
           normalizeInventoryItem,
         ),
