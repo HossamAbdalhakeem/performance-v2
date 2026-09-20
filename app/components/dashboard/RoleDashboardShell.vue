@@ -348,7 +348,7 @@ const navigation = computed(() => {
       label: "العمليات",
       items: [
         { label: "الحجوزات", icon: "✓", to: "/reservations/manage" },
-        { label: "استبدال واسترداد", icon: "⇄", to: "/sales/exchange" },
+        { label: "المبيعات", icon: "⇄", to: "/sales/exchange" },
       ],
     },
     {

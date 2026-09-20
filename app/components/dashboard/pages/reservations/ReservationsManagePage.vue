@@ -133,7 +133,7 @@
             label="تأكيد الاستبدال"
             severity="info"
             icon="pi pi-sync"
-            :disabled="!selectedReservation || busy"
+            :disabled="!canConfirmExchange"
             @click="requestExchangeConfirm"
           />
           <Button
@@ -198,6 +198,7 @@ import { useAppToast } from "~/composables/useAppToast";
 import { PaymentMethod } from "~/utils/paymentMethods";
 import { formatMoney } from "~/utils/format";
 import { normalizeReservation } from "~/utils/normalizeReservation";
+import { canSelectExchangeProduct } from "~/utils/productOptions";
 
 defineOptions({ name: "ReservationsManagePage" });
 
@@ -254,6 +255,24 @@ const selectedNewProduct = computed(
     productOptions.value.find((item) => item.value === newProductId.value) ||
     null,
 );
+
+const canConfirmExchange = computed(() => {
+  if (!selectedReservation.value || busy.value || loadingProducts.value) {
+    return false;
+  }
+  if (!newProductId.value || !selectedNewProduct.value) return false;
+  if (
+    String(newProductId.value) ===
+    String(selectedReservation.value?.product?.id || "")
+  ) {
+    return false;
+  }
+  if (!canSelectExchangeProduct(selectedNewProduct.value)) return false;
+  if (priceComparison.value?.kind === "less" && !exchangeRefundMethod.value) {
+    return false;
+  }
+  return true;
+});
 
 const priceComparison = computed(() => {
   if (!selectedReservation.value || !selectedNewProduct.value) return null;
@@ -431,8 +450,8 @@ const requestExchangeConfirm = () => {
     exchangeError.value = "اختر منتجًا مختلفًا عن المنتج الحالي.";
     return;
   }
-  if (!selectedNewProduct.value?.isAvailable) {
-    exchangeError.value = "المنتج المختار غير متاح في مخزون الفرع.";
+  if (!canSelectExchangeProduct(selectedNewProduct.value)) {
+    exchangeError.value = "المنتج المختار غير متاح في مخزون الفرع وغير مسموح بالحجز.";
     return;
   }
   if (priceComparison.value?.kind === "less" && !exchangeRefundMethod.value) {

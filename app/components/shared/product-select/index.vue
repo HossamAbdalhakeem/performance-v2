@@ -29,7 +29,9 @@
               :class="
                 selectedOption.isAvailable
                   ? 'bg-emerald-500/20 text-emerald-300'
-                  : 'bg-amber-500/20 text-amber-200'
+                  : selectedOption.reservationAllowed
+                    ? 'bg-orange-500/20 text-orange-300'
+                    : 'bg-amber-500/20 text-amber-200'
               "
             >
               {{ selectedOption.availabilityLabel }}
@@ -61,7 +63,9 @@
               :class="
                 option.isAvailable
                   ? 'bg-emerald-500/15 text-emerald-700'
-                  : 'bg-amber-500/15 text-amber-700'
+                  : option.reservationAllowed
+                    ? 'bg-orange-500/15 text-orange-700'
+                    : 'bg-amber-500/15 text-amber-700'
               "
             >
               {{ option.availabilityLabel }}

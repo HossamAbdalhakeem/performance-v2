@@ -79,7 +79,9 @@
                 :class="
                   item.meta?.isAvailable
                     ? 'bg-emerald-500/20 text-emerald-300'
-                    : 'bg-amber-500/20 text-amber-300'
+                    : item.meta?.reservationAllowed
+                      ? 'bg-orange-500/20 text-orange-300'
+                      : 'bg-amber-500/20 text-amber-300'
                 "
               >
                 {{ item.value }}
@@ -114,7 +116,6 @@
         :model-value="newProductId"
         source="inventory"
         :branch-id="sale.branchId"
-        :inventory-query="{ availableOnly: true }"
         :exclude-product-id="sale.product?.id || sale.productId"
         :min-available-quantity="Number(exchangeQuantity || 1)"
         label="المنتج الجديد"
@@ -237,7 +238,10 @@ const newProductRows = computed(() => {
       label: "التوفر",
       value: product.availabilityLabel,
       slot: "availability",
-      meta: { isAvailable: product.isAvailable },
+      meta: {
+        isAvailable: product.isAvailable,
+        reservationAllowed: product.reservationAllowed,
+      },
     },
     {
       key: "unitPrice",

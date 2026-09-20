@@ -189,7 +189,9 @@ const newProductRows = computed(() => {
       slot: "availability",
       badgeClass: p.isAvailable
         ? "bg-emerald-500/20 text-emerald-300"
-        : "bg-amber-500/20 text-amber-300",
+        : p.reservationAllowed
+          ? "bg-orange-500/20 text-orange-300"
+          : "bg-amber-500/20 text-amber-300",
     },
     {
       key: "price",

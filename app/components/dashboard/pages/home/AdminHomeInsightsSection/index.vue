@@ -21,7 +21,6 @@
       <AdminHomeTopProductsCard
         v-else
         title="أكثر المنتجات مبيعًا"
-        subtitle="أعلى 5 منتجات عبر النظام"
         :items="topProducts"
         empty-message="لا توجد مبيعات لعرضها بعد."
       />

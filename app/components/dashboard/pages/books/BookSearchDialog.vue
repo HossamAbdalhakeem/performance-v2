@@ -170,8 +170,8 @@ const unavailableMessages = (product) => {
     });
   } else if (!hasBranches(product)) {
     messages.push({
-      text: "مسموح بالحجز",
-      tone: "text-emerald-300",
+      text: "متاح للحجز",
+      tone: "text-orange-300",
     });
   }
 

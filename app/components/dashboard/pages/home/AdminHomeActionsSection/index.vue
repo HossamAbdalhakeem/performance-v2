@@ -84,9 +84,9 @@ const actions = [
   },
   {
     key: "exchange-refund",
-    title: "استبدال واسترداد",
+    title: "المبيعات",
     description: "استبدال المنتجات واسترداد المبالغ",
-    actionLabel: "استبدال واسترداد",
+    actionLabel: "المبيعات",
     icon: "pi-sync",
     to: "/sales/exchange",
     iconWrapClass: "bg-violet-500/15 text-violet-300",

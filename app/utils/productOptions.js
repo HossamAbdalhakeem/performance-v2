@@ -16,6 +16,12 @@ export const mapInventoryProductOption = (item) => {
       ),
   );
   const isAvailable = availableQuantity > 0;
+  const reservationAllowed = Boolean(
+    product.reservationAllowed ??
+      product.reservation_allowed ??
+      item?.reservationAllowed ??
+      item?.reservation_allowed,
+  );
   const sellingPrice = toMoneyNumber(
     product.sellingPrice ?? product.selling_price,
   );
@@ -29,7 +35,9 @@ export const mapInventoryProductOption = (item) => {
   const name = product.name || product.title || "-";
   const availabilityLabel = isAvailable
     ? `متاح ${availableQuantity}`
-    : "غير متاح";
+    : reservationAllowed
+      ? "متاح للحجز"
+      : "غير متاح";
   const studyYearName =
     product.studyYear?.name ||
     product.study_year?.name ||
@@ -47,6 +55,9 @@ export const mapInventoryProductOption = (item) => {
     displayPrice,
     availableQuantity,
     isAvailable,
+    reservationAllowed,
+    /** Stock on hand, or reservation-allowed even with zero stock */
+    canSelect: isAvailable || reservationAllowed,
     availabilityLabel,
     teacherId: product.teacherId || product.teacher_id || product.teacher?.id || "",
     type: String(product.type || product.productType || product.product_type || "").toUpperCase(),
@@ -106,5 +117,14 @@ export const mapInventoryProductOptions = (items = [], filters = {}) => {
     .map(mapInventoryProductOption)
     .filter((option) => option.value)
     .filter((option) => !excludeId || option.value !== excludeId)
-    .filter((option) => !minQty || option.availableQuantity >= minQty);
+    .filter(
+      (option) =>
+        !minQty ||
+        option.availableQuantity >= minQty ||
+        option.reservationAllowed,
+    );
 };
+
+/** True when product has stock, or is allowed for reservation without stock. */
+export const canSelectExchangeProduct = (product) =>
+  Boolean(product?.isAvailable || product?.reservationAllowed);

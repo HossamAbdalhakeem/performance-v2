@@ -21,27 +21,13 @@
       />
     </div>
 
-    <ReportsSummaryCards
-      :params="reportParams"
-      :reload-key="reloadKey"
-      @loading="setSectionLoading('summary', $event)"
-    />
-    <ReportsRevenueSection
-      :params="reportParams"
-      :reload-key="reloadKey"
-      @loading="setSectionLoading('revenue', $event)"
-    />
+   
     <ReportsSalesTrendSection
       :params="reportParams"
       :reload-key="reloadKey"
       @loading="setSectionLoading('salesTrend', $event)"
     />
-    <ReportsFinancialsSection
-      :params="reportParams"
-      :reload-key="reloadKey"
-      :is-branch-scoped="isBranchScoped"
-      @loading="setSectionLoading('profitLoss', $event)"
-    />
+
     <ReportsPaymentsSection
       :params="reportParams"
       :reload-key="reloadKey"
@@ -67,6 +53,23 @@
       :reload-key="reloadKey"
       @loading="setSectionLoading('returns', $event)"
     />
+    <ReportsFinancialsSection
+      :params="reportParams"
+      :reload-key="reloadKey"
+      :is-branch-scoped="isBranchScoped"
+      @loading="setSectionLoading('profitLoss', $event)"
+    />
+    <ReportsSummaryCards
+      :params="reportParams"
+      :reload-key="reloadKey"
+      @loading="setSectionLoading('summary', $event)"
+    />
+    <ReportsRevenueSection
+      :params="reportParams"
+      :reload-key="reloadKey"
+      @loading="setSectionLoading('revenue', $event)"
+    />
+ 
     <ReportsExpensesSection
       :params="reportParams"
       :reload-key="reloadKey"

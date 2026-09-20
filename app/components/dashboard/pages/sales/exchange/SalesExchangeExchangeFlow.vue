@@ -38,7 +38,7 @@
             label="تأكيد الاستبدال"
             severity="info"
             icon="pi pi-sync"
-            :disabled="!sale || busy || previewLoading"
+            :disabled="!canConfirmExchange"
             @click="requestConfirm"
           />
           <Button
@@ -107,6 +107,7 @@ import {
   buildExchangeDiffLabels,
   getAvailabilityLabel,
 } from "~/utils/domainLabels";
+import { canSelectExchangeProduct } from "~/utils/productOptions";
 
 const ExchangeDetailContent = defineAsyncComponent(() =>
   import("~/components/dashboard/pages/sales/exchange/manage/ExchangeDetailContent.vue"),
@@ -172,12 +173,57 @@ const maxQuantity = computed(() =>
 const selectedNewProduct = computed(() => {
   const product = preview.value?.newProduct;
   if (!product) return null;
+  const isAvailable = Boolean(product.availability ?? product.isAvailable);
+  const reservationAllowed = Boolean(product.reservationAllowed);
   return {
     ...product,
-    availabilityLabel: getAvailabilityLabel(
-      product.availability ?? product.isAvailable,
-    ),
+    isAvailable,
+    reservationAllowed,
+    availabilityLabel: isAvailable
+      ? getAvailabilityLabel(product.availability ?? product.isAvailable)
+      : reservationAllowed
+        ? "متاح للحجز"
+        : "غير متاح",
   };
+});
+
+const isQuantityValid = computed(() => {
+  const qty = Number(exchangeQuantity.value);
+  return (
+    Number.isInteger(qty) && qty >= 1 && qty <= maxQuantity.value
+  );
+});
+
+const canConfirmExchange = computed(() => {
+  if (!props.sale || busy.value || previewLoading.value) return false;
+  if (!newProductId.value || !preview.value) return false;
+  if (String(newProductId.value) === String(props.sale?.productId || "")) {
+    return false;
+  }
+  if (!isQuantityValid.value) return false;
+  if (!canSelectExchangeProduct(selectedNewProduct.value)) return false;
+
+  if (preview.value.kind === "more") {
+    if (!exchangePaymentMethod.value) return false;
+    if (
+      paymentMethodNeedsProof(exchangePaymentMethod.value) &&
+      !String(exchangeProofKey.value || "").trim()
+    ) {
+      return false;
+    }
+  }
+
+  if (preview.value.kind === "less") {
+    if (!exchangeRefundMethod.value) return false;
+    if (
+      paymentMethodNeedsProof(exchangeRefundMethod.value) &&
+      !String(exchangeProofKey.value || "").trim()
+    ) {
+      return false;
+    }
+  }
+
+  return true;
 });
 
 const priceComparisonUi = computed(() => {
@@ -311,8 +357,9 @@ const requestConfirm = () => {
     exchangeError.value = "انتظر حساب فرق السعر أو أعد اختيار المنتج.";
     return;
   }
-  if (!preview.value?.newProduct?.isAvailable) {
-    exchangeError.value = "المنتج المختار غير متاح في مخزون الفرع لهذه الكمية.";
+  if (!canSelectExchangeProduct(preview.value?.newProduct)) {
+    exchangeError.value =
+      "المنتج المختار غير متاح في مخزون الفرع لهذه الكمية وغير مسموح بالحجز.";
     return;
   }
 
