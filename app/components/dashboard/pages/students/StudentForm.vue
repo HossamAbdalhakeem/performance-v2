@@ -20,10 +20,13 @@
     </Field>
 
     <Field v-slot="{ field }" name="phone">
-      <div class="flex flex-col gap-2 text-right">
-        <label class="text-sm font-medium text-slate-700">رقم الهاتف</label>
-        <InputText v-bind="field" v-model="form.phone" class="w-full" />
-      </div>
+      <PhoneInput
+        v-model="form.phone"
+        label="رقم الهاتف"
+        placeholder="رقم الهاتف"
+        @update:model-value="field.onChange"
+        @blur="field.onBlur"
+      />
     </Field>
 
     <Field
@@ -57,6 +60,7 @@ import Button from "primevue/button";
 import FormSubmitButton from "~/components/shared/form-submit-button/index.vue";
 import AppGlobalSelectStudyYear from "~/components/shared/app-global-select-study-year/index.vue";
 import InputText from "primevue/inputtext";
+import PhoneInput from "~/components/shared/phone-input/index.vue";
 import { Form, Field, ErrorMessage } from "vee-validate";
 import { studentService } from "~/services/studentService";
 import { useAppToast } from "~/composables/useAppToast";

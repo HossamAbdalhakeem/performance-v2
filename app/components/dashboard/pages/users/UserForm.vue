@@ -57,10 +57,13 @@
     </Field>
 
     <Field v-slot="{ field }" name="phone">
-      <div class="flex flex-col gap-2 text-right">
-        <label class="text-sm font-medium text-slate-700">الهاتف</label>
-        <InputText v-bind="field" v-model="form.phone" class="w-full" />
-      </div>
+      <PhoneInput
+        v-model="form.phone"
+        label="الهاتف"
+        placeholder="رقم الهاتف"
+        @update:model-value="field.onChange"
+        @blur="field.onBlur"
+      />
     </Field>
 
     <Field v-slot="{ field, errorMessage }" name="role" rules="required">
@@ -128,6 +131,7 @@ import Button from "primevue/button";
 import FormSubmitButton from "~/components/shared/form-submit-button/index.vue";
 import AppGlobalSelectUserRole from "~/components/shared/app-global-select-user-role/index.vue";
 import AppGlobalSelectBranch from "~/components/shared/app-global-select-branch/index.vue";
+import PhoneInput from "~/components/shared/phone-input/index.vue";
 import InputText from "primevue/inputtext";
 import Password from "primevue/password";
 import Select from "primevue/select";

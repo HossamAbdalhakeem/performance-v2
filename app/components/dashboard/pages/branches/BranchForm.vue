@@ -26,10 +26,11 @@
         <InputText v-model="form.address" class="w-full" placeholder="اختياري" />
       </div>
 
-      <div class="flex flex-col gap-2 text-right">
-        <label class="text-sm font-medium text-slate-700">الهاتف</label>
-        <InputText v-model="form.phone" class="w-full" placeholder="اختياري" />
-      </div>
+      <PhoneInput
+        v-model="form.phone"
+        label="الهاتف"
+        placeholder="اختياري"
+      />
 
       <div
         v-if="isEdit"
@@ -67,6 +68,7 @@ import Button from "primevue/button";
 import FormSubmitButton from "~/components/shared/form-submit-button/index.vue";
 import InputText from "primevue/inputtext";
 import ToggleSwitch from "primevue/toggleswitch";
+import PhoneInput from "~/components/shared/phone-input/index.vue";
 import { Form, Field, ErrorMessage } from "vee-validate";
 import { branchService } from "~/services/branchService";
 import { useAppToast } from "~/composables/useAppToast";
