@@ -360,7 +360,7 @@ const navigation = computed(() => {
       id: "finance",
       label: "المالية والتقارير",
       items: [
-        { label: "المصروفات", icon: "﷼", to: "/expenses" },
+        { label: "المصروفات", icon: "⊖", to: "/expenses" },
         { label: "التقارير", icon: "▤", to: "/reports" },
       ],
     },
