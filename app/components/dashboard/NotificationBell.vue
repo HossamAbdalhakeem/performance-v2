@@ -26,7 +26,6 @@
       >
         <div class="border-b border-white/10 px-4 py-3">
           <p class="text-sm font-semibold text-white">تنبيهات المخزون</p>
-          <p class="text-xs text-slate-500">تحديث كل 10 دقائق</p>
         </div>
 
         <div class="max-h-80 overflow-y-auto">
