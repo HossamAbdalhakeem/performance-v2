@@ -93,7 +93,7 @@ const DailyReportOperationsSection = defineAsyncComponent(() =>
 );
 
 defineProps({
-  title: { type: String, default: "تقرير اليوم" },
+  title: { type: String, default: "التقرير" },
   subtitle: { type: String, default: "" },
   heroTitle: { type: String, default: "صافي المدفوعات" },
   paymentTotalLabel: { type: String, default: "إجمالي المحصل" },

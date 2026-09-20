@@ -64,7 +64,7 @@ const loadReport = async () => {
   } catch (error) {
     if (generation !== loadGeneration) return;
     summary.value = {};
-    showError(error?.message || "تعذر تحميل تقرير اليوم.");
+    showError(error?.message || "تعذر تحميل التقرير.");
   } finally {
     if (generation === loadGeneration) loading.value = false;
   }

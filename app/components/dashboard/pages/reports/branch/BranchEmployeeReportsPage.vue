@@ -1,6 +1,6 @@
 <template>
   <DailyReportShell
-    title="تقرير اليوم"
+    title="التقرير"
     subtitle="نظرة سريعة على نشاط الفرع والمدفوعات وعمليات المخزن والطلاب"
     hero-title="صافي المدفوعات"
     :loading="loading"
@@ -164,7 +164,7 @@ const loadReport = async () => {
   } catch (error) {
     if (generation !== loadGeneration) return;
     summary.value = {};
-    showError(error?.message || "تعذر تحميل تقرير اليوم.");
+    showError(error?.message || "تعذر تحميل التقرير.");
     return;
   } finally {
     if (generation === loadGeneration) loading.value = false;

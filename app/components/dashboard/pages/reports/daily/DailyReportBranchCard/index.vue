@@ -16,7 +16,7 @@
           <p class="font-semibold text-white">
             {{ branch.branchName }}
           </p>
-          <p class="mt-0.5 text-xs text-slate-500">تقرير اليوم</p>
+          <p class="mt-0.5 text-xs text-slate-500">التقرير</p>
         </div>
       </div>
 

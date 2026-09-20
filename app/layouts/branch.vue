@@ -2,7 +2,7 @@
   <RoleDashboardShell
     role="branch"
     title="لوحة فرع المكتبة"
-    subtitle="إدارة العمليات اليومية"
+    subtitle="إدارة العمليات "
   >
     <slot />
   </RoleDashboardShell>
