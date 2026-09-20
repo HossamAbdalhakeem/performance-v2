@@ -150,10 +150,10 @@ export const buildBranchHeroChips = (summary = {}) => {
       valueClass: "text-amber-300",
     },
     {
-      key: "cancelled",
-      label: "حجوزات ملغاة",
-      value: Number(s.cancelledReservations ?? 0),
-      format: "number",
+      key: "refunds",
+      label: "المسترد",
+      value: Number(s.refundsTotal || 0),
+      format: "money",
       valueClass: "text-rose-300",
     },
   ];
@@ -183,19 +183,6 @@ export const buildCustomerServiceHeroChips = (summary = {}) => {
       format: "money",
       valueClass: "text-emerald-300",
     },
-    {
-      key: "delivered",
-      label: "مسلّمة",
-      value: Number(s.deliveredReservations ?? 0),
-      format: "number",
-      valueClass: "text-emerald-300",
-    },
-    {
-      key: "cancelled",
-      label: "ملغاة",
-      value: Number(s.cancelledReservations ?? 0),
-      format: "number",
-      valueClass: "text-rose-300",
-    },
   ];
 };
+

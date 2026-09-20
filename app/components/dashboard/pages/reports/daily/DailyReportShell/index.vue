@@ -20,36 +20,61 @@
             :refunds-total="refundsTotal"
             :chips="heroChips"
           />
-          <PaymentMethodsReport
-            :items="paymentMethodItems"
-            :total-label="paymentTotalLabel"
-          />
         </div>
-        <DailyReportActivitySection
+        <PaymentMethodsReport
           class="xl:col-span-2"
-          :title="activityTitle"
-          :loading="sectionsLoading"
-          :skeleton-tiles="activitySkeletonTiles"
-          :metrics="activityMetrics"
-          :activity="activity"
-          @open-detail="$emit('open-detail', $event)"
+          :items="paymentMethodItems"
+          :total-label="paymentTotalLabel"
+        />
+      </div>
+
+      <div v-if="showOperations" class="mt-2 space-y-4">
+        <DailyReportOperationsSection
+          title="عمليات الطلاب"
+          subtitle="بيع وحجز واستبدال واسترداد"
+          empty-message="لا توجد عمليات طلاب خلال الفترة المحددة."
+          :type-labels="studentTypeLabels"
+          :rows="studentRows"
+          :loading="studentLoading"
+          :error="studentError"
+          :page="studentPage"
+          :page-size="studentPageSize"
+          :total-records="studentTotal"
+          :movement-type="studentType"
+          :show-student="true"
+          @retry="$emit('retry-student')"
+          @update:page="$emit('update:studentPage', $event)"
+          @update:movement-type="$emit('update:studentType', $event)"
+        />
+
+        <DailyReportOperationsSection
+          title="عمليات المخزن"
+          subtitle="إضافة وسحب وتسوية المخزون"
+          empty-message="لا توجد عمليات مخزن خلال الفترة المحددة."
+          :type-labels="stockTypeLabels"
+          :rows="stockRows"
+          :loading="stockLoading"
+          :error="stockError"
+          :page="stockPage"
+          :page-size="stockPageSize"
+          :total-records="stockTotal"
+          :movement-type="stockType"
+          :show-student="false"
+          @retry="$emit('retry-stock')"
+          @update:page="$emit('update:stockPage', $event)"
+          @update:movement-type="$emit('update:stockType', $event)"
         />
       </div>
     </template>
-
-    <DailyReportDetailDialog
-      v-if="detailVisible"
-      v-model:visible="detailVisibleProxy"
-      :loading="detailLoading"
-      :section-key="activeDetailKey"
-      :rows="activeDetailRows"
-      :is-customer-service="isCustomerService"
-      @close="$emit('close-detail')"
-    />
   </div>
 </template>
 
 <script setup>
+import {
+  STOCK_OPERATION_LABELS,
+  STUDENT_OPERATION_LABELS,
+} from "~/utils/domainLabels";
+
 defineOptions({ name: "DailyReportShell" });
 
 const DailyReportSkeleton = defineAsyncComponent(() =>
@@ -58,46 +83,51 @@ const DailyReportSkeleton = defineAsyncComponent(() =>
 const DailyReportHero = defineAsyncComponent(() =>
   import("./partials/DailyReportHero.vue"),
 );
-const DailyReportActivitySection = defineAsyncComponent(() =>
-  import("~/components/dashboard/pages/reports/daily/DailyReportActivitySection/index.vue"),
-);
 const PaymentMethodsReport = defineAsyncComponent(() =>
   import("~/components/shared/payment-methods-report/index.vue"),
 );
-const DailyReportDetailDialog = defineAsyncComponent(() =>
-  import("./partials/DailyReportDetailDialog.vue"),
+const DailyReportOperationsSection = defineAsyncComponent(() =>
+  import(
+    "~/components/dashboard/pages/reports/daily/DailyReportOperationsSection/index.vue"
+  ),
 );
 
-const props = defineProps({
+defineProps({
   title: { type: String, default: "تقرير اليوم" },
   subtitle: { type: String, default: "" },
   heroTitle: { type: String, default: "صافي المدفوعات" },
-  activityTitle: { type: String, default: "توزيع نشاط اليوم" },
   paymentTotalLabel: { type: String, default: "إجمالي المحصل" },
   loading: { type: Boolean, default: false },
-  sectionsLoading: { type: Boolean, default: false },
-  activitySkeletonTiles: { type: Number, default: 9 },
   paymentsTotal: { type: [Number, String], default: 0 },
   refundsTotal: { type: [Number, String], default: 0 },
   heroChips: { type: Array, default: () => [] },
   paymentMethodItems: { type: Array, default: () => [] },
-  activityMetrics: { type: Array, default: () => [] },
-  activity: { type: Object, default: () => ({ items: [], total: 0 }) },
-  detailVisible: { type: Boolean, default: false },
-  detailLoading: { type: Boolean, default: false },
-  activeDetailKey: { type: String, default: null },
-  activeDetailRows: { type: Array, default: () => [] },
-  isCustomerService: { type: Boolean, default: false },
+  showOperations: { type: Boolean, default: false },
+  stockRows: { type: Array, default: () => [] },
+  stockLoading: { type: Boolean, default: false },
+  stockError: { type: String, default: "" },
+  stockPage: { type: Number, default: 1 },
+  stockPageSize: { type: Number, default: 15 },
+  stockTotal: { type: Number, default: 0 },
+  stockType: { type: String, default: null },
+  studentRows: { type: Array, default: () => [] },
+  studentLoading: { type: Boolean, default: false },
+  studentError: { type: String, default: "" },
+  studentPage: { type: Number, default: 1 },
+  studentPageSize: { type: Number, default: 15 },
+  studentTotal: { type: Number, default: 0 },
+  studentType: { type: String, default: null },
 });
 
-const emit = defineEmits([
-  "open-detail",
-  "close-detail",
-  "update:detailVisible",
+defineEmits([
+  "retry-stock",
+  "retry-student",
+  "update:stockPage",
+  "update:stockType",
+  "update:studentPage",
+  "update:studentType",
 ]);
 
-const detailVisibleProxy = computed({
-  get: () => props.detailVisible,
-  set: (value) => emit("update:detailVisible", value),
-});
+const stockTypeLabels = STOCK_OPERATION_LABELS;
+const studentTypeLabels = STUDENT_OPERATION_LABELS;
 </script>

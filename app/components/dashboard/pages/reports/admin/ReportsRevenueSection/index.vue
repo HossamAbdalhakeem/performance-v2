@@ -5,11 +5,7 @@
   >
     <div class="mb-4 flex flex-wrap items-center justify-between gap-2">
       <p class="font-bold text-white">المبيعات والإيرادات</p>
-      <span
-        class="inline-flex rounded-full border border-white/10 bg-white/5 px-2.5 py-0.5 text-[11px] text-slate-300"
-      >
-        صافي المبيعات = إجمالي المبيعات − المرتجعات
-      </span>
+   
     </div>
 
     <div v-if="loading" class="grid grid-cols-1 gap-3 sm:grid-cols-3">

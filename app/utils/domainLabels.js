@@ -25,7 +25,43 @@ export const STOCK_MOVEMENT_LABELS = {
   RETURN: "مرتجع",
   DAMAGED: "تالف",
   ADJUSTMENT: "تسوية",
+  EXCHANGE: "استبدال",
+  REFUND: "استرداد",
 };
+
+/** Warehouse stock operation types (add / remove / adjust). */
+export const STOCK_OPERATION_LABELS = {
+  STOCK_IN: "إضافة للمخزن",
+  STOCK_OUT: "سحب من المخزن",
+  DAMAGED: "تالف",
+  ADJUSTMENT: "تسوية",
+};
+
+/** Student-facing operation types. */
+export const STUDENT_OPERATION_LABELS = {
+  SALE: "بيع",
+  RESERVATION: "حجز",
+  RESERVATION_RELEASE: "إلغاء حجز",
+  RETURN: "مرتجع",
+  EXCHANGE: "استبدال",
+  REFUND: "استرداد",
+};
+
+/** Distinct accent colors for stock-movement type chips in tables. */
+export const STOCK_MOVEMENT_COLORS = {
+  STOCK_IN: "#10b981",
+  STOCK_OUT: "#f97316",
+  SALE: "#38bdf8",
+  RESERVATION: "#a78bfa",
+  RESERVATION_RELEASE: "#fb7185",
+  RETURN: "#e11d48",
+  DAMAGED: "#b91c1c",
+  ADJUSTMENT: "#94a3b8",
+  EXCHANGE: "#6366f1",
+  REFUND: "#f43f5e",
+};
+
+
 
 export const TRANSACTION_TYPE_LABELS = {
   SALE: "بيع",
@@ -117,6 +153,16 @@ export const getSaleStatusSeverity = (status) =>
 
 export const getStockMovementLabel = (type) =>
   getLabel(STOCK_MOVEMENT_LABELS, String(type || "").toUpperCase());
+
+export const getStockOperationLabel = (type) =>
+  getLabel(STOCK_OPERATION_LABELS, String(type || "").toUpperCase());
+
+export const getStudentOperationLabel = (type) =>
+  getLabel(STUDENT_OPERATION_LABELS, String(type || "").toUpperCase());
+
+export const getStockMovementColor = (type) =>
+  STOCK_MOVEMENT_COLORS[String(type || "").toUpperCase()] || DEFAULT_METRIC_COLOR;
+
 
 export const getTransactionTypeLabel = (type) =>
   getLabel(TRANSACTION_TYPE_LABELS, String(type || "").toUpperCase());

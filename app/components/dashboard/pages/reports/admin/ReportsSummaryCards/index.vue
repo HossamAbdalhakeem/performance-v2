@@ -8,14 +8,8 @@
           تقارير الأداء
         </span>
         <h3 class="text-lg font-bold text-white">أهم المؤشرات</h3>
-        <p class="mt-0.5 text-xs text-slate-400">ملخص ذكي للفترة المحددة</p>
       </div>
-      <span
-        class="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-slate-900/80 px-3 py-1 text-xs text-slate-300"
-      >
-        <i class="pi pi-calendar text-[10px] text-slate-400" />
-        الفترة الحالية
-      </span>
+   
     </div>
 
     <div v-if="loading" class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">

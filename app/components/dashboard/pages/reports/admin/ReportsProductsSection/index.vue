@@ -3,7 +3,7 @@
     class="w-full min-w-0 overflow-hidden rounded-xl border border-white/10 bg-slate-900 p-4"
     dir="rtl"
   >
-    <p class="mb-3 font-bold text-white">أداء المنتجات</p>
+    <p class="mb-3 font-bold text-white">حركة المنتجات</p>
 
     <div v-if="loading" class="space-y-2">
       <Skeleton v-for="i in 5" :key="`prod-${i}`" width="100%" height="2.2rem" />
@@ -11,7 +11,7 @@
 
     <ReportsSectionError
       v-else-if="error"
-      message="تعذر تحميل أداء المنتجات."
+      message="تعذر تحميل حركة المنتجات."
       @retry="reload"
     />
 
@@ -50,7 +50,7 @@ const { loading, data, error, reload } = useAdminReportSection(
     params: toRef(props, "params"),
     reloadKey: toRef(props, "reloadKey"),
     emit,
-    errorMessage: "تعذر تحميل أداء المنتجات.",
+    errorMessage: "تعذر تحميل حركة المنتجات.",
   },
 );
 

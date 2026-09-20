@@ -22,6 +22,8 @@ export type DailyReportSection =
   | "received"
   | "stockOut"
   | "allMovements"
+  | "stockOperations"
+  | "studentOperations"
   | "returns"
   | "exchanges";
 
@@ -36,6 +38,8 @@ const BRANCH_SECTION_PATH: Record<
   received: "received",
   stockOut: "stock-out",
   allMovements: "all-movements",
+  stockOperations: "stock-operations",
+  studentOperations: "student-operations",
   returns: "returns",
   exchanges: "exchanges",
 };
