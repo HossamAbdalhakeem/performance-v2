@@ -63,13 +63,17 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits(["update:from", "update:to", "change"]);
+const emit = defineEmits(["update:from", "update:to", "update:period", "change"]);
+
+const emitPeriod = (value) => {
+  emit("update:period", value);
+};
 
 const customRangeRef = ref(null);
 const period = ref(props.defaultPeriod);
 
 const periodOptions = [
-  { label: "يوم", value: "day" },
+  { label: "اليوم", value: "day" },
   { label: "اسبوع", value: "week" },
   { label: "شهر", value: "month" },
   { label: "العام الدراسي", value: "year" },
@@ -151,7 +155,8 @@ const applyPreset = (value) => {
   if (!range) return;
   emit("update:from", range.from);
   emit("update:to", range.to);
-  emit("change", range);
+  emitPeriod(value);
+  emit("change", { ...range, period: value });
 };
 
 const openCustomPicker = async () => {
@@ -161,6 +166,7 @@ const openCustomPicker = async () => {
 
 const onPeriodChange = async (value) => {
   period.value = value || props.defaultPeriod;
+  emitPeriod(period.value);
 
   if (period.value === "custom") {
     await openCustomPicker();
@@ -172,7 +178,8 @@ const onPeriodChange = async (value) => {
 
 const onRangeChange = (payload) => {
   period.value = "custom";
-  emit("change", payload);
+  emitPeriod("custom");
+  emit("change", { ...(payload || {}), period: "custom" });
 };
 
 const detectPeriodFromProps = () => {

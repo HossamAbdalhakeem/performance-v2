@@ -33,6 +33,7 @@
       select-class="w-full"
       @update:from="emit('update:from', $event)"
       @update:to="emit('update:to', $event)"
+      @update:period="emit('update:period', $event)"
       @change="emit('change', $event)"
     />
 
@@ -59,6 +60,7 @@ defineProps({
   branch: { type: [String, Number], default: "all" },
   from: { type: String, default: null },
   to: { type: String, default: null },
+  period: { type: String, default: "year" },
   academicYearRange: { type: Object, default: null },
   loading: { type: Boolean, default: false },
 });
@@ -68,6 +70,7 @@ const emit = defineEmits([
   "update:branch",
   "update:from",
   "update:to",
+  "update:period",
   "change",
   "refresh",
 ]);

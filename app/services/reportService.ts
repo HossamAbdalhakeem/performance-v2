@@ -137,16 +137,76 @@ export const reportService = {
     return this.getBranchSection(section, params);
   },
 
-  /** Admin dashboard section APIs */
+  /** Admin modular section APIs */
   async getAdminKpis(params: Record<string, any> = {}) {
     return asData(
       await apiFetch("/reports/admin/kpis", { method: "GET", params }),
     );
   },
 
+  async getAdminSummary(params: Record<string, any> = {}) {
+    return asData(
+      await apiFetch("/reports/admin/summary", { method: "GET", params }),
+    );
+  },
+
+  async getAdminRevenue(params: Record<string, any> = {}) {
+    return asData(
+      await apiFetch("/reports/admin/revenue", { method: "GET", params }),
+    );
+  },
+
+  async getAdminSalesTrend(params: Record<string, any> = {}) {
+    return asData(
+      await apiFetch("/reports/admin/sales-trend", { method: "GET", params }),
+    );
+  },
+
+  async getAdminProfitLoss(params: Record<string, any> = {}) {
+    return asData(
+      await apiFetch("/reports/admin/profit-loss", { method: "GET", params }),
+    );
+  },
+
+  async getAdminPaymentMethods(params: Record<string, any> = {}) {
+    return asData(
+      await apiFetch("/reports/admin/payment-methods", {
+        method: "GET",
+        params,
+      }),
+    );
+  },
+
   async getAdminInventory(params: Record<string, any> = {}) {
     return asData(
       await apiFetch("/reports/admin/inventory", { method: "GET", params }),
+    );
+  },
+
+  async getAdminProducts(params: Record<string, any> = {}) {
+    return asData(
+      await apiFetch("/reports/admin/products", { method: "GET", params }),
+    );
+  },
+
+  async getAdminBranches(params: Record<string, any> = {}) {
+    return asData(
+      await apiFetch("/reports/admin/branches", { method: "GET", params }),
+    );
+  },
+
+  async getAdminReturnsExchanges(params: Record<string, any> = {}) {
+    return asData(
+      await apiFetch("/reports/admin/returns-exchanges", {
+        method: "GET",
+        params,
+      }),
+    );
+  },
+
+  async getAdminExpenses(params: Record<string, any> = {}) {
+    return asData(
+      await apiFetch("/reports/admin/expenses", { method: "GET", params }),
     );
   },
 

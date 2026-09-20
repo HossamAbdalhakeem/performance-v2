@@ -12,6 +12,7 @@
         v-model:branch="selectedBranch"
         v-model:from="dateFrom"
         v-model:to="dateTo"
+        v-model:period="selectedPeriod"
         :academic-year-range="academicYearRange"
         :loading="anyLoading"
         class="w-full min-w-0"
@@ -23,24 +24,53 @@
     <ReportsSummaryCards
       :params="reportParams"
       :reload-key="reloadKey"
-      @loading="setSectionLoading('kpis', $event)"
+      @loading="setSectionLoading('summary', $event)"
+    />
+    <ReportsRevenueSection
+      :params="reportParams"
+      :reload-key="reloadKey"
+      @loading="setSectionLoading('revenue', $event)"
+    />
+    <ReportsSalesTrendSection
+      :params="reportParams"
+      :reload-key="reloadKey"
+      @loading="setSectionLoading('salesTrend', $event)"
     />
     <ReportsFinancialsSection
       :params="reportParams"
       :reload-key="reloadKey"
       :is-branch-scoped="isBranchScoped"
-      @loading="setSectionLoading('financial', $event)"
+      @loading="setSectionLoading('profitLoss', $event)"
+    />
+    <ReportsPaymentsSection
+      :params="reportParams"
+      :reload-key="reloadKey"
+      @loading="setSectionLoading('payments', $event)"
     />
     <ReportsInventoryTable
       :params="reportParams"
       :reload-key="reloadKey"
       @loading="setSectionLoading('inventory', $event)"
     />
- 
-    <ReportsPaymentsSection
+    <ReportsProductsSection
       :params="reportParams"
       :reload-key="reloadKey"
-      @loading="setSectionLoading('payments', $event)"
+      @loading="setSectionLoading('products', $event)"
+    />
+    <ReportsBranchesSection
+      :params="reportParams"
+      :reload-key="reloadKey"
+      @loading="setSectionLoading('branches', $event)"
+    />
+    <ReportsReturnsExchangesSection
+      :params="reportParams"
+      :reload-key="reloadKey"
+      @loading="setSectionLoading('returns', $event)"
+    />
+    <ReportsExpensesSection
+      :params="reportParams"
+      :reload-key="reloadKey"
+      @loading="setSectionLoading('expenses', $event)"
     />
   </div>
 </template>
@@ -54,14 +84,38 @@ import { useAcademicYearStore } from "~/store/academicYear.js";
 const ReportsSummaryCards = defineAsyncComponent(() =>
   import("~/components/dashboard/pages/reports/admin/ReportsSummaryCards/index.vue"),
 );
+const ReportsRevenueSection = defineAsyncComponent(() =>
+  import("~/components/dashboard/pages/reports/admin/ReportsRevenueSection/index.vue"),
+);
+const ReportsSalesTrendSection = defineAsyncComponent(() =>
+  import(
+    "~/components/dashboard/pages/reports/admin/ReportsSalesTrendSection/index.vue"
+  ),
+);
 const ReportsInventoryTable = defineAsyncComponent(() =>
   import("~/components/dashboard/pages/reports/admin/ReportsInventoryTable/index.vue"),
 );
 const ReportsFinancialsSection = defineAsyncComponent(() =>
-  import("~/components/dashboard/pages/reports/admin/ReportsFinancialsSection/index.vue"),
+  import(
+    "~/components/dashboard/pages/reports/admin/ReportsFinancialsSection/index.vue"
+  ),
 );
 const ReportsPaymentsSection = defineAsyncComponent(() =>
   import("~/components/dashboard/pages/reports/admin/ReportsPaymentsSection/index.vue"),
+);
+const ReportsProductsSection = defineAsyncComponent(() =>
+  import("~/components/dashboard/pages/reports/admin/ReportsProductsSection/index.vue"),
+);
+const ReportsBranchesSection = defineAsyncComponent(() =>
+  import("~/components/dashboard/pages/reports/admin/ReportsBranchesSection/index.vue"),
+);
+const ReportsReturnsExchangesSection = defineAsyncComponent(() =>
+  import(
+    "~/components/dashboard/pages/reports/admin/ReportsReturnsExchangesSection/index.vue"
+  ),
+);
+const ReportsExpensesSection = defineAsyncComponent(() =>
+  import("~/components/dashboard/pages/reports/admin/ReportsExpensesSection/index.vue"),
 );
 
 defineOptions({ name: "AdminReportsPage" });
@@ -86,6 +140,20 @@ const toDateInput = (value) => {
 
 const todayInputValue = () => toDateInput(new Date()) || "2026-01-01";
 
+const normalizePeriod = (value) => {
+  const allowed = ["day", "week", "month", "year", "custom"];
+  const raw = String(value || "").toLowerCase();
+  if (raw === "today") return "day";
+  return allowed.includes(raw) ? raw : "year";
+};
+
+/** Map UI period presets to backend sales-trend granularity hints. */
+const apiPeriod = (value) => {
+  const period = normalizePeriod(value);
+  if (period === "day") return "today";
+  return period;
+};
+
 const academicYearRange = computed(() => {
   const id = currentAcademicYearId.value;
   if (!id) return null;
@@ -100,29 +168,24 @@ const academicYearRange = computed(() => {
 });
 
 const today = todayInputValue();
-const dateFrom = ref(
-  typeof route.query.from === "string" && route.query.from
-    ? toDateInput(route.query.from)
-    : null,
-);
-const dateTo = ref(
-  typeof route.query.to === "string" && route.query.to
-    ? toDateInput(route.query.to)
-    : null,
-);
-const selectedBranch = ref(
-  route.query.branchId ? String(route.query.branchId) : "all",
-);
-const selectedBook = ref(
-  route.query.productId ? String(route.query.productId) : null,
-);
+const dateFrom = ref(null);
+const dateTo = ref(null);
+const selectedPeriod = ref("year");
+const selectedBranch = ref("all");
+const selectedBook = ref(null);
 
 const reloadKey = ref(0);
 const sectionLoading = reactive({
-  kpis: false,
-  inventory: false,
-  financial: false,
+  summary: false,
+  revenue: false,
+  salesTrend: false,
+  profitLoss: false,
   payments: false,
+  inventory: false,
+  products: false,
+  branches: false,
+  returns: false,
+  expenses: false,
 });
 
 const anyLoading = computed(() => Object.values(sectionLoading).some(Boolean));
@@ -138,6 +201,7 @@ const reportParams = computed(() => {
   const params = {
     from: from.toISOString(),
     to: to.toISOString(),
+    period: apiPeriod(selectedPeriod.value),
   };
   if (selectedBranch.value && selectedBranch.value !== "all") {
     params.branchId = selectedBranch.value;
@@ -155,36 +219,7 @@ const setSectionLoading = (key, value) => {
   sectionLoading[key] = Boolean(value);
 };
 
-const syncRouteQuery = () => {
-  const query = {
-    from: dateFrom.value || todayInputValue(),
-    to: dateTo.value || dateFrom.value || todayInputValue(),
-  };
-  if (selectedBranch.value && selectedBranch.value !== "all") {
-    query.branchId = selectedBranch.value;
-  }
-  if (selectedBook.value) {
-    query.productId = String(selectedBook.value);
-  }
-  if (currentAcademicYearId.value) {
-    query.academicYearId = String(currentAcademicYearId.value);
-  }
-
-  const current = route.query;
-  const same =
-    String(current.from || "") === query.from &&
-    String(current.to || "") === query.to &&
-    String(current.branchId || "") === String(query.branchId || "") &&
-    String(current.productId || "") === String(query.productId || "") &&
-    String(current.academicYearId || "") === String(query.academicYearId || "");
-
-  if (!same) {
-    router.replace({ query });
-  }
-};
-
 const refreshAll = () => {
-  syncRouteQuery();
   reloadKey.value += 1;
 };
 
@@ -192,14 +227,14 @@ const onFiltersChange = (payload) => {
   if (payload && typeof payload === "object") {
     if ("from" in payload) dateFrom.value = payload.from || null;
     if ("to" in payload) dateTo.value = payload.to || payload.from || null;
+    if ("period" in payload) selectedPeriod.value = normalizePeriod(payload.period);
   }
 
   if (!dateFrom.value && !dateTo.value && academicYearRange.value) {
     dateFrom.value = academicYearRange.value.from;
     dateTo.value = academicYearRange.value.to;
+    selectedPeriod.value = "year";
   }
-
-  syncRouteQuery();
 };
 
 const ensureDateRange = () => {
@@ -207,23 +242,26 @@ const ensureDateRange = () => {
   if (academicYearRange.value) {
     dateFrom.value = academicYearRange.value.from;
     dateTo.value = academicYearRange.value.to;
+    selectedPeriod.value = "year";
   } else {
     dateFrom.value = today;
     dateTo.value = today;
+    selectedPeriod.value = "day";
   }
 };
 
 watch(currentAcademicYearId, () => {
-  if (academicYearRange.value) {
+  if (academicYearRange.value && selectedPeriod.value === "year") {
     dateFrom.value = academicYearRange.value.from;
     dateTo.value = academicYearRange.value.to;
   }
-  syncRouteQuery();
 });
 
 onMounted(async () => {
+  if (Object.keys(route.query).length) {
+    router.replace({ query: {} });
+  }
   await academicYearStore.fetchYears().catch(() => {});
   ensureDateRange();
-  syncRouteQuery();
 });
 </script>

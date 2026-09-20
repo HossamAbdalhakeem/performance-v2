@@ -1,22 +1,13 @@
 <template>
-  <div
-    v-if="loading"
-    class="rounded-xl border border-white/10 bg-slate-900 p-4"
-  >
-    <Skeleton width="8rem" height="1rem" class="mb-4" />
-    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-      <Skeleton v-for="i in 4" :key="`fin-${i}`" height="4.5rem" />
-    </div>
-  </div>
-  <div
-    v-else
+  <section
     class="w-full min-w-0 overflow-hidden rounded-xl border border-white/10 bg-slate-900 p-4"
+    dir="rtl"
   >
     <div class="mb-4 flex flex-wrap items-start justify-between gap-2">
       <div class="min-w-0">
         <p class="font-bold text-white">الأرباح والخسائر</p>
         <p class="mt-1 text-xs text-slate-400">
-          الإيرادات − تكلفة البضاعة = إجمالي الربح، ثم خصم المصروفات
+          الإيرادات − تكلفة البضاعة = إجمالي الربح، ثم خصم المصروفات المرتبطة
         </p>
       </div>
       <p
@@ -27,27 +18,49 @@
       </p>
     </div>
 
-    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-      <ReportsFinancialMetricCard
-        v-for="metric in metrics"
-        :key="metric.key"
-        :label="metric.label"
-        :value="metric.value"
-        :value-class="metric.valueClass"
-      />
+    <div v-if="loading" class="space-y-3">
+      <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <Skeleton v-for="i in 4" :key="`fin-${i}`" height="4.5rem" />
+      </div>
+      <div class="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+        <Skeleton v-for="i in 3" :key="`fin-row-${i}`" height="2.2rem" />
+      </div>
     </div>
 
-    <div class="mt-4 grid grid-cols-1 gap-2 text-sm text-slate-200 sm:grid-cols-2 lg:grid-cols-3">
-      <ReportsFinancialDetailRow
-        v-for="row in detailRows"
-        :key="row.key"
-        :label="row.label"
-        :value="row.value"
-        :value-class="row.valueClass"
-        :hint="row.hint"
-      />
-    </div>
-  </div>
+    <ReportsSectionError
+      v-else-if="error"
+      message="تعذر تحميل بيانات الأرباح والخسائر."
+      @retry="reload"
+    />
+
+    <ReportsSectionEmpty
+      v-else-if="isEmpty"
+      message="لا توجد بيانات أرباح وخسائر خلال الفترة المحددة."
+    />
+
+    <template v-else>
+      <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <ReportsFinancialMetricCard
+          v-for="metric in metrics"
+          :key="metric.key"
+          :label="metric.label"
+          :value="metric.value"
+          :value-class="metric.valueClass"
+        />
+      </div>
+
+      <div class="mt-4 grid grid-cols-1 gap-2 text-sm text-slate-200 sm:grid-cols-2 lg:grid-cols-3">
+        <ReportsFinancialDetailRow
+          v-for="row in detailRows"
+          :key="row.key"
+          :label="row.label"
+          :value="row.value"
+          :value-class="row.valueClass"
+          :hint="row.hint"
+        />
+      </div>
+    </template>
+  </section>
 </template>
 
 <script setup>
@@ -55,6 +68,8 @@ import Skeleton from "primevue/skeleton";
 import { formatMoney } from "~/utils/format";
 import { reportService } from "~/services/reportService";
 import { useAdminReportSection } from "~/composables/useAdminReportSection";
+import ReportsSectionError from "~/components/dashboard/pages/reports/admin/ReportsSectionError/index.vue";
+import ReportsSectionEmpty from "~/components/dashboard/pages/reports/admin/ReportsSectionEmpty/index.vue";
 
 defineOptions({ name: "ReportsFinancialsSection" });
 
@@ -73,36 +88,25 @@ const props = defineProps({
 
 const emit = defineEmits(["loading"]);
 
-const { loading, data } = useAdminReportSection(
-  (params) => reportService.getFinancialReport(params).catch(() => null),
+const { loading, data, error, reload } = useAdminReportSection(
+  (params) => reportService.getAdminProfitLoss(params),
   {
     params: toRef(props, "params"),
     reloadKey: toRef(props, "reloadKey"),
     emit,
+    errorMessage: "تعذر تحميل بيانات الأرباح والخسائر.",
   },
 );
 
-const financials = computed(() => {
-  const fromFinancial = data.value?.financials;
-  if (!fromFinancial) return {};
-  return {
-    ...fromFinancial,
-    branchExpenses: fromFinancial.academicYearExpenses,
-    operatingExpenses: fromFinancial.academicYearExpenses,
-    generalExpenses: data.value?.separate?.generalExpenses ?? 0,
-  };
-});
+const financials = computed(() => data.value || {});
 
-const breakdown = computed(() => data.value?.breakdown || {});
-const refundsTotal = computed(() => data.value?.refundsTotal ?? 0);
-const reservationDeposits = computed(
+const isEmpty = computed(
   () =>
-    data.value?.separate?.reservationDeposits ??
-    data.value?.breakdown?.reservationDeposits ??
-    0,
-);
-const separateGeneralExpenses = computed(
-  () => data.value?.separate?.generalExpenses ?? 0,
+    !data.value ||
+    (!(financials.value.revenue || 0) &&
+      !(financials.value.cogs || 0) &&
+      !(financials.value.salesRelatedExpenses || 0) &&
+      !(financials.value.generalExpenses || 0)),
 );
 
 const metrics = computed(() => [
@@ -134,39 +138,15 @@ const metrics = computed(() => [
 
 const detailRows = computed(() => [
   {
-    key: "branchSales",
-    label: "مبيعات فرع",
-    value: formatMoney(breakdown.value.branchSales, "locale"),
-  },
-  {
-    key: "reservations",
-    label: "مدفوعات الحجوزات (كل الحالات)",
-    value: formatMoney(breakdown.value.reservations, "locale"),
-  },
-  {
-    key: "refunds",
-    label: "مرتجعات",
-    value: formatMoney(refundsTotal.value, "locale"),
-  },
-  {
-    key: "linkedExpenses",
-    label: "مصروفات مرتبطة",
-    value: formatMoney(
-      financials.value.academicYearExpenses ?? financials.value.branchExpenses,
-      "locale",
-    ),
+    key: "salesRelated",
+    label: "مصروفات مرتبطة بالمبيعات",
+    value: formatMoney(financials.value.salesRelatedExpenses, "locale"),
   },
   {
     key: "generalExpenses",
     label: "مصروفات عامة (منفصلة)",
-    value: formatMoney(separateGeneralExpenses.value, "locale"),
+    value: formatMoney(financials.value.generalExpenses, "locale"),
     hint: "(لا تُخصم تلقائياً من صافي الربح)",
-  },
-  {
-    key: "reservationDeposits",
-    label: "عربونات الحجوزات (منفصلة عن الإيرادات)",
-    value: formatMoney(reservationDeposits.value, "locale"),
-    valueClass: "text-amber-200",
   },
 ]);
 </script>

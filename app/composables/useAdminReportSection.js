@@ -3,6 +3,7 @@ import { useAppToast } from "~/composables/useAppToast";
 /**
  * Self-contained admin report section loader.
  * Reloads whenever `params` or `reloadKey` change.
+ * Each section owns its own loading + error state.
  */
 export const useAdminReportSection = (loader, options = {}) => {
   const {
@@ -12,11 +13,13 @@ export const useAdminReportSection = (loader, options = {}) => {
     errorMessage = "تعذر تحميل جزء من التقارير.",
     transform = (data) => data,
     emit,
+    toastOnError = false,
   } = options;
 
   const { showError } = useAppToast();
   const loading = ref(Boolean(immediate));
   const data = ref(null);
+  const error = ref(null);
   let generation = 0;
 
   const setLoading = (value) => {
@@ -33,6 +36,7 @@ export const useAdminReportSection = (loader, options = {}) => {
       branchId: p.branchId || null,
       productId: p.productId || null,
       academicYearId: p.academicYearId || null,
+      period: p.period || null,
     })}:${key}`;
   });
 
@@ -45,26 +49,36 @@ export const useAdminReportSection = (loader, options = {}) => {
 
     const gen = ++generation;
     setLoading(true);
+    error.value = null;
     try {
       const result = await loader(current);
       if (gen !== generation) return;
       data.value = transform(result);
-    } catch (error) {
+      error.value = null;
+    } catch (err) {
       if (gen !== generation) return;
       data.value = null;
-      showError(error?.message || errorMessage);
+      error.value = err?.message || errorMessage;
+      if (toastOnError) {
+        showError(error.value);
+      }
     } finally {
       if (gen === generation) setLoading(false);
     }
   };
 
-  watch(paramsKey, () => {
-    reload();
-  }, { immediate });
+  watch(
+    paramsKey,
+    () => {
+      reload();
+    },
+    { immediate },
+  );
 
   return {
     loading,
     data,
+    error,
     reload,
   };
 };
