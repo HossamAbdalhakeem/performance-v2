@@ -9,21 +9,38 @@
           </div>
 
           <div class="relative z-10">
-            <div class="mb-10 flex h-14 w-14 items-center justify-center rounded-2xl bg-white/10 text-2xl font-bold shadow-lg backdrop-blur-sm">د</div>
+            <div
+              class="mb-10 flex h-14 w-14 items-center justify-center rounded-2xl border border-white/15 bg-white/10 text-2xl text-white shadow-lg backdrop-blur-sm"
+              aria-hidden="true"
+            >
+              ▦
+            </div>
             <p class="mb-3 text-xs font-semibold tracking-[0.25em] text-sky-200/80">لوحة التحكم</p>
             <h1 class="max-w-md text-4xl font-bold leading-tight sm:text-5xl">نظام إدارة المكتبة</h1>
+            <p class="mt-4 max-w-sm text-sm leading-relaxed text-sky-100/80">
+              منصة موحّدة لإدارة الفروع والمنتجات والمبيعات والحجوزات والمخزون والتقارير.
+            </p>
           </div>
 
           <div class="relative z-10 space-y-6 text-right">
             <div class="rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-sm">
               <p class="text-sm text-sky-100">إدارة فروع المكتبة</p>
-              <p class="mt-2 text-[2rem] font-bold">24/7</p>
+              <p class="mt-2 text-xl font-bold leading-snug">متابعة العمليات يومياً من مكان واحد</p>
             </div>
 
             <ul class="space-y-3 text-sm text-sky-100/90">
-              <li class="flex items-center gap-3"><span class="inline-flex h-2.5 w-2.5 rounded-full bg-cyan-300" /> إدارة المبيعات والطلبات</li>
-              <li class="flex items-center gap-3"><span class="inline-flex h-2.5 w-2.5 rounded-full bg-cyan-300" /> متابعة المخزون والحجوزات</li>
-              <li class="flex items-center gap-3"><span class="inline-flex h-2.5 w-2.5 rounded-full bg-cyan-300" /> تقارير دورية وملفات الطلبة</li>
+              <li class="flex items-center gap-3">
+                <span class="inline-flex h-2.5 w-2.5 shrink-0 rounded-full bg-cyan-300" />
+                إدارة المبيعات والحجوزات
+              </li>
+              <li class="flex items-center gap-3">
+                <span class="inline-flex h-2.5 w-2.5 shrink-0 rounded-full bg-cyan-300" />
+                متابعة المخزون والمنتجات
+              </li>
+              <li class="flex items-center gap-3">
+                <span class="inline-flex h-2.5 w-2.5 shrink-0 rounded-full bg-cyan-300" />
+                تقارير مالية وملفات الطلبة
+              </li>
             </ul>
           </div>
         </section>
@@ -66,15 +83,6 @@
                   <ErrorMessage name="password" class="text-xs text-red-500" />
                 </div>
               </Field>
-
-              <div class="flex items-center justify-between gap-3 rounded-xl bg-slate-50 p-3 text-sm text-slate-600">
-                <label class="flex cursor-pointer items-center gap-2">
-                  <Checkbox v-model="rememberMe" binary />
-                  <span>تذكرني</span>
-                </label>
-                <button type="button" class="text-sky-700 hover:underline">نسيت كلمة المرور؟</button>
-              </div>
-
               <FormSubmitButton
                 :loading="authStore.loading"
                 :valid="meta.valid"
