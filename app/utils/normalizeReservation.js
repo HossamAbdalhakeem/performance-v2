@@ -9,20 +9,17 @@ const toMoney = (value) => {
 };
 
 /**
- * Map a Nest reservation (camelCase + payment-proof + live pricing) to table/UI rows.
- * Open reservations: remaining follows current product price from the API.
+ * Map Nest GET /reservations row (camelCase + includes + live pricing) to table/UI.
+ * Reads only backend keys — no snake_case / legacy fallbacks.
  */
 export const normalizeReservation = (item = {}) => {
   const quantity = item.quantity ?? 1;
   const paidAmount = toMoney(item.paidAmount);
   const sellingPrice = toMoney(
-    item.currentUnitPrice ??
-      item.product?.sellingPrice ??
-      item.reservationPrice ??
-      0,
+    item.currentUnitPrice ?? item.product?.sellingPrice ?? item.reservationPrice,
   );
   const totalAmount = toMoney(
-    item.currentTotalAmount ?? sellingPrice * quantity,
+    item.currentTotalAmount ?? item.totalAmount ?? sellingPrice * quantity,
   );
   const remainingAmount = toMoney(
     item.remainingAmount ?? Math.max(totalAmount - paidAmount, 0),
@@ -36,9 +33,9 @@ export const normalizeReservation = (item = {}) => {
   return {
     ...item,
     id: item.id,
-    productId: item.productId || item.product?.id || null,
-    branchId: item.branchId || item.branch?.id || null,
-    reservationNumber: item.reservationNumber || item.id,
+    productId: item.productId ?? item.product?.id ?? null,
+    branchId: item.branchId ?? item.branch?.id ?? null,
+    reservationNumber: item.reservationNumber,
     quantity,
     status,
     totalAmount,
@@ -46,7 +43,7 @@ export const normalizeReservation = (item = {}) => {
     remainingAmount,
     hasRemaining: remainingAmount > 0,
     sellingPrice,
-    createdAt: item.createdAt || null,
+    createdAt: item.createdAt ?? null,
     createdAtLabel: formatDateTime(item.createdAt, { empty: "—" }),
     studentName: item.student?.name || "-",
     phone: item.student?.phone || "",
@@ -60,14 +57,14 @@ export const normalizeReservation = (item = {}) => {
     sellingPriceLabel: sellingPrice > 0 ? formatMoney(sellingPrice) : "—",
     paidAmountLabel: formatMoney(paidAmount),
     remainingAmountLabel: formatMoney(remainingAmount),
-    paymentId: item.paymentId || null,
+    paymentId: item.paymentId ?? null,
     paymentMethod,
     paymentMethodLabel:
-      PAYMENT_METHOD_LABELS[paymentMethod] ||
       item.paymentMethodLabel ||
+      PAYMENT_METHOD_LABELS[paymentMethod] ||
       paymentMethod,
-    proofReference: item.proofReference || null,
-    proofUrl: item.proofUrl || null,
+    proofReference: item.proofReference ?? null,
+    proofUrl: item.proofUrl ?? null,
     hasProof: Boolean(item.hasProof),
     statusLabel:
       remainingAmount > 0 && status === "READY"

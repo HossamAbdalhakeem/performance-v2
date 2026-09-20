@@ -9,26 +9,18 @@ import {
   normalizePaymentMethod,
 } from "~/utils/paymentMethods";
 
+/** Body for POST /reservations — matches CreateReservationDto (camelCase only). */
 const reservationBody = (payload: Record<string, any>) => {
-  const method = normalizePaymentMethod(
-    payload.method || payload.payment_method || PaymentMethod.CASH,
-  );
-
   const body: Record<string, any> = {
-    studentId: payload.studentId ?? payload.student_id,
-    productId: payload.productId ?? payload.product_id,
+    studentId: payload.studentId,
+    productId: payload.productId,
     quantity: Number(payload.quantity || 1),
-    deposit: Number(payload.deposit ?? payload.paid_amount ?? payload.amount),
-    method,
+    deposit: Number(payload.deposit),
+    method: normalizePaymentMethod(payload.method || PaymentMethod.CASH),
   };
 
-  const branchId = payload.branchId ?? payload.branch_id;
-  if (branchId) body.branchId = branchId;
-
-  if (payload.proofReference || payload.proof_reference || payload.payment_proof_path) {
-    body.proofReference =
-      payload.proofReference || payload.proof_reference || payload.payment_proof_path;
-  }
+  if (payload.branchId) body.branchId = payload.branchId;
+  if (payload.proofReference) body.proofReference = payload.proofReference;
 
   return body;
 };
@@ -58,14 +50,11 @@ export const reservationService = {
   async deliverReservation(id: string, payload: Record<string, any> = {}) {
     const body: Record<string, any> = {};
 
-    const methodRaw = payload.method ?? payload.payment_method;
-    if (methodRaw != null && String(methodRaw).trim() !== "") {
-      body.method = normalizePaymentMethod(methodRaw);
+    if (payload.method != null && String(payload.method).trim() !== "") {
+      body.method = normalizePaymentMethod(payload.method);
     }
 
-    const proofReference =
-      payload.proofReference || payload.proof_reference || payload.note;
-    if (proofReference) body.proofReference = proofReference;
+    if (payload.proofReference) body.proofReference = payload.proofReference;
 
     return firstRow(
       await apiFetch(`/reservations/${id}/deliver`, {
@@ -78,16 +67,14 @@ export const reservationService = {
   async cancelReservation(id: string, payload: Record<string, any> = {}) {
     const body: Record<string, any> = {};
 
-    const refundMethodRaw = payload.refundMethod ?? payload.refund_method;
-    if (refundMethodRaw != null && String(refundMethodRaw).trim() !== "") {
-      body.refundMethod = normalizePaymentMethod(refundMethodRaw);
+    if (
+      payload.refundMethod != null &&
+      String(payload.refundMethod).trim() !== ""
+    ) {
+      body.refundMethod = normalizePaymentMethod(payload.refundMethod);
     }
 
-    const proofReference =
-      payload.proofReference ||
-      payload.proof_reference ||
-      payload.payment_proof_path;
-    if (proofReference) body.proofReference = proofReference;
+    if (payload.proofReference) body.proofReference = payload.proofReference;
 
     return firstRow(
       await apiFetch(`/reservations/${id}/cancel`, {
@@ -99,21 +86,17 @@ export const reservationService = {
 
   async changeProduct(id: string, payload: Record<string, any>) {
     const body: Record<string, any> = {
-      newProductId:
-        payload.newProductId ??
-        payload.new_product_id ??
-        payload.productId ??
-        payload.product_id,
+      newProductId: payload.newProductId,
     };
 
-    const refundMethodRaw = payload.refundMethod ?? payload.refund_method;
-    if (refundMethodRaw != null && String(refundMethodRaw).trim() !== "") {
-      body.refundMethod = normalizePaymentMethod(refundMethodRaw);
+    if (
+      payload.refundMethod != null &&
+      String(payload.refundMethod).trim() !== ""
+    ) {
+      body.refundMethod = normalizePaymentMethod(payload.refundMethod);
     }
 
-    const proofReference =
-      payload.proofReference || payload.proof_reference || payload.payment_proof_path;
-    if (proofReference) body.proofReference = proofReference;
+    if (payload.proofReference) body.proofReference = payload.proofReference;
 
     return firstRow(
       await apiFetch(`/reservations/${id}/change-product`, {

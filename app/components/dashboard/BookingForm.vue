@@ -351,7 +351,6 @@ const saving = ref(false);
 const loadingProducts = ref(false);
 const hydratingInitial = ref(false);
 const formKey = ref(0);
-const receiptCode = ref("");
 const reservationSummary = ref(null);
 const successDialogVisible = ref(false);
 const proofFile = ref(null);
@@ -719,49 +718,35 @@ const handleSubmit = async () => {
     const product = selectedProductOption.value;
     const method = form.paymentMethod;
     const needsProof = paymentMethodNeedsProof(method);
-    const paidAmount = Number(form.amount || 0);
+    const deposit = Number(form.amount || 0);
 
     const result = await props.submitFn({
-      teacher_id: product?.teacherId || form.teacherId || "",
-      product_id: form.productId,
-      productId: form.productId,
       studentId,
-      student_id: studentId,
-      student_name: form.studentName,
-      phone: form.studentPhone,
-      amount: form.amount,
-      paid_amount: form.amount,
-      deposit: form.amount,
-      payment_method: method,
-      method,
-      branchId: form.branchId || undefined,
-      branch_id: form.branchId || undefined,
-      receipt_image: needsProof ? proofPreviewUrl.value || null : null,
-      proofReference: needsProof ? proofKey.value || undefined : undefined,
+      productId: form.productId,
       quantity: RESERVATION_QUANTITY,
+      deposit,
+      method,
+      ...(form.branchId ? { branchId: form.branchId } : {}),
+      ...(needsProof && proofKey.value
+        ? { proofReference: proofKey.value }
+        : {}),
     });
 
-    const reservationNumber =
-      result?.reservationNumber ||
-      result?.reservation_number ||
-      result?.code ||
-      result?.id ||
-      "";
+    if (!result?.id || !result?.reservationNumber) {
+      throw new Error("تعذر قراءة بيانات الحجز من الخادم.");
+    }
 
-    receiptCode.value = reservationNumber;
 
     reservationSummary.value = {
-      reservationNumber,
-      dateTimeLabel: formatDateTime(result?.createdAt || new Date()),
-      productName: product?.name || result?.product?.name || "-",
-      teacherName: product?.teacherName || result?.product?.teacher?.name || "",
-      studyYearName:
-        product?.studyYearName || result?.product?.studyYear?.name || "",
-      studentName: form.studentName || result?.student?.name || "-",
-      paidAmount: Number(result?.paidAmount ?? paidAmount),
-      totalAmount: Number(
-        result?.totalAmount ?? product?.sellingPrice ?? paidAmount,
-      ),
+      reservationNumber: result.reservationNumber,
+      dateTimeLabel: formatDateTime(result.createdAt),
+      productName: product?.name || "",
+      teacherName: product?.teacherName || "",
+      studyYearName: product?.studyYearName || "",
+      studentName: form.studentName || "-",
+      paidAmount: Number(result.paidAmount),
+      totalAmount: Number(result.totalAmount),
+      status: result.status,
       methodLabel: PAYMENT_METHOD_LABELS[method] || method,
       proofImage: needsProof ? proofPreviewUrl.value || "" : "",
     };
