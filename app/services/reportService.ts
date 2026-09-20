@@ -156,12 +156,6 @@ export const reportService = {
     );
   },
 
-  async getAdminCustomers(params: Record<string, any> = {}) {
-    return asData(
-      await apiFetch("/reports/admin/customers", { method: "GET", params }),
-    );
-  },
-
   async getSalesReport(params: Record<string, any> = {}) {
     return asList(await apiFetch("/reports/sales", { method: "GET", params }));
   },

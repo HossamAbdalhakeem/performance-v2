@@ -7,8 +7,8 @@
       </p>
     </div>
 
-    <AdminHomeSalesTrendCard />
     <AdminHomeKpiSection />
+    <AdminHomeSalesTrendCard />
     <AdminHomeActionsSection />
     <AdminHomeInsightsSection />
     <AdminHomeRecentOperationsSection />

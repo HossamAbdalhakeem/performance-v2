@@ -25,26 +25,22 @@
       :reload-key="reloadKey"
       @loading="setSectionLoading('kpis', $event)"
     />
-    <ReportsInventoryTable
-      :params="reportParams"
-      :reload-key="reloadKey"
-      @loading="setSectionLoading('inventory', $event)"
-    />
     <ReportsFinancialsSection
       :params="reportParams"
       :reload-key="reloadKey"
       :is-branch-scoped="isBranchScoped"
       @loading="setSectionLoading('financial', $event)"
     />
+    <ReportsInventoryTable
+      :params="reportParams"
+      :reload-key="reloadKey"
+      @loading="setSectionLoading('inventory', $event)"
+    />
+ 
     <ReportsPaymentsSection
       :params="reportParams"
       :reload-key="reloadKey"
       @loading="setSectionLoading('payments', $event)"
-    />
-    <ReportsCustomersSection
-      :params="reportParams"
-      :reload-key="reloadKey"
-      @loading="setSectionLoading('customers', $event)"
     />
   </div>
 </template>
@@ -66,9 +62,6 @@ const ReportsFinancialsSection = defineAsyncComponent(() =>
 );
 const ReportsPaymentsSection = defineAsyncComponent(() =>
   import("~/components/dashboard/pages/reports/admin/ReportsPaymentsSection/index.vue"),
-);
-const ReportsCustomersSection = defineAsyncComponent(() =>
-  import("~/components/dashboard/pages/reports/admin/ReportsCustomersSection/index.vue"),
 );
 
 defineOptions({ name: "AdminReportsPage" });
@@ -130,7 +123,6 @@ const sectionLoading = reactive({
   inventory: false,
   financial: false,
   payments: false,
-  customers: false,
 });
 
 const anyLoading = computed(() => Object.values(sectionLoading).some(Boolean));
