@@ -3,18 +3,11 @@
     class="w-full min-w-0 overflow-hidden rounded-xl border border-white/10 bg-slate-900 p-4"
     dir="rtl"
   >
-    <div class="mb-4 flex flex-wrap items-start justify-between gap-2">
-      <div class="min-w-0">
-        <p class="font-bold text-white">الأرباح والخسائر</p>
-        <p class="mt-1 text-xs text-slate-400">
-          الإيرادات − تكلفة البضاعة = إجمالي الربح، ثم خصم المصروفات المرتبطة
-        </p>
-      </div>
-      <p
-        v-if="isBranchScoped"
-        class="rounded-lg border border-amber-500/30 bg-amber-500/10 px-2 py-1 text-[11px] text-amber-200"
-      >
-        صافي ربح الفرع لا يشمل المصروفات العامة
+    <div class="mb-4">
+      <p class="font-bold text-white">الأرباح والخسائر</p>
+      <p class="mt-1 text-xs text-slate-400">
+        إجمالي الربح = صافي المبيعات − تكلفة البضاعة، ثم صافي الربح = إجمالي
+        الربح − إجمالي المصروفات
       </p>
     </div>
 
@@ -22,8 +15,8 @@
       <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <Skeleton v-for="i in 4" :key="`fin-${i}`" height="4.5rem" />
       </div>
-      <div class="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
-        <Skeleton v-for="i in 3" :key="`fin-row-${i}`" height="2.2rem" />
+      <div class="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
+        <Skeleton v-for="i in 4" :key="`fin-row-${i}`" height="2.2rem" />
       </div>
     </div>
 
@@ -31,11 +24,6 @@
       v-else-if="error"
       message="تعذر تحميل بيانات الأرباح والخسائر."
       @retry="reload"
-    />
-
-    <ReportsSectionEmpty
-      v-else-if="isEmpty"
-      message="لا توجد بيانات أرباح وخسائر خلال الفترة المحددة."
     />
 
     <template v-else>
@@ -49,14 +37,15 @@
         />
       </div>
 
-      <div class="mt-4 grid grid-cols-1 gap-2 text-sm text-slate-200 sm:grid-cols-2 lg:grid-cols-3">
+      <div
+        class="mt-4 grid grid-cols-1 gap-2 text-sm text-slate-200 sm:grid-cols-2 lg:grid-cols-4"
+      >
         <ReportsFinancialDetailRow
           v-for="row in detailRows"
           :key="row.key"
           :label="row.label"
           :value="row.value"
           :value-class="row.valueClass"
-          :hint="row.hint"
         />
       </div>
     </template>
@@ -69,21 +58,19 @@ import { formatMoney } from "~/utils/format";
 import { reportService } from "~/services/reportService";
 import { useAdminReportSection } from "~/composables/useAdminReportSection";
 import ReportsSectionError from "~/components/dashboard/pages/reports/admin/ReportsSectionError/index.vue";
-import ReportsSectionEmpty from "~/components/dashboard/pages/reports/admin/ReportsSectionEmpty/index.vue";
 
 defineOptions({ name: "ReportsFinancialsSection" });
 
-const ReportsFinancialMetricCard = defineAsyncComponent(() =>
-  import("./partials/ReportsFinancialMetricCard.vue"),
+const ReportsFinancialMetricCard = defineAsyncComponent(
+  () => import("./partials/ReportsFinancialMetricCard.vue"),
 );
-const ReportsFinancialDetailRow = defineAsyncComponent(() =>
-  import("./partials/ReportsFinancialDetailRow.vue"),
+const ReportsFinancialDetailRow = defineAsyncComponent(
+  () => import("./partials/ReportsFinancialDetailRow.vue"),
 );
 
 const props = defineProps({
   params: { type: Object, default: () => ({}) },
   reloadKey: { type: Number, default: 0 },
-  isBranchScoped: { type: Boolean, default: false },
 });
 
 const emit = defineEmits(["loading"]);
@@ -100,15 +87,6 @@ const { loading, data, error, reload } = useAdminReportSection(
 
 const financials = computed(() => data.value || {});
 
-const isEmpty = computed(
-  () =>
-    !data.value ||
-    (!(financials.value.revenue || 0) &&
-      !(financials.value.cogs || 0) &&
-      !(financials.value.salesRelatedExpenses || 0) &&
-      !(financials.value.generalExpenses || 0)),
-);
-
 const metrics = computed(() => [
   {
     key: "revenue",
@@ -118,7 +96,7 @@ const metrics = computed(() => [
   },
   {
     key: "cogs",
-    label: "تكلفة البضاعة (COGS)",
+    label: "تكلفة البضاعة",
     value: formatMoney(financials.value.cogs, "locale"),
     valueClass: "text-rose-300",
   },
@@ -137,16 +115,17 @@ const metrics = computed(() => [
 ]);
 
 const detailRows = computed(() => [
+  // {
+  //   key: "salesRelated",
+  //   label: "مصروفات مرتبطة بالمبيعات",
+  //   value: formatMoney(financials.value.salesRelatedExpenses, "locale"),
+  // },
+
   {
-    key: "salesRelated",
-    label: "مصروفات مرتبطة بالمبيعات",
-    value: formatMoney(financials.value.salesRelatedExpenses, "locale"),
-  },
-  {
-    key: "generalExpenses",
-    label: "مصروفات عامة (منفصلة)",
-    value: formatMoney(financials.value.generalExpenses, "locale"),
-    hint: "(لا تُخصم تلقائياً من صافي الربح)",
+    key: "totalExpenses",
+    label: "إجمالي المصروفات",
+    value: formatMoney(financials.value.totalExpenses, "locale"),
+    valueClass: "text-amber-200",
   },
 ]);
 </script>

@@ -20,28 +20,32 @@
       @retry="reload"
     />
 
-    <ReportsSectionEmpty
-      v-else-if="isEmpty"
-      message="لا توجد مبيعات خلال الفترة المحددة."
-    />
-
-    <div v-else class="grid grid-cols-1 gap-3 sm:grid-cols-3">
-      <ReportsFinancialMetricCard
-        label="إجمالي المبيعات"
-        :value="formatMoney(revenue.grossSales, 'locale')"
-        value-class="text-emerald-300"
-      />
-      <ReportsFinancialMetricCard
-        label="المرتجعات"
-        :value="formatMoney(revenue.returns, 'locale')"
-        value-class="text-rose-300"
-      />
-      <ReportsFinancialMetricCard
-        label="صافي المبيعات"
-        :value="formatMoney(revenue.netSales, 'locale')"
-        value-class="text-white"
-      />
-    </div>
+    <template v-else>
+      <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <ReportsFinancialMetricCard
+          label="إجمالي المبيعات"
+          :value="formatMoney(revenue.grossSales, 'locale')"
+          value-class="text-emerald-300"
+        />
+        <ReportsFinancialMetricCard
+          label="المرتجعات"
+          :value="formatMoney(revenue.returns, 'locale')"
+          value-class="text-rose-300"
+        />
+        <ReportsFinancialMetricCard
+          label="صافي المبيعات"
+          :value="formatMoney(revenue.netSales, 'locale')"
+          value-class="text-white"
+        />
+      </div>
+      <p class="mt-3 text-xs text-slate-400">
+        {{ formatMoney(revenue.grossSales, "locale") }} −
+        {{ formatMoney(revenue.returns, "locale") }} =
+        <span class="font-semibold text-slate-200">{{
+          formatMoney(revenue.netSales, "locale")
+        }}</span>
+      </p>
+    </template>
   </section>
 </template>
 
@@ -49,7 +53,6 @@
 import Skeleton from "primevue/skeleton";
 import ReportsFinancialMetricCard from "~/components/dashboard/pages/reports/admin/ReportsFinancialsSection/partials/ReportsFinancialMetricCard.vue";
 import ReportsSectionError from "~/components/dashboard/pages/reports/admin/ReportsSectionError/index.vue";
-import ReportsSectionEmpty from "~/components/dashboard/pages/reports/admin/ReportsSectionEmpty/index.vue";
 import { reportService } from "~/services/reportService";
 import { formatMoney } from "~/utils/format";
 import { useAdminReportSection } from "~/composables/useAdminReportSection";
@@ -74,9 +77,4 @@ const { loading, data, error, reload } = useAdminReportSection(
 );
 
 const revenue = computed(() => data.value || {});
-const isEmpty = computed(
-  () =>
-    !data.value ||
-    (!(revenue.value.grossSales || 0) && !(revenue.value.returns || 0)),
-);
 </script>

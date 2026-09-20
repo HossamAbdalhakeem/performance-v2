@@ -156,6 +156,13 @@ export const reportService = {
     );
   },
 
+  /** Alias for getAdminRevenue (sales = gross − returns = net). */
+  async getAdminSales(params: Record<string, any> = {}) {
+    return asData(
+      await apiFetch("/reports/admin/sales", { method: "GET", params }),
+    );
+  },
+
   async getAdminSalesTrend(params: Record<string, any> = {}) {
     return asData(
       await apiFetch("/reports/admin/sales-trend", { method: "GET", params }),

@@ -20,27 +20,20 @@
       @retry="reload"
     />
 
-    <ReportsSectionEmpty
-      v-else-if="isEmpty"
-      message="لا توجد مصروفات خلال الفترة المحددة."
-    />
-
     <template v-else>
       <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
         <ReportsFinancialMetricCard
           label="إجمالي المصروفات"
           :value="formatMoney(expenses.totalExpenses, 'locale')"
+          value-class="text-amber-200"
+
         />
-        <ReportsFinancialMetricCard
+        <!-- <ReportsFinancialMetricCard
           label="مصروفات مرتبطة بالمبيعات"
           :value="formatMoney(expenses.salesRelatedExpenses, 'locale')"
           value-class="text-amber-200"
-        />
-        <ReportsFinancialMetricCard
-          label="مصروفات عامة"
-          :value="formatMoney(expenses.generalExpenses, 'locale')"
-          value-class="text-slate-200"
-        />
+        /> -->
+       
       </div>
 
       <div
@@ -64,7 +57,6 @@ import { reportService } from "~/services/reportService";
 import { useAdminReportSection } from "~/composables/useAdminReportSection";
 import ReportsFinancialMetricCard from "~/components/dashboard/pages/reports/admin/ReportsFinancialsSection/partials/ReportsFinancialMetricCard.vue";
 import ReportsSectionError from "~/components/dashboard/pages/reports/admin/ReportsSectionError/index.vue";
-import ReportsSectionEmpty from "~/components/dashboard/pages/reports/admin/ReportsSectionEmpty/index.vue";
 
 defineOptions({ name: "ReportsExpensesSection" });
 
@@ -90,9 +82,6 @@ const { loading, data, error, reload } = useAdminReportSection(
 );
 
 const expenses = computed(() => data.value || {});
-const isEmpty = computed(
-  () => !data.value || !(expenses.value.totalExpenses || 0),
-);
 
 const branchColumns = [
   { field: "branchName", header: "الفرع / النوع" },

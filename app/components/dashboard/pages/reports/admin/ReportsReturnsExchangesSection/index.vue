@@ -15,11 +15,6 @@
       @retry="reload"
     />
 
-    <ReportsSectionEmpty
-      v-else-if="isEmpty"
-      message="لا توجد عمليات استبدال أو استرداد خلال الفترة المحددة."
-    />
-
     <div v-else class="grid grid-cols-1 gap-3 sm:grid-cols-3">
       <ReportsFinancialMetricCard
         label="عدد المرتجعات"
@@ -45,7 +40,6 @@ import { reportService } from "~/services/reportService";
 import { useAdminReportSection } from "~/composables/useAdminReportSection";
 import ReportsFinancialMetricCard from "~/components/dashboard/pages/reports/admin/ReportsFinancialsSection/partials/ReportsFinancialMetricCard.vue";
 import ReportsSectionError from "~/components/dashboard/pages/reports/admin/ReportsSectionError/index.vue";
-import ReportsSectionEmpty from "~/components/dashboard/pages/reports/admin/ReportsSectionEmpty/index.vue";
 
 defineOptions({ name: "ReportsReturnsExchangesSection" });
 
@@ -67,11 +61,4 @@ const { loading, data, error, reload } = useAdminReportSection(
 );
 
 const stats = computed(() => data.value || {});
-const isEmpty = computed(
-  () =>
-    !data.value ||
-    (!(stats.value.returnsCount || 0) &&
-      !(stats.value.exchangesCount || 0) &&
-      !(stats.value.refundedAmount || 0)),
-);
 </script>

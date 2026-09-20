@@ -22,11 +22,6 @@
       @retry="reload"
     />
 
-    <ReportsSectionEmpty
-      v-else-if="isEmpty"
-      message="لا توجد مؤشرات خلال الفترة المحددة."
-    />
-
     <div
       v-else
       class="grid w-full min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3"
@@ -35,7 +30,6 @@
         compact
         label="إجمالي المبيعات"
         :value="formatMoney(summary.totalSales, 'locale')"
-        :hint="`${summary.salesCount ?? 0} عملية بيع`"
       />
       <ReportKpiCard
         compact
@@ -51,7 +45,6 @@
         compact
         label="إجمالي الحجوزات"
         :value="summary.totalReservations ?? 0"
-        :hint="`مدفوع ${formatMoney(summary.reservationPayments, 'locale')}`"
       />
       <ReportKpiCard
         compact
@@ -72,7 +65,6 @@
 import Skeleton from "primevue/skeleton";
 import ReportKpiCard from "./partials/ReportKpiCard.vue";
 import ReportsSectionError from "~/components/dashboard/pages/reports/admin/ReportsSectionError/index.vue";
-import ReportsSectionEmpty from "~/components/dashboard/pages/reports/admin/ReportsSectionEmpty/index.vue";
 import { reportService } from "~/services/reportService";
 import { formatMoney } from "~/utils/format";
 import { useAdminReportSection } from "~/composables/useAdminReportSection";
@@ -97,15 +89,4 @@ const { loading, data, error, reload } = useAdminReportSection(
 );
 
 const summary = computed(() => data.value || {});
-
-const isEmpty = computed(() => {
-  if (!data.value) return true;
-  return (
-    !(summary.value.salesCount || 0) &&
-    !(summary.value.totalSales || 0) &&
-    !(summary.value.totalPayments || 0) &&
-    !(summary.value.totalReservations || 0) &&
-    !(summary.value.outstandingAmount || 0)
-  );
-});
 </script>

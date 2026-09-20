@@ -21,13 +21,37 @@
       />
     </div>
 
-   
+    <ReportsSummaryCards
+      :params="reportParams"
+      :reload-key="reloadKey"
+      @loading="setSectionLoading('summary', $event)"
+    />
+    <ReportsRevenueSection
+      :params="reportParams"
+      :reload-key="reloadKey"
+      @loading="setSectionLoading('revenue', $event)"
+    />
+    <ReportsReturnsExchangesSection
+      :params="reportParams"
+      :reload-key="reloadKey"
+      @loading="setSectionLoading('returns', $event)"
+    />
+    <ReportsFinancialsSection
+      :params="reportParams"
+      :reload-key="reloadKey"
+      @loading="setSectionLoading('profitLoss', $event)"
+    />
+    <ReportsExpensesSection
+      :params="reportParams"
+      :reload-key="reloadKey"
+      @loading="setSectionLoading('expenses', $event)"
+    />
+
     <ReportsSalesTrendSection
       :params="reportParams"
       :reload-key="reloadKey"
       @loading="setSectionLoading('salesTrend', $event)"
     />
-
     <ReportsPaymentsSection
       :params="reportParams"
       :reload-key="reloadKey"
@@ -47,33 +71,6 @@
       :params="reportParams"
       :reload-key="reloadKey"
       @loading="setSectionLoading('branches', $event)"
-    />
-    <ReportsReturnsExchangesSection
-      :params="reportParams"
-      :reload-key="reloadKey"
-      @loading="setSectionLoading('returns', $event)"
-    />
-    <ReportsFinancialsSection
-      :params="reportParams"
-      :reload-key="reloadKey"
-      :is-branch-scoped="isBranchScoped"
-      @loading="setSectionLoading('profitLoss', $event)"
-    />
-    <ReportsSummaryCards
-      :params="reportParams"
-      :reload-key="reloadKey"
-      @loading="setSectionLoading('summary', $event)"
-    />
-    <ReportsRevenueSection
-      :params="reportParams"
-      :reload-key="reloadKey"
-      @loading="setSectionLoading('revenue', $event)"
-    />
- 
-    <ReportsExpensesSection
-      :params="reportParams"
-      :reload-key="reloadKey"
-      @loading="setSectionLoading('expenses', $event)"
     />
   </div>
 </template>
@@ -192,9 +189,6 @@ const sectionLoading = reactive({
 });
 
 const anyLoading = computed(() => Object.values(sectionLoading).some(Boolean));
-const isBranchScoped = computed(
-  () => Boolean(selectedBranch.value && selectedBranch.value !== "all"),
-);
 
 const reportParams = computed(() => {
   const fromBase = dateFrom.value || dateTo.value || todayInputValue();

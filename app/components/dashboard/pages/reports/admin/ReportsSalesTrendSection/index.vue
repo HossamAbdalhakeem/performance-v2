@@ -20,11 +20,6 @@
       @retry="reload"
     />
 
-    <ReportsSectionEmpty
-      v-else-if="isEmpty"
-      message="لا توجد بيانات اتجاه مبيعات خلال الفترة المحددة."
-    />
-
     <div v-else class="h-56 w-full">
       <Line :data="chartData" :options="chartOptions" />
     </div>
@@ -44,7 +39,6 @@ import {
 import { Line } from "vue-chartjs";
 import Skeleton from "primevue/skeleton";
 import ReportsSectionError from "~/components/dashboard/pages/reports/admin/ReportsSectionError/index.vue";
-import ReportsSectionEmpty from "~/components/dashboard/pages/reports/admin/ReportsSectionEmpty/index.vue";
 import { reportService } from "~/services/reportService";
 import { useAdminReportSection } from "~/composables/useAdminReportSection";
 
@@ -77,13 +71,11 @@ const { loading, data, error, reload } = useAdminReportSection(
   },
 );
 
-const points = computed(() =>
-  Array.isArray(data.value) ? data.value : [],
-);
-
-const isEmpty = computed(
-  () => !points.value.length || points.value.every((p) => !Number(p.sales || 0)),
-);
+const points = computed(() => {
+  if (Array.isArray(data.value)) return data.value;
+  if (Array.isArray(data.value?.points)) return data.value.points;
+  return [];
+});
 
 const granularityLabel = computed(() => {
   const g = data.value?.granularity;
@@ -92,38 +84,44 @@ const granularityLabel = computed(() => {
   return "تجميع يومي";
 });
 
-const chartData = computed(() => ({
-  labels: points.value.map((p) => p.label || p.date || ""),
-  datasets: [
-    {
-      label: "المبيعات",
-      data: points.value.map((p) => Number(p.sales || 0)),
-      borderColor: props.lineColor,
-      backgroundColor: (context) => {
-        const chart = context.chart;
-        const { ctx, chartArea } = chart;
-        if (!chartArea) return "rgba(56, 189, 248, 0.15)";
-        const gradient = ctx.createLinearGradient(
-          0,
-          chartArea.top,
-          0,
-          chartArea.bottom,
-        );
-        gradient.addColorStop(0, "rgba(56, 189, 248, 0.35)");
-        gradient.addColorStop(1, "rgba(56, 189, 248, 0.02)");
-        return gradient;
+const chartData = computed(() => {
+  const series = points.value.length
+    ? points.value
+    : [{ label: "—", sales: 0 }];
+
+  return {
+    labels: series.map((p) => p.label || p.date || ""),
+    datasets: [
+      {
+        label: "المبيعات",
+        data: series.map((p) => Number(p.sales || 0)),
+        borderColor: props.lineColor,
+        backgroundColor: (context) => {
+          const chart = context.chart;
+          const { ctx, chartArea } = chart;
+          if (!chartArea) return "rgba(56, 189, 248, 0.15)";
+          const gradient = ctx.createLinearGradient(
+            0,
+            chartArea.top,
+            0,
+            chartArea.bottom,
+          );
+          gradient.addColorStop(0, "rgba(56, 189, 248, 0.35)");
+          gradient.addColorStop(1, "rgba(56, 189, 248, 0.02)");
+          return gradient;
+        },
+        pointBackgroundColor: props.lineColor,
+        pointBorderColor: "#0f172a",
+        pointBorderWidth: 2,
+        pointRadius: 3,
+        pointHoverRadius: 5,
+        borderWidth: 2.5,
+        tension: 0.35,
+        fill: true,
       },
-      pointBackgroundColor: props.lineColor,
-      pointBorderColor: "#0f172a",
-      pointBorderWidth: 2,
-      pointRadius: 3,
-      pointHoverRadius: 5,
-      borderWidth: 2.5,
-      tension: 0.35,
-      fill: true,
-    },
-  ],
-}));
+    ],
+  };
+});
 
 const chartOptions = {
   responsive: true,
