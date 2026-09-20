@@ -1,5 +1,5 @@
 import { formatMoney, formatDateTime } from "~/utils/format";
-import { PAYMENT_METHOD_LABELS } from "~/utils/paymentMethods";
+import { getPaymentMethodLabel } from "~/utils/paymentMethods";
 import { getUserRoleLabel } from "~/enums/userRole";
 import { getStatusTagMeta } from "~/utils/statusTags";
 
@@ -51,11 +51,10 @@ export const normalizeReservation = (item = {}) => {
   const normalizedPayment = {
     id: payment.id ?? null,
     method: paymentMethod,
-    methodLabel:
-      payment.methodLabel ||
-      PAYMENT_METHOD_LABELS[paymentMethod] ||
-      paymentMethod ||
-      "—",
+    methodLabel: getPaymentMethodLabel(
+      paymentMethod,
+      payment.methodLabel || "—",
+    ),
     paidAmount,
     remainingAmount,
     hasRemaining: remainingAmount > 0,

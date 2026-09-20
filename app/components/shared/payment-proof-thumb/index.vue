@@ -83,9 +83,13 @@ const errorMessage = ref("");
 const fetchedForPaymentId = ref(null);
 
 const resolvedMethodLabel = computed(() => {
-  if (props.methodLabel) return props.methodLabel;
-  const method = String(props.method || "").toUpperCase();
-  return PAYMENT_METHOD_LABELS[method] || method || "—";
+  const method = String(props.method || "").trim().toUpperCase();
+  if (PAYMENT_METHOD_LABELS[method]) return PAYMENT_METHOD_LABELS[method];
+
+  const labelKey = String(props.methodLabel || "").trim().toUpperCase();
+  if (PAYMENT_METHOD_LABELS[labelKey]) return PAYMENT_METHOD_LABELS[labelKey];
+
+  return props.methodLabel || method || "—";
 });
 
 const isNonCash = computed(() =>
