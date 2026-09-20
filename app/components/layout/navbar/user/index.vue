@@ -25,14 +25,18 @@ const authStore = useAuthStore();
 const displayName = computed(
   () => authStore.user?.name || authStore.user?.full_name || "Your account"
 );
-const initials = computed(() =>
-  displayName.value
-    .split(" ")
-    .map((part) => part[0])
-    .join("")
+const initials = computed(() => {
+  const parts = String(displayName.value || "")
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+  if (!parts.length) return "?";
+  return parts
     .slice(0, 2)
-    .toUpperCase()
-);
+    .map((part) => part.charAt(0))
+    .join(" ")
+    .toUpperCase();
+});
 </script>
 
 <style lang="scss" scoped>

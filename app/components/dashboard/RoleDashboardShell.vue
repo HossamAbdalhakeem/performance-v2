@@ -370,14 +370,15 @@ const navigation = computed(() => {
 const userName = computed(() => authStore.user?.name || "مدير النظام");
 const userInitials = computed(() => {
   const parts = String(userName.value || "")
-    ?.trim()
-    ?.split(/\s+/)
-    ?.filter(Boolean);
-  if (!parts.length) return "MN";
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+  if (!parts.length) return "M N";
   return parts
-    ?.map((part) => part?.charAt(0))
-    ?.join("")
-    ?.toUpperCase();
+    .slice(0, 2)
+    .map((part) => part.charAt(0))
+    .join(" ")
+    .toUpperCase();
 });
 const roleLabel = computed(() => roleMeta.value.label);
 
