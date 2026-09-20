@@ -1,7 +1,10 @@
 <template>
-  <div class="min-h-screen bg-slate-100 px-4 py-8 sm:px-6 lg:px-8" dir="rtl">
-    <div class="mx-auto max-w-6xl overflow-hidden rounded-[28px] bg-white shadow-[0_18px_60px_rgba(15,23,42,0.08)]">
-      <div class="grid min-h-[760px] lg:grid-cols-[1.05fr_0.95fr]">
+  <div
+    class="flex min-h-screen items-center justify-center bg-slate-100 px-4 py-8 sm:px-6 lg:px-8"
+    dir="rtl"
+  >
+    <div class="mx-auto w-full max-w-6xl overflow-hidden rounded-[28px] bg-white shadow-[0_18px_60px_rgba(15,23,42,0.08)]">
+      <div class="grid min-h-[min(760px,calc(100vh-4rem))] lg:grid-cols-[1.05fr_0.95fr]">
         <section class="relative flex flex-col justify-between overflow-hidden bg-gradient-to-br from-sky-900 via-sky-800 to-indigo-900 p-8 text-white sm:p-10 lg:p-12">
           <div class="absolute inset-0 opacity-20" aria-hidden="true">
             <div class="absolute -right-20 top-10 h-52 w-52 rounded-full bg-white/20 blur-3xl" />
