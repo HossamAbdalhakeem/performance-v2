@@ -339,7 +339,7 @@ const navigation = computed(() => {
         { label: "المنتجات", icon: "＋", to: "/products" },
         { label: "المدرسون", icon: "◉", to: "/teachers" },
         { label: "السنوات الدراسية", icon: "▦", to: "/study-years" },
-        { label: "الفروع", icon: "⌂", to: "/branches" },
+        { label: "الفروع", icon: "⬡", to: "/branches" },
         { label: "الطلاب", icon: "◎", to: "/students" },
       ],
     },
