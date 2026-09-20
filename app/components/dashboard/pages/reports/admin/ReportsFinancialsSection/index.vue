@@ -1,28 +1,19 @@
 <template>
   <section
-    class="w-full min-w-0 overflow-hidden rounded-xl border border-white/10 bg-slate-900 p-4"
+    class="w-full min-w-0 overflow-hidden rounded-2xl border border-white/10 bg-slate-900/80 p-4 backdrop-blur-sm"
     dir="rtl"
   >
     <div class="mb-4">
-      <p class="font-bold text-white">الأرباح والخسائر</p>
-      <p class="mt-1 text-xs text-slate-400">
-        إجمالي الربح = صافي المبيعات − تكلفة البضاعة، ثم صافي الربح = إجمالي
-        الربح − إجمالي المصروفات
-      </p>
+      <p class="font-bold text-white">الأرباح</p>
     </div>
 
-    <div v-if="loading" class="space-y-3">
-      <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <Skeleton v-for="i in 4" :key="`fin-${i}`" height="4.5rem" />
-      </div>
-      <div class="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
-        <Skeleton v-for="i in 4" :key="`fin-row-${i}`" height="2.2rem" />
-      </div>
+    <div v-if="loading" class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <Skeleton v-for="i in 4" :key="`fin-${i}`" height="4.5rem" />
     </div>
 
     <ReportsSectionError
       v-else-if="error"
-      message="تعذر تحميل بيانات الأرباح والخسائر."
+      message="تعذر تحميل بيانات الأرباح."
       @retry="reload"
     />
 
@@ -33,19 +24,9 @@
           :key="metric.key"
           :label="metric.label"
           :value="metric.value"
-          :value-class="metric.valueClass"
-        />
-      </div>
-
-      <div
-        class="mt-4 grid grid-cols-1 gap-2 text-sm text-slate-200 sm:grid-cols-2 lg:grid-cols-4"
-      >
-        <ReportsFinancialDetailRow
-          v-for="row in detailRows"
-          :key="row.key"
-          :label="row.label"
-          :value="row.value"
-          :value-class="row.valueClass"
+          :accent="metric.accent"
+          :icon="metric.icon"
+          :emphasized="metric.emphasized"
         />
       </div>
     </template>
@@ -64,9 +45,6 @@ defineOptions({ name: "ReportsFinancialsSection" });
 const ReportsFinancialMetricCard = defineAsyncComponent(
   () => import("./partials/ReportsFinancialMetricCard.vue"),
 );
-const ReportsFinancialDetailRow = defineAsyncComponent(
-  () => import("./partials/ReportsFinancialDetailRow.vue"),
-);
 
 const props = defineProps({
   params: { type: Object, default: () => ({}) },
@@ -81,7 +59,7 @@ const { loading, data, error, reload } = useAdminReportSection(
     params: toRef(props, "params"),
     reloadKey: toRef(props, "reloadKey"),
     emit,
-    errorMessage: "تعذر تحميل بيانات الأرباح والخسائر.",
+    errorMessage: "تعذر تحميل بيانات الأرباح.",
   },
 );
 
@@ -92,40 +70,30 @@ const metrics = computed(() => [
     key: "revenue",
     label: "الإيرادات (صافي المبيعات)",
     value: formatMoney(financials.value.revenue, "locale"),
-    valueClass: "text-emerald-300",
+    accent: "emerald",
+    icon: "pi-chart-line",
   },
   {
     key: "cogs",
     label: "تكلفة البضاعة",
     value: formatMoney(financials.value.cogs, "locale"),
-    valueClass: "text-rose-300",
+    accent: "rose",
+    icon: "pi-box",
   },
   {
     key: "grossProfit",
     label: "إجمالي الربح",
     value: formatMoney(financials.value.grossProfit, "locale"),
-    valueClass: "text-sky-300",
+    accent: "sky",
+    icon: "pi-chart-bar",
   },
   {
     key: "netProfit",
     label: "صافي الربح",
     value: formatMoney(financials.value.netProfit, "locale"),
-    valueClass: "text-white",
-  },
-]);
-
-const detailRows = computed(() => [
-  // {
-  //   key: "salesRelated",
-  //   label: "مصروفات مرتبطة بالمبيعات",
-  //   value: formatMoney(financials.value.salesRelatedExpenses, "locale"),
-  // },
-
-  {
-    key: "totalExpenses",
-    label: "إجمالي المصروفات",
-    value: formatMoney(financials.value.totalExpenses, "locale"),
-    valueClass: "text-amber-200",
+    accent: "emerald",
+    icon: "pi-verified",
+    emphasized: true,
   },
 ]);
 </script>

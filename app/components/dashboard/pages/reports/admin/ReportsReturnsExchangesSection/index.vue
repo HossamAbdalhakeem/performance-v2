@@ -1,6 +1,6 @@
 <template>
   <section
-    class="w-full min-w-0 overflow-hidden rounded-xl border border-white/10 bg-slate-900 p-4"
+    class="w-full min-w-0 overflow-hidden rounded-2xl border border-white/10 bg-slate-900/80 p-4 backdrop-blur-sm"
     dir="rtl"
   >
     <p class="mb-3 font-bold text-white">الاستبدال والاسترداد</p>
@@ -19,15 +19,20 @@
       <ReportsFinancialMetricCard
         label="عدد المرتجعات"
         :value="stats.returnsCount ?? 0"
+        accent="slate"
+        icon="pi-box"
       />
       <ReportsFinancialMetricCard
         label="عدد الاستبدالات"
         :value="stats.exchangesCount ?? 0"
+        accent="sky"
+        icon="pi-sync"
       />
       <ReportsFinancialMetricCard
         label="المبلغ المسترد"
         :value="formatMoney(stats.refundedAmount, 'locale')"
-        value-class="text-rose-300"
+        accent="rose"
+        icon="pi-wallet"
       />
     </div>
   </section>

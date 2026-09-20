@@ -1,17 +1,15 @@
 <template>
   <section
-    class="w-full min-w-0 overflow-hidden rounded-xl border border-white/10 bg-slate-900 p-4"
+    class="w-full min-w-0 overflow-hidden rounded-2xl border border-white/10 bg-slate-900/80 p-4 backdrop-blur-sm"
     dir="rtl"
   >
     <div class="mb-4">
       <p class="font-bold text-white">المصروفات</p>
-      <p class="mt-1 text-xs text-slate-400">
-        تفصل المصروفات المرتبطة بالمبيعات عن المصروفات العامة
-      </p>
+  
     </div>
 
-    <div v-if="loading" class="grid grid-cols-1 gap-3 sm:grid-cols-3">
-      <Skeleton v-for="i in 3" :key="`exp-${i}`" height="4.5rem" />
+    <div v-if="loading">
+      <Skeleton height="3.5rem" />
     </div>
 
     <ReportsSectionError
@@ -21,24 +19,28 @@
     />
 
     <template v-else>
-      <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
-        <ReportsFinancialMetricCard
-          label="إجمالي المصروفات"
-          :value="formatMoney(expenses.totalExpenses, 'locale')"
-          value-class="text-amber-200"
-
-        />
-        <!-- <ReportsFinancialMetricCard
-          label="مصروفات مرتبطة بالمبيعات"
-          :value="formatMoney(expenses.salesRelatedExpenses, 'locale')"
-          value-class="text-amber-200"
-        /> -->
-       
+      <div
+        class="flex items-center justify-between gap-3 rounded-2xl border border-amber-500/20 bg-slate-950/70 px-4 py-3 shadow-[0_0_24px_-8px_rgba(251,191,36,0.3)]"
+      >
+        <div class="flex min-w-0 items-center gap-3">
+          <span
+            class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-500/15 text-amber-300"
+          >
+            <i class="pi pi-file text-sm" />
+          </span>
+          <div class="min-w-0">
+            <p class="truncate text-sm text-slate-400">إجمالي المصروفات</p>
+            <p class="mt-0.5 text-xl font-extrabold text-amber-300">
+              {{ formatMoney(expenses.totalExpenses, "locale") }}
+            </p>
+          </div>
+        </div>
+        <span class="h-2.5 w-2.5 shrink-0 rounded-full bg-amber-400" />
       </div>
 
       <div
         v-if="byBranch.length"
-        class="mt-4 overflow-hidden rounded-lg border border-white/5"
+        class="mt-4 overflow-hidden rounded-xl border border-white/5"
       >
         <AppDataTable
           :value="byBranch"
@@ -55,7 +57,6 @@ import Skeleton from "primevue/skeleton";
 import { formatMoney } from "~/utils/format";
 import { reportService } from "~/services/reportService";
 import { useAdminReportSection } from "~/composables/useAdminReportSection";
-import ReportsFinancialMetricCard from "~/components/dashboard/pages/reports/admin/ReportsFinancialsSection/partials/ReportsFinancialMetricCard.vue";
 import ReportsSectionError from "~/components/dashboard/pages/reports/admin/ReportsSectionError/index.vue";
 
 defineOptions({ name: "ReportsExpensesSection" });

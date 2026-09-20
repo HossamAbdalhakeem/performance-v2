@@ -1,13 +1,15 @@
 <template>
   <section
-    class="w-full min-w-0 overflow-hidden rounded-xl border border-white/10 bg-slate-900 p-4"
+    class="w-full min-w-0 overflow-hidden rounded-2xl border border-white/10 bg-slate-900/80 p-4 backdrop-blur-sm"
     dir="rtl"
   >
-    <div class="mb-4">
+    <div class="mb-4 flex flex-wrap items-center justify-between gap-2">
       <p class="font-bold text-white">المبيعات والإيرادات</p>
-      <p class="mt-1 text-xs text-slate-400">
+      <span
+        class="inline-flex rounded-full border border-white/10 bg-white/5 px-2.5 py-0.5 text-[11px] text-slate-300"
+      >
         صافي المبيعات = إجمالي المبيعات − المرتجعات
-      </p>
+      </span>
     </div>
 
     <div v-if="loading" class="grid grid-cols-1 gap-3 sm:grid-cols-3">
@@ -25,26 +27,32 @@
         <ReportsFinancialMetricCard
           label="إجمالي المبيعات"
           :value="formatMoney(revenue.grossSales, 'locale')"
-          value-class="text-emerald-300"
+          accent="slate"
+          icon="pi-shopping-cart"
         />
         <ReportsFinancialMetricCard
           label="المرتجعات"
           :value="formatMoney(revenue.returns, 'locale')"
-          value-class="text-rose-300"
+          accent="rose"
+          icon="pi-replay"
         />
         <ReportsFinancialMetricCard
           label="صافي المبيعات"
           :value="formatMoney(revenue.netSales, 'locale')"
-          value-class="text-white"
+          accent="emerald"
+          icon="pi-chart-line"
+          emphasized
         />
       </div>
-      <p class="mt-3 text-xs text-slate-400">
+      <div
+        class="mt-3 rounded-xl border border-white/5 bg-slate-950/60 px-3 py-2 text-xs text-slate-400"
+      >
         {{ formatMoney(revenue.grossSales, "locale") }} −
         {{ formatMoney(revenue.returns, "locale") }} =
-        <span class="font-semibold text-slate-200">{{
+        <span class="font-semibold text-emerald-300">{{
           formatMoney(revenue.netSales, "locale")
         }}</span>
-      </p>
+      </div>
     </template>
   </section>
 </template>

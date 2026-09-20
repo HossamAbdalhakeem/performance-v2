@@ -1,15 +1,28 @@
 <template>
-  <section class="space-y-3" dir="rtl">
-    <div>
-      <h3 class="text-base font-bold text-white">أهم المؤشرات</h3>
-      <p class="mt-0.5 text-xs text-slate-400">ملخص سريع للفترة المحددة</p>
+  <section class="space-y-4" dir="rtl">
+    <div class="flex flex-wrap items-start justify-between gap-3">
+      <div>
+        <span
+          class="mb-2 inline-flex items-center rounded-full border border-white/10 bg-white/5 px-2.5 py-0.5 text-[11px] text-slate-300"
+        >
+          تقارير الأداء
+        </span>
+        <h3 class="text-lg font-bold text-white">أهم المؤشرات</h3>
+        <p class="mt-0.5 text-xs text-slate-400">ملخص ذكي للفترة المحددة</p>
+      </div>
+      <span
+        class="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-slate-900/80 px-3 py-1 text-xs text-slate-300"
+      >
+        <i class="pi pi-calendar text-[10px] text-slate-400" />
+        الفترة الحالية
+      </span>
     </div>
 
     <div v-if="loading" class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
       <div
         v-for="i in 6"
         :key="`kpi-skel-${i}`"
-        class="rounded-xl border border-white/10 bg-slate-900 p-4"
+        class="rounded-2xl border border-white/10 bg-slate-900/80 p-4"
       >
         <Skeleton width="7rem" height="0.9rem" class="mb-3" />
         <Skeleton width="60%" height="1.8rem" />
@@ -28,31 +41,37 @@
     >
       <ReportKpiCard
         compact
+        accent="emerald"
         label="إجمالي المبيعات"
         :value="formatMoney(summary.totalSales, 'locale')"
       />
       <ReportKpiCard
         compact
+        accent="sky"
         label="عدد المبيعات"
         :value="summary.salesCount ?? 0"
       />
       <ReportKpiCard
         compact
+        accent="emerald"
         label="إجمالي المدفوعات"
         :value="formatMoney(summary.totalPayments, 'locale')"
       />
       <ReportKpiCard
         compact
+        accent="sky"
         label="إجمالي الحجوزات"
         :value="summary.totalReservations ?? 0"
       />
       <ReportKpiCard
         compact
+        accent="emerald"
         label="مدفوعات الحجوزات"
         :value="formatMoney(summary.reservationPayments, 'locale')"
       />
       <ReportKpiCard
         compact
+        accent="amber"
         label="المبالغ المستحقة"
         :value="formatMoney(summary.outstandingAmount, 'locale')"
         hint="متبقي على الحجوزات المفتوحة"
