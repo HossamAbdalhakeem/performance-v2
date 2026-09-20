@@ -45,6 +45,29 @@
         <template #branches="{ data }">
           <div class="flex max-w-[420px] flex-col gap-2">
             <div
+              v-if="unavailableMessages(data).length"
+              class="flex items-center justify-between gap-2 rounded-lg bg-slate-950/50 px-2 py-1.5"
+            >
+              <div class="flex min-w-0 flex-col gap-1">
+                <span
+                  v-for="(message, index) in unavailableMessages(data)"
+                  :key="`${data.id}-msg-${index}`"
+                  class="text-xs font-medium"
+                  :class="message.tone"
+                >
+                  {{ message.text }}
+                </span>
+              </div>
+              <Button
+                v-if="data.reservationAllowed && !hasBranches(data)"
+                label="حجز"
+                size="small"
+                severity="help"
+                @click.stop="selectBranch(data, null)"
+              />
+            </div>
+
+            <div
               v-for="branch in data.branches"
               :key="branch.branchId"
               class="flex items-center justify-between gap-2 rounded-lg bg-slate-950/50 px-2 py-1.5"
@@ -65,25 +88,11 @@
                 </span>
               </div>
               <Button
+                v-if="data.reservationAllowed"
                 label="حجز"
                 size="small"
                 severity="info"
-                :disabled="!data.reservationAllowed"
                 @click.stop="selectBranch(data, branch)"
-              />
-            </div>
-
-            <div
-              v-if="!data.branches.length"
-              class="flex items-center justify-between gap-2 rounded-lg bg-slate-950/50 px-2 py-1.5"
-            >
-              <span class="text-xs text-slate-400">غير متوفر في أي فرع</span>
-              <Button
-                label="حجز"
-                size="small"
-                severity="help"
-                :disabled="!data.reservationAllowed"
-                @click.stop="selectBranch(data, null)"
               />
             </div>
           </div>
@@ -141,6 +150,34 @@ const emptyMessage = computed(() =>
     : "لا توجد منتجات متاحة.",
 );
 
+const hasBranches = (product) =>
+  Array.isArray(product?.branches) && product.branches.length > 0;
+
+const unavailableMessages = (product) => {
+  const messages = [];
+
+  if (!hasBranches(product)) {
+    messages.push({
+      text: "غير متاح في أي فرع",
+      tone: "text-amber-300",
+    });
+  }
+
+  if (!product?.reservationAllowed) {
+    messages.push({
+      text: "غير مسموح بالحجز",
+      tone: "text-rose-300",
+    });
+  } else if (!hasBranches(product)) {
+    messages.push({
+      text: "مسموح بالحجز",
+      tone: "text-emerald-300",
+    });
+  }
+
+  return messages;
+};
+
 const normalizeBook = (item) => {
   const status = String(item.status || "").toUpperCase();
   const meta = getStatusTagMeta("product-availability", status);
@@ -184,6 +221,7 @@ const buildSelection = (product, branch = null) => ({
 });
 
 const selectBranch = (product, branch) => {
+  if (!product?.reservationAllowed) return;
   emit("select", buildSelection(product, branch));
   emit("update:visible", false);
 };
