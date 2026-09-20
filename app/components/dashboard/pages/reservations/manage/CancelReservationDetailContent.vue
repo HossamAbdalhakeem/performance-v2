@@ -30,7 +30,7 @@
       class="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-100"
     >
       <p class="mb-3 font-semibold text-emerald-200">
-        مبلغ الرد للطالب: {{ reservation.paidAmountLabel }}
+        مبلغ الرد للطالب: {{ reservation.payment?.paidAmountLabel || reservation.paidAmountLabel }}
       </p>
       <PaymentFields
         :method="refundMethod"
@@ -76,7 +76,7 @@ defineEmits([
 ]);
 
 const hasPaidDeposit = computed(
-  () => Number(props.reservation?.paidAmount || 0) > 0,
+  () => Number(props.reservation?.payment?.paidAmount || 0) > 0,
 );
 
 const infoRows = computed(() => {
@@ -89,10 +89,10 @@ const infoRows = computed(() => {
       value: r.reservationNumber,
       valueClass: "font-semibold text-white",
     },
-    { key: "student", label: "الطالب", value: r.studentName },
-    { key: "phone", label: "الموبايل", value: r.phone || "—" },
-    { key: "product", label: "المنتج", value: r.productName },
-    { key: "branch", label: "الفرع", value: r.branchName },
+    { key: "student", label: "الطالب", value: r.student?.name || r.studentName },
+    { key: "phone", label: "الموبايل", value: r.student?.phone || r.phone || "—" },
+    { key: "product", label: "المنتج", value: r.product?.name || r.productName },
+    { key: "branch", label: "الفرع", value: r.branch?.name || r.branchName },
     { key: "quantity", label: "الكمية", value: r.quantity },
     { key: "status", label: "الحالة", value: r.statusLabel },
   ];
@@ -105,19 +105,19 @@ const amountRows = computed(() => {
     {
       key: "total",
       label: "إجمالي المبلغ",
-      value: formatMoney(r.totalAmount),
+      value: formatMoney(r.product?.totalAmount ?? r.totalAmount),
       valueClass: "font-semibold text-slate-100",
     },
     {
       key: "paid",
       label: "المدفوع (مقدم)",
-      value: r.paidAmountLabel,
+      value: r.payment?.paidAmountLabel || r.paidAmountLabel,
       valueClass: "font-semibold text-emerald-300",
     },
     {
       key: "remaining",
       label: "المتبقي",
-      value: r.remainingAmountLabel,
+      value: r.payment?.remainingAmountLabel || r.remainingAmountLabel,
       bordered: true,
       valueClass: "font-semibold text-amber-300",
     },

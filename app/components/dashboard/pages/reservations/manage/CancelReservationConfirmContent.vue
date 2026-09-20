@@ -23,12 +23,14 @@ const props = defineProps({
 });
 
 const confirmDetails = computed(() => {
-  if (!(Number(props.reservation?.paidAmount) > 0)) return [];
+  if (!(Number(props.reservation?.payment?.paidAmount) > 0)) return [];
   return [
     {
       key: "refund",
       label: "الاسترداد",
-      value: props.reservation?.paidAmountLabel,
+      value:
+        props.reservation?.payment?.paidAmountLabel ||
+        props.reservation?.paidAmountLabel,
       valueClass: "font-semibold text-emerald-700",
     },
   ];

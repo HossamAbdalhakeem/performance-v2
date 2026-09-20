@@ -13,30 +13,30 @@ export const returnService = {
   async createReturn(payload: Record<string, any>) {
     const items = Array.isArray(payload.items)
       ? payload.items.map((item: Record<string, any>) => ({
-          saleItemId: item.saleItemId ?? item.sale_item_id,
+          saleItemId: item.saleItemId,
           quantity: Number(item.quantity || 1),
         }))
       : [
           {
-            saleItemId: payload.saleItemId ?? payload.sale_item_id,
+            saleItemId: payload.saleItemId,
             quantity: Number(payload.quantity || 1),
           },
         ];
 
+    const body: Record<string, any> = {
+      saleId: payload.saleId,
+      items,
+      method: normalizePaymentMethod(payload.method),
+    };
+
+    if (payload.proofReference) {
+      body.proofReference = payload.proofReference;
+    }
+
     return firstRow(
       await apiFetch("/returns", {
         method: "POST",
-        body: {
-          saleId: payload.saleId ?? payload.sale_id,
-          items,
-          method: normalizePaymentMethod(payload.method ?? payload.refundMethod),
-          ...(payload.proofReference || payload.proof_reference
-            ? {
-                proofReference:
-                  payload.proofReference ?? payload.proof_reference,
-              }
-            : {}),
-        },
+        body,
       }),
     );
   },

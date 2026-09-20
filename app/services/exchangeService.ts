@@ -1,16 +1,16 @@
-import { apiFetch, asData, asList, firstRow } from "~/utils/apiFetch";
+import { apiFetch, asData, asList, asPaginated, firstRow, type PaginatedResponse } from "~/utils/apiFetch";
 import { normalizePaymentMethod } from "~/utils/paymentMethods";
 
 export const exchangeService = {
-  async getEligibleSales(params: Record<string, any> = {}) {
-    const data = asData(
+  async getEligibleSales(
+    params: Record<string, any> = {},
+  ): Promise<PaginatedResponse> {
+    return asPaginated(
       await apiFetch("/exchanges/eligible-sales", {
         method: "GET",
         params,
       }),
     );
-    if (Array.isArray(data?.rows)) return data.rows;
-    return asList(data);
   },
 
   async previewExchange(payload: Record<string, any>) {

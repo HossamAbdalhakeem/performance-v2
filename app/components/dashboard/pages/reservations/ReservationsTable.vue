@@ -15,7 +15,7 @@
       <span
         class="rounded-md px-2 py-1 text-xs font-bold bg-sky-500/20 text-sky-300"
       >
-        {{ data.sellingPriceLabel }}
+        {{ data.product?.unitPriceLabel }}
       </span>
     </template>
 
@@ -23,17 +23,17 @@
       <span
         class="rounded-md px-2 py-1 text-xs font-bold bg-emerald-500/20 text-emerald-300"
       >
-        {{ data.paidAmountLabel }}
+        {{ data.payment?.paidAmountLabel }}
       </span>
     </template>
 
     <template #paymentMethod="{ data }">
       <PaymentProofThumb
-        :method="data.paymentMethod"
-        :method-label="data.paymentMethodLabel"
-        :payment-id="data.paymentId"
-        :proof-url="data.proofUrl"
-        :has-proof="data.hasProof"
+        :method="data.payment?.method"
+        :method-label="data.payment?.methodLabel"
+        :payment-id="data.payment?.id"
+        :proof-url="data.payment?.image?.url"
+        :has-proof="data.payment?.image?.hasProof"
       />
     </template>
 
@@ -41,12 +41,12 @@
       <span
         class="rounded-md px-2 py-1 text-xs font-bold"
         :class="
-          data.remainingAmount > 0
+          data.payment?.hasRemaining
             ? 'bg-orange-500/20 text-orange-300'
             : 'bg-emerald-500/20 text-emerald-300'
         "
       >
-        {{ data.remainingAmountLabel }}
+        {{ data.payment?.remainingAmountLabel }}
       </span>
     </template>
 
@@ -60,10 +60,10 @@
 
     <template #createdBy="{ data }">
       <div class="flex flex-col items-center gap-0.5">
-        <span class="text-sm font-medium">{{ data.createdByName }}</span>
+        <span class="text-sm font-medium">{{ data.createdBy?.fullName }}</span>
         <AppStatusTag
-          v-if="data.createdByRoleLabel && data.createdByRoleLabel !== '-'"
-          :label="data.createdByRoleLabel"
+          v-if="data.createdBy?.roleLabel && data.createdBy.roleLabel !== '-'"
+          :label="data.createdBy.roleLabel"
           severity="secondary"
         />
       </div>

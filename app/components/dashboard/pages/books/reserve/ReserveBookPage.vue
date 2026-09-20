@@ -63,7 +63,6 @@
       <BookReservationPage
         title="احجز كتاب"
         show-header
-        show-receipt
         :initial-product="selectedProductId"
         :initial-selection="selectedProduct"
         @hydrating="onFormHydrating"

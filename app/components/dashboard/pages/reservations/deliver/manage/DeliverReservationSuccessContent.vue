@@ -30,7 +30,7 @@
       >
         <span class="text-sm font-semibold text-emerald-700">المبلغ المحصّل</span>
         <span class="text-lg font-extrabold text-emerald-700">
-          {{ formatMoney(reservation.remainingAmount) }}
+          {{ formatMoney(reservation.payment?.remainingAmount ?? reservation.remainingAmount) }}
         </span>
       </div>
     </div>
@@ -53,8 +53,8 @@ const rows = computed(() => {
   if (!r) return [];
   const list = [
     { key: "number", label: "رقم الحجز", value: r.reservationNumber },
-    { key: "student", label: "الطالب", value: r.studentName },
-    { key: "product", label: "المنتج", value: r.productName },
+    { key: "student", label: "الطالب", value: r.student?.name || r.studentName },
+    { key: "product", label: "المنتج", value: r.product?.name || r.productName },
     { key: "quantity", label: "الكمية", value: r.quantity ?? 1 },
   ];
   if (props.collectedRemaining) {

@@ -1,5 +1,5 @@
 <template>
-  <BookReservationPage show-header show-receipt />
+  <BookReservationPage show-header />
 </template>
 
 <script setup>

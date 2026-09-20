@@ -33,10 +33,10 @@
       <div class="rounded-xl border border-white/10 bg-slate-900 p-4 text-sm text-slate-200">
         <p class="mb-3 text-xs font-semibold text-rose-300">المنتج الحالي</p>
         <p class="text-base font-bold text-white">
-          {{ sale.productName }}
+          {{ sale.product?.name || sale.productName }}
         </p>
         <p class="mt-1 text-xs text-slate-400">
-          أ/ {{ sale.teacherName || "—" }}
+          أ/ {{ sale.product?.teacherName || sale.teacherName || "—" }}
         </p>
         <AppDetailRows
           class="mt-3"
@@ -115,7 +115,7 @@
         source="inventory"
         :branch-id="sale.branchId"
         :inventory-query="{ availableOnly: true }"
-        :exclude-product-id="sale.productId"
+        :exclude-product-id="sale.product?.id || sale.productId"
         :min-available-quantity="Number(exchangeQuantity || 1)"
         label="المنتج الجديد"
         placeholder="اختر المنتج البديل من نفس الفرع"
@@ -187,7 +187,12 @@ defineEmits([
 ]);
 
 const maxQuantity = computed(() =>
-  Math.max(1, Number(props.sale?.remainingQuantity || 1)),
+  Math.max(
+    1,
+    Number(
+      props.sale?.quantity?.remaining ?? props.sale?.remainingQuantity ?? 1,
+    ),
+  ),
 );
 
 const summaryRows = computed(() => {
@@ -199,8 +204,8 @@ const summaryRows = computed(() => {
       value: sale.saleNumber,
       valueClass: "font-semibold text-slate-900",
     },
-    { key: "student", label: "الطالب", value: sale.studentName },
-    { key: "branch", label: "الفرع", value: sale.branchName },
+    { key: "student", label: "الطالب", value: sale.student?.name || sale.studentName },
+    { key: "branch", label: "الفرع", value: sale.branch?.name || sale.branchName },
     {
       key: "maxQuantity",
       label: "الكمية المتاحة للاستبدال",
@@ -213,7 +218,7 @@ const currentProductRows = computed(() => [
   {
     key: "unitPrice",
     label: "سعر الوحدة",
-    value: props.sale?.unitPriceLabel,
+    value: props.sale?.product?.unitPriceLabel || props.sale?.unitPriceLabel,
   },
   {
     key: "qty",

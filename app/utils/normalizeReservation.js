@@ -9,66 +9,116 @@ const toMoney = (value) => {
 };
 
 /**
- * Map Nest GET /reservations row (camelCase + includes + live pricing) to table/UI.
- * Reads only backend keys — no snake_case / legacy fallbacks.
+ * Map Nest reservation response (nested product/payment/image) to table/UI.
+ *
+ * API shape:
+ *   product{ id, name, teacher{name}, unitPrice, totalAmount }
+ *   payment{ id, method, methodLabel, paidAmount, remainingAmount, image{ reference, url, hasProof } }
+ *   student{ name, phone }, branch{ name }, createdBy{ fullName, role }
  */
 export const normalizeReservation = (item = {}) => {
-  const quantity = item.quantity ?? 1;
-  const paidAmount = toMoney(item.paidAmount);
-  const sellingPrice = toMoney(
-    item.currentUnitPrice ?? item.product?.sellingPrice ?? item.reservationPrice,
-  );
-  const totalAmount = toMoney(
-    item.currentTotalAmount ?? item.totalAmount ?? sellingPrice * quantity,
-  );
-  const remainingAmount = toMoney(
-    item.remainingAmount ?? Math.max(totalAmount - paidAmount, 0),
-  );
+  const product = item.product || {};
+  const payment = item.payment || {};
+  const image = payment.image || {};
+  const student = item.student || {};
+  const branch = item.branch || {};
+  const createdBy = item.createdBy || {};
+
+  const quantity = Number(item.quantity ?? 1);
+  const paidAmount = toMoney(payment.paidAmount);
+  const sellingPrice = toMoney(product.unitPrice);
+  const totalAmount = toMoney(product.totalAmount);
+  const remainingAmount = toMoney(payment.remainingAmount);
   const status = String(item.status || "").toUpperCase();
   const statusMeta = getStatusTagMeta("reservation", status);
-  const paymentMethod = String(item.paymentMethod || "CASH").toUpperCase();
-  const createdByName = item.createdBy?.fullName || "-";
-  const createdByRole = item.createdBy?.role || "";
+  const paymentMethod = String(payment.method || "").toUpperCase();
+  const createdByName = createdBy.fullName || "-";
+  const createdByRole = createdBy.role || "";
+  const productId = product.id || item.productId || null;
+  const teacherName = product.teacher?.name || "-";
 
-  return {
-    ...item,
-    id: item.id,
-    productId: item.productId ?? item.product?.id ?? null,
-    branchId: item.branchId ?? item.branch?.id ?? null,
-    reservationNumber: item.reservationNumber,
-    quantity,
-    status,
+  const normalizedProduct = {
+    id: productId,
+    name: product.name || "-",
+    teacher: product.teacher ? { name: teacherName } : null,
+    teacherName,
+    unitPrice: sellingPrice,
     totalAmount,
+    unitPriceLabel: sellingPrice > 0 ? formatMoney(sellingPrice) : "—",
+    totalAmountLabel: formatMoney(totalAmount),
+  };
+
+  const normalizedPayment = {
+    id: payment.id ?? null,
+    method: paymentMethod,
+    methodLabel:
+      payment.methodLabel ||
+      PAYMENT_METHOD_LABELS[paymentMethod] ||
+      paymentMethod ||
+      "—",
     paidAmount,
     remainingAmount,
     hasRemaining: remainingAmount > 0,
-    sellingPrice,
-    createdAt: item.createdAt ?? null,
-    createdAtLabel: formatDateTime(item.createdAt, { empty: "—" }),
-    studentName: item.student?.name || "-",
-    phone: item.student?.phone || "",
-    productName: item.product?.name || "-",
-    teacherName: item.product?.teacher?.name || "-",
-    branchName: item.branch?.name || "-",
-    createdByName,
-    createdByRole,
-    createdByRoleLabel: getUserRoleLabel(createdByRole),
-    createdByLabel: createdByName,
-    sellingPriceLabel: sellingPrice > 0 ? formatMoney(sellingPrice) : "—",
     paidAmountLabel: formatMoney(paidAmount),
     remainingAmountLabel: formatMoney(remainingAmount),
-    paymentId: item.paymentId ?? null,
-    paymentMethod,
-    paymentMethodLabel:
-      item.paymentMethodLabel ||
-      PAYMENT_METHOD_LABELS[paymentMethod] ||
-      paymentMethod,
-    proofReference: item.proofReference ?? null,
-    proofUrl: item.proofUrl ?? null,
-    hasProof: Boolean(item.hasProof),
+    image: {
+      reference: image.reference ?? null,
+      url: image.url ?? null,
+      hasProof: Boolean(image.hasProof),
+    },
+  };
+
+  return {
+    id: item.id,
+    reservationNumber: item.reservationNumber,
+    branchId: item.branchId,
+    quantity,
+    status,
+    createdAt: item.createdAt,
+    createdAtLabel: formatDateTime(item.createdAt, { empty: "—" }),
+    student: {
+      name: student.name || "-",
+      phone: student.phone || "",
+    },
+    branch: {
+      name: branch.name || "-",
+    },
+    createdBy: {
+      fullName: createdByName,
+      role: createdByRole,
+      roleLabel: getUserRoleLabel(createdByRole),
+    },
+    product: normalizedProduct,
+    payment: normalizedPayment,
     statusLabel:
       remainingAmount > 0 && status === "READY"
         ? "جاهز · متبقي مبلغ"
         : statusMeta.label,
+
+    // Flat aliases for AppDataTable field binding
+    productId,
+    productName: normalizedProduct.name,
+    teacherName,
+    studentName: student.name || "-",
+    phone: student.phone || "",
+    branchName: branch.name || "-",
+    createdByName,
+    createdByRole,
+    createdByRoleLabel: getUserRoleLabel(createdByRole),
+    createdByLabel: createdByName,
+    sellingPrice,
+    sellingPriceLabel: normalizedProduct.unitPriceLabel,
+    totalAmount,
+    paidAmount,
+    paidAmountLabel: normalizedPayment.paidAmountLabel,
+    remainingAmount,
+    remainingAmountLabel: normalizedPayment.remainingAmountLabel,
+    hasRemaining: normalizedPayment.hasRemaining,
+    paymentId: normalizedPayment.id,
+    paymentMethod: normalizedPayment.method,
+    paymentMethodLabel: normalizedPayment.methodLabel,
+    proofReference: normalizedPayment.image.reference,
+    proofUrl: normalizedPayment.image.url,
+    hasProof: normalizedPayment.image.hasProof,
   };
 };

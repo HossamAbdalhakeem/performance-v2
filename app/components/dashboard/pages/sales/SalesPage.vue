@@ -577,41 +577,33 @@ const submitSale = async () => {
     const studentId = await ensureStudent();
     const needsProof = paymentMethodNeedsProof(form.method);
     const product = selectedProductOption.value;
-    const quantity = Number(form.quantity || 0);
-    const lineUnitPrice = Number(product?.sellingPrice || unitPrice.value || 0);
-    const totalAmount = Number((lineUnitPrice * quantity).toFixed(2));
-    const studentName = asText(form.studentName, "name");
     const method = form.method;
 
     const sale = await saleService.createSale({
       studentId,
       productId: form.productId,
-      quantity,
+      quantity: Number(form.quantity),
       method,
-      proofReference: needsProof ? proofKey.value || undefined : undefined,
+      ...(needsProof && proofKey.value
+        ? { proofReference: proofKey.value }
+        : {}),
     });
 
-    const payment = Array.isArray(sale?.payments) ? sale.payments[0] : null;
-    const saleProduct = sale?.items?.[0]?.product;
-    const studyYearName =
-      product?.studyYearName ||
-      saleProduct?.studyYear?.name ||
-      selectedProduct.value?.studyYear?.name ||
-      "";
+    if (!sale?.id || !sale?.paymentId) {
+      throw new Error("تعذر قراءة بيانات البيع من الخادم.");
+    }
 
     saleSummary.value = {
-      paymentNumber: payment?.id || sale?.id || "-",
-      dateTimeLabel: formatDateTime(
-        payment?.createdAt || sale?.createdAt || new Date(),
-      ),
-      productName: product?.name || saleProduct?.name || "-",
+      paymentNumber: sale.paymentId,
+      dateTimeLabel: formatDateTime(sale.createdAt),
+      productName: product?.name || "-",
       teacherName: product?.teacherName || "",
-      studyYearName,
-      studentName: studentName || sale?.student?.name || "-",
-      quantity,
-      unitPrice: lineUnitPrice,
-      totalAmount: Number(sale?.totalAmount ?? totalAmount),
-      methodLabel: PAYMENT_METHOD_LABELS[method] || method,
+      studyYearName: product?.studyYearName || "",
+      studentName: asText(form.studentName, "name") || "-",
+      quantity: sale.quantity,
+      unitPrice: Number(sale.unitPrice),
+      totalAmount: Number(sale.totalAmount),
+      methodLabel: PAYMENT_METHOD_LABELS[sale.method] || sale.method,
       proofImage: needsProof ? proofPreviewUrl.value || "" : "",
     };
     successDialogVisible.value = true;

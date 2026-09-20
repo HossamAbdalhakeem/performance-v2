@@ -258,7 +258,7 @@ const selectedNewProduct = computed(
 const priceComparison = computed(() => {
   if (!selectedReservation.value || !selectedNewProduct.value) return null;
 
-  const paidAmount = roundMoney(selectedReservation.value.paidAmount);
+  const paidAmount = roundMoney(selectedReservation.value.payment?.paidAmount);
   const newPrice = roundMoney(selectedNewProduct.value.displayPrice);
   const difference = roundMoney(newPrice - paidAmount);
 
@@ -349,7 +349,10 @@ const closeCancelFlow = () => {
 
 const requestCancelConfirm = () => {
   cancelRefundError.value = "";
-  if (selectedReservation.value?.paidAmount > 0 && !cancelRefundMethod.value) {
+  if (
+    selectedReservation.value?.payment?.paidAmount > 0 &&
+    !cancelRefundMethod.value
+  ) {
     cancelRefundError.value = "اختر طريقة رد المبلغ.";
     return;
   }
@@ -361,7 +364,7 @@ const confirmCancel = async () => {
   busy.value = true;
   try {
     const payload = {};
-    if (selectedReservation.value.paidAmount > 0) {
+    if (selectedReservation.value.payment?.paidAmount > 0) {
       payload.refundMethod = cancelRefundMethod.value;
       if (cancelProofKey.value) {
         payload.proofReference = cancelProofKey.value;
@@ -424,7 +427,7 @@ const requestExchangeConfirm = () => {
     exchangeError.value = "اختر المنتج الجديد قبل التأكيد.";
     return;
   }
-  if (newProductId.value === selectedReservation.value?.productId) {
+  if (newProductId.value === selectedReservation.value?.product?.id) {
     exchangeError.value = "اختر منتجًا مختلفًا عن المنتج الحالي.";
     return;
   }

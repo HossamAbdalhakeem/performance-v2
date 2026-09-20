@@ -4,24 +4,16 @@ import {
   normalizePaymentMethod,
 } from "~/utils/paymentMethods";
 
+/** Body for POST /sales — matches CreateSaleDto (camelCase only). */
 const saleBody = (payload: Record<string, any>) => {
-  const method = normalizePaymentMethod(
-    payload.method || payload.payment_method || PaymentMethod.CASH,
-  );
   const body: Record<string, any> = {
-    studentId: payload.studentId ?? payload.student_id,
-    productId: payload.productId ?? payload.product_id,
+    studentId: payload.studentId,
+    productId: payload.productId,
     quantity: Number(payload.quantity || 1),
-    method,
+    method: normalizePaymentMethod(payload.method || PaymentMethod.CASH),
   };
 
-  const proof =
-    payload.proofReference ??
-    payload.proof_reference ??
-    payload.payment_proof_path ??
-    payload.receipt_image;
-
-  if (proof) body.proofReference = proof;
+  if (payload.proofReference) body.proofReference = payload.proofReference;
 
   return body;
 };

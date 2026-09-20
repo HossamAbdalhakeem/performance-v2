@@ -6,7 +6,6 @@
           :title="title"
           :submit-label="submitLabel"
           :show-header="showHeader"
-          :show-receipt="showReceipt"
           :back-to="backTo"
           :initial-product="initialProduct"
           :initial-selection="initialSelection"
@@ -33,7 +32,6 @@ defineProps({
   title: { type: String, default: "حجز الكتب" },
   submitLabel: { type: String, default: "تأكيد الحجز" },
   showHeader: { type: Boolean, default: false },
-  showReceipt: { type: Boolean, default: false },
   backTo: { type: String, default: "" },
   initialProduct: { type: [String, Number], default: "" },
   initialSelection: { type: Object, default: null },

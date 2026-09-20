@@ -69,16 +69,27 @@ defineEmits([
 ]);
 
 const maxQuantity = computed(() =>
-  Math.max(1, Number(props.sale?.remainingQuantity || 1)),
+  Math.max(
+    1,
+    Number(
+      props.sale?.quantity?.remaining ?? props.sale?.remainingQuantity ?? 1,
+    ),
+  ),
 );
 
 const refundAmountLabel = computed(() => {
   const qty = Number(props.refundQuantity || 0);
-  const unitPrice = Number(props.sale?.unitPrice || 0);
+  const unitPrice = Number(
+    props.sale?.product?.unitPrice ?? props.sale?.unitPrice ?? 0,
+  );
   if (qty > 0 && unitPrice > 0) {
     return formatMoney(unitPrice * qty);
   }
-  return props.sale?.refundAmountLabel || formatMoney(0);
+  return (
+    props.sale?.product?.refundAmountLabel ||
+    props.sale?.refundAmountLabel ||
+    formatMoney(0)
+  );
 });
 
 const summaryRows = computed(() => {
@@ -90,10 +101,10 @@ const summaryRows = computed(() => {
       value: sale.saleNumber,
       valueClass: "font-semibold text-slate-900",
     },
-    { key: "student", label: "الطالب", value: sale.studentName },
-    { key: "phone", label: "الموبايل", value: sale.phone || "—" },
-    { key: "product", label: "المنتج", value: sale.productName },
-    { key: "branch", label: "الفرع", value: sale.branchName },
+    { key: "student", label: "الطالب", value: sale.student?.name || sale.studentName },
+    { key: "phone", label: "الموبايل", value: sale.student?.phone || sale.phone || "—" },
+    { key: "product", label: "المنتج", value: sale.product?.name || sale.productName },
+    { key: "branch", label: "الفرع", value: sale.branch?.name || sale.branchName },
     {
       key: "maxQuantity",
       label: "الكمية القابلة للاسترداد",
@@ -102,9 +113,13 @@ const summaryRows = computed(() => {
     {
       key: "paymentMethod",
       label: "طريقة الدفع الأصلية",
-      value: sale.paymentMethodLabel,
+      value: sale.payment?.methodLabel || sale.paymentMethodLabel,
     },
-    { key: "unitPrice", label: "سعر الوحدة", value: sale.unitPriceLabel },
+    {
+      key: "unitPrice",
+      label: "سعر الوحدة",
+      value: sale.product?.unitPriceLabel || sale.unitPriceLabel,
+    },
     {
       key: "refundAmount",
       label: "مبلغ الاسترداد",

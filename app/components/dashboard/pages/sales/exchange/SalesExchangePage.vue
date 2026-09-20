@@ -15,8 +15,12 @@
         <SalesExchangeTable
           :sales="sales"
           :loading="loading"
+          :rows="pagination.perPage"
+          :first="pagination.first"
+          :total-records="pagination.total"
           @exchange="openExchange"
           @refund="openRefund"
+          @page="onPage"
         />
       </template>
     </Card>
@@ -45,11 +49,7 @@ import SalesExchangeTable from "~/components/dashboard/pages/sales/exchange/Sale
 import SearchInput from "~/components/shared/search-input/index.vue";
 import { exchangeService } from "~/services/exchangeService";
 import { useAppToast } from "~/composables/useAppToast";
-import { formatMoney, formatDateTime } from "~/utils/format";
-import { getPaymentMethodLabel } from "~/utils/paymentMethods";
-import {
-  getSaleStatusLabel,
-} from "~/utils/domainLabels";
+import { normalizeEligibleSale } from "~/utils/normalizeEligibleSale";
 
 const SalesExchangeRefundFlow = defineAsyncComponent(() =>
   import("~/components/dashboard/pages/sales/exchange/SalesExchangeRefundFlow.vue"),
@@ -67,34 +67,52 @@ const selectedSale = ref(null);
 const refundOpen = ref(false);
 const exchangeOpen = ref(false);
 const filters = reactive({ search: "" });
-
-const withDisplayLabels = (row) => ({
-  ...row,
-  unitPriceLabel: formatMoney(row.unitPrice),
-  amountLabel: formatMoney(row.amount),
-  refundAmountLabel: formatMoney(row.refundAmount ?? row.amount),
-  createdAtLabel: formatDateTime(row.createdAt, { empty: "—" }),
-  statusLabel: getSaleStatusLabel(row.status),
-  paymentMethodLabel: getPaymentMethodLabel(row.paymentMethod),
+const pagination = reactive({
+  page: 1,
+  perPage: 20,
+  total: 0,
+  first: 0,
 });
+
+const buildQuery = () => {
+  const params = {
+    page: pagination.page,
+    per_page: pagination.perPage,
+  };
+  if (filters.search?.trim()) params.search = filters.search.trim();
+  return params;
+};
+
+const resetPagination = () => {
+  pagination.page = 1;
+  pagination.first = 0;
+};
 
 const loadData = async () => {
   loading.value = true;
   try {
-    const params = {};
-    if (filters.search?.trim()) params.search = filters.search.trim();
-    const rows = await exchangeService.getEligibleSales(params);
-    sales.value = (rows || []).map(withDisplayLabels);
+    const result = await exchangeService.getEligibleSales(buildQuery());
+    sales.value = (result.data || []).map(normalizeEligibleSale);
+    pagination.total = result.pagination?.total || 0;
   } catch (error) {
     showError(error?.message || "تعذر تحميل المبيعات.");
     sales.value = [];
+    pagination.total = 0;
   } finally {
     loading.value = false;
   }
 };
 
+const onPage = (event) => {
+  pagination.page = event.page + 1;
+  pagination.perPage = event.rows;
+  pagination.first = event.first;
+  loadData();
+};
+
 const onSearch = (value) => {
   filters.search = value;
+  resetPagination();
   loadData();
 };
 

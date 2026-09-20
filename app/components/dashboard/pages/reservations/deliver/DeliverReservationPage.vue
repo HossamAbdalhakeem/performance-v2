@@ -19,10 +19,10 @@
       <template #createdBy="{ data }">
         <div class="flex flex-col items-center gap-0.5">
           <span class="text-sm font-medium text-slate-100">
-            {{ data.createdByName }}
+            {{ data.createdBy?.fullName }}
           </span>
           <span class="rounded-md bg-slate-700/80 px-2 py-0.5 text-[11px] text-slate-300">
-            {{ data.createdByRoleLabel }}
+            {{ data.createdBy?.roleLabel }}
           </span>
         </div>
       </template>
@@ -31,7 +31,7 @@
         <span
           class="rounded-md bg-sky-500/20 px-2 py-1 text-xs font-bold text-sky-300"
         >
-          {{ data.sellingPriceLabel }}
+          {{ data.product?.unitPriceLabel }}
         </span>
       </template>
 
@@ -39,17 +39,17 @@
         <span
           class="rounded-md bg-emerald-500/20 px-2 py-1 text-xs font-bold text-emerald-300"
         >
-          {{ formatMoney(data.paidAmount) }}
+          {{ data.payment?.paidAmountLabel }}
         </span>
       </template>
 
       <template #paymentMethod="{ data }">
         <PaymentProofThumb
-          :method="data.paymentMethod"
-          :method-label="data.paymentMethodLabel"
-          :payment-id="data.paymentId"
-          :proof-url="data.proofUrl"
-          :has-proof="data.hasProof"
+          :method="data.payment?.method"
+          :method-label="data.payment?.methodLabel"
+          :payment-id="data.payment?.id"
+          :proof-url="data.payment?.image?.url"
+          :has-proof="data.payment?.image?.hasProof"
         />
       </template>
 
@@ -57,12 +57,12 @@
         <span
           class="rounded-md px-2 py-1 text-xs font-bold"
           :class="
-            data.remainingAmount > 0
+            data.payment?.hasRemaining
               ? 'bg-orange-500/20 text-orange-300'
               : 'bg-emerald-500/20 text-emerald-300'
           "
         >
-          {{ formatMoney(data.remainingAmount) }}
+          {{ data.payment?.remainingAmountLabel }}
         </span>
       </template>
 
@@ -99,7 +99,6 @@ import AppDataTable from "~/components/shared/app-data-table/index.vue";
 import SearchInput from "~/components/shared/search-input/index.vue";
 import { reservationService } from "~/services/reservationService";
 import { useAppToast } from "~/composables/useAppToast";
-import { formatMoney } from "~/utils/format";
 import PaymentProofThumb from "~/components/shared/payment-proof-thumb/index.vue";
 import AppStatusTag from "~/components/shared/app-status-tag/index.vue";
 import { normalizeReservation } from "~/utils/normalizeReservation";
@@ -135,9 +134,9 @@ const tableColumns = [
   { field: "teacherName", header: "المدرس" },
   { field: "createdByLabel", header: "أنشئ بواسطة", slot: "createdBy" },
   { field: "sellingPriceLabel", header: "سعر البيع", slot: "sellingPrice" },
-  { field: "paidAmount", header: "المقدم", slot: "paidAmount" },
+  { field: "paidAmountLabel", header: "المقدم", slot: "paidAmount" },
   { field: "paymentMethodLabel", header: "طريقة الدفع", slot: "paymentMethod" },
-  { field: "remainingAmount", header: "المتبقي", slot: "remainingAmount" },
+  { field: "remainingAmountLabel", header: "المتبقي", slot: "remainingAmount" },
   { field: "statusLabel", header: "الحالة", slot: "status" },
   { field: "actions", header: "إجراء", slot: "actions", style: "width: 7rem" },
 ];
@@ -145,7 +144,10 @@ const tableColumns = [
 const isDeliverable = (item) => item?.status === "READY";
 
 const buildQuery = () => {
-  const params = { per_page: 20 };
+  const params = {
+    per_page: 20,
+    status: "READY",
+  };
   if (search.value.trim()) params.search = search.value.trim();
   return params;
 };
@@ -183,7 +185,9 @@ const loadReservations = async () => {
   loading.value = true;
   try {
     const result = await reservationService.getReservations(buildQuery());
-    reservations.value = (result.data || []).map(normalizeReservation);
+    reservations.value = (result.data || [])
+      .map(normalizeReservation)
+      .filter((row) => row.id && row.reservationNumber);
   } catch (error) {
     reservations.value = [];
     showError(error?.message || "تعذر تحميل الحجوزات.");

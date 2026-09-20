@@ -17,8 +17,8 @@
       <ExchangeReservationProductCard
         title="المنتج الحالي"
         title-class="text-rose-300"
-        :name="reservation.productName"
-        :teacher-name="reservation.teacherName"
+        :name="reservation.product?.name || reservation.productName"
+        :teacher-name="reservation.product?.teacherName || reservation.teacherName"
         :rows="currentProductRows"
       />
 
@@ -67,7 +67,7 @@
         source="inventory"
         :branch-id="reservation.branchId"
         :inventory-query="{ forReservation: true }"
-        :exclude-product-id="reservation.productId"
+        :exclude-product-id="reservation.product?.id || reservation.productId"
         label="المنتج الجديد"
         placeholder="اختر المنتج البديل من نفس الفرع"
         :invalid="!!exchangeError"
@@ -150,8 +150,8 @@ const headerRows = computed(() => {
       value: r.reservationNumber,
       valueClass: "font-semibold text-slate-900",
     },
-    { key: "student", label: "الطالب", value: r.studentName },
-    { key: "branch", label: "الفرع", value: r.branchName },
+    { key: "student", label: "الطالب", value: r.student?.name || r.studentName },
+    { key: "branch", label: "الفرع", value: r.branch?.name || r.branchName },
     { key: "status", label: "الحالة", value: r.statusLabel },
   ];
 });
@@ -160,9 +160,21 @@ const currentProductRows = computed(() => {
   const r = props.reservation;
   if (!r) return [];
   return [
-    { key: "price", label: "السعر", value: r.sellingPriceLabel },
-    { key: "paid", label: "المدفوع", value: r.paidAmountLabel },
-    { key: "remaining", label: "المتبقي", value: r.remainingAmountLabel },
+    {
+      key: "price",
+      label: "السعر",
+      value: r.product?.unitPriceLabel || r.sellingPriceLabel,
+    },
+    {
+      key: "paid",
+      label: "المدفوع",
+      value: r.payment?.paidAmountLabel || r.paidAmountLabel,
+    },
+    {
+      key: "remaining",
+      label: "المتبقي",
+      value: r.payment?.remainingAmountLabel || r.remainingAmountLabel,
+    },
   ];
 });
 

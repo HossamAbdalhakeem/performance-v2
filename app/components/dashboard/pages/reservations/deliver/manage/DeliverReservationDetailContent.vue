@@ -9,10 +9,10 @@
         :root-class="index === 0 ? '' : 'mt-1'"
       >
         <span
-          v-if="row.key === 'createdBy' && reservation.createdByRoleLabel"
+          v-if="row.key === 'createdBy' && reservation.createdBy?.roleLabel"
           class="mr-1 rounded-md bg-slate-700/80 px-1.5 py-0.5 text-[11px] text-slate-300"
         >
-          {{ reservation.createdByRoleLabel }}
+          {{ reservation.createdBy.roleLabel }}
         </span>
       </DeliverReservationDetailInfoRow>
 
@@ -101,13 +101,13 @@ const infoRows = computed(() => {
   if (!r) return [];
   return [
     { key: "number", label: "رقم الحجز", value: r.reservationNumber },
-    { key: "student", label: "الطالب", value: r.studentName },
+    { key: "student", label: "الطالب", value: r.student?.name || r.studentName },
     {
       key: "createdBy",
       label: "أنشئ بواسطة",
-      value: r.createdByName || "—",
+      value: r.createdBy?.fullName || r.createdByName,
     },
-    { key: "product", label: "المنتج", value: r.productName },
+    { key: "product", label: "المنتج", value: r.product?.name || r.productName },
   ];
 });
 
@@ -118,19 +118,19 @@ const amountRows = computed(() => {
     {
       key: "total",
       label: "إجمالي المبلغ",
-      value: formatMoney(r.totalAmount),
+      value: formatMoney(r.product?.totalAmount ?? r.totalAmount),
       valueClass: "font-semibold text-slate-100",
     },
     {
       key: "paid",
       label: "المدفوع مسبقاً",
-      value: formatMoney(r.paidAmount),
+      value: formatMoney(r.payment?.paidAmount ?? r.paidAmount),
       valueClass: "font-semibold text-emerald-300",
     },
     {
       key: "remaining",
       label: "المتبقي",
-      value: formatMoney(r.remainingAmount),
+      value: formatMoney(r.payment?.remainingAmount ?? r.remainingAmount),
       bordered: true,
       labelClass: "text-base font-bold text-slate-200",
       valueClass: `text-2xl font-extrabold tracking-tight ${

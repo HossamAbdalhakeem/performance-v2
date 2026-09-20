@@ -182,7 +182,7 @@ const dialogTitle = computed(() =>
 );
 
 const needsRemainingPayment = computed(() =>
-  Boolean(selectedReservation.value?.hasRemaining),
+  Boolean(selectedReservation.value?.payment?.hasRemaining),
 );
 
 const isDeliverable = (item) => item?.status === "READY";

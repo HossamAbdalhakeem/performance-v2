@@ -46,7 +46,6 @@
     <div class="grid gap-4">
       <Form
         v-slot="{ errors: fieldErrors, setFieldValue, meta }"
-        :key="formKey"
         :initial-values="formInitialValues"
         class="grid gap-4 md:grid-cols-2"
         @submit="handleSubmit"
@@ -316,7 +315,6 @@ const props = defineProps({
   title: { type: String, default: "احجز كتاب" },
   submitLabel: { type: String, default: "تأكيد الحجز" },
   showHeader: { type: Boolean, default: false },
-  showReceipt: { type: Boolean, default: false },
   backTo: { type: String, default: "" },
   initialProduct: { type: [String, Number], default: "" },
   /** Prefill from CS product search (product + optional branch). */
@@ -350,7 +348,6 @@ const employeeBranchId = computed(
 const saving = ref(false);
 const loadingProducts = ref(false);
 const hydratingInitial = ref(false);
-const formKey = ref(0);
 const reservationSummary = ref(null);
 const successDialogVisible = ref(false);
 const proofFile = ref(null);
@@ -463,9 +460,6 @@ const productDisplayPrice = computed(() =>
 
 /** Deposit max = same displayed product price */
 const productDepositCap = computed(() => productDisplayPrice.value);
-
-/** @deprecated alias kept for existing watchers/submit logic */
-const productPrice = productDepositCap;
 
 const validateDepositAmount = () => {
   amountError.value = "";
@@ -661,37 +655,9 @@ const ensureStudent = async () => {
   return selectedStudent.value.id;
 };
 
-const clearProof = () => {
-  proofFile.value = null;
-  proofKey.value = "";
-  proofPreviewUrl.value = "";
-};
-
-const resetForm = () => {
-  Object.assign(form, {
-    studentName: "",
-    studentPhone: "",
-    branchId: null,
-    studyYearId: null,
-    teacherId: null,
-    productType: null,
-    productId: null,
-    amount: null,
-    paymentMethod: defaultPaymentMethod.value,
-  });
-  selectedStudent.value = null;
-  inventoryItems.value = [];
-  clearProof();
-  amountError.value = "";
-  proofRequiredError.value = false;
-  paymentFieldsRef.value?.reset?.();
-  formKey.value += 1;
-};
-
 const closeSuccessDialog = () => {
   successDialogVisible.value = false;
   reservationSummary.value = null;
-  receiptCode.value = "";
 };
 
 const handleSubmit = async () => {
@@ -736,24 +702,23 @@ const handleSubmit = async () => {
       throw new Error("تعذر قراءة بيانات الحجز من الخادم.");
     }
 
-
     reservationSummary.value = {
       reservationNumber: result.reservationNumber,
       dateTimeLabel: formatDateTime(result.createdAt),
-      productName: product?.name || "",
-      teacherName: product?.teacherName || "",
+      productName: product?.name || result.product?.name || "",
+      teacherName:
+        product?.teacherName || result.product?.teacher?.name || "",
       studyYearName: product?.studyYearName || "",
-      studentName: form.studentName || "-",
-      paidAmount: Number(result.paidAmount),
-      totalAmount: Number(result.totalAmount),
-      status: result.status,
+      studentName: form.studentName || result.student?.name || "-",
+      paidAmount: Number(result.payment?.paidAmount ?? result.paidAmount),
+      totalAmount: Number(
+        result.product?.totalAmount ?? result.totalAmount,
+      ),
       methodLabel: PAYMENT_METHOD_LABELS[method] || method,
       proofImage: needsProof ? proofPreviewUrl.value || "" : "",
     };
 
     successDialogVisible.value = true;
-    // Temporarily disabled — keep form values after successful reservation
-    // resetForm();
   } catch (error) {
     showError(error?.message || "تعذر تسجيل الحجز.");
   } finally {
@@ -767,10 +732,10 @@ watch(
     amountError.value = "";
     if (
       form.amount != null &&
-      productPrice.value > 0 &&
-      Number(form.amount) > productPrice.value
+      productDepositCap.value > 0 &&
+      Number(form.amount) > productDepositCap.value
     ) {
-      form.amount = productPrice.value;
+      form.amount = productDepositCap.value;
     }
   },
 );
@@ -778,7 +743,7 @@ watch(
 watch(
   () => form.amount,
   () => {
-    if (form.productId && productPrice.value > 0) {
+    if (form.productId && productDepositCap.value > 0) {
       validateDepositAmount();
     } else {
       amountError.value = "";

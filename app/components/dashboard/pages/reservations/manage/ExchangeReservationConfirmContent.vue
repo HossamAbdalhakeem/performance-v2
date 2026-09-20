@@ -14,7 +14,7 @@
     </template>
 
     <AppSwapPreview
-      :from-title="reservation?.productName"
+      :from-title="reservation?.product?.name || reservation?.productName"
       :from-subtitle="fromSubtitle"
       :to-title="selectedNewProduct?.name || '—'"
       :to-subtitle="toSubtitle"
@@ -33,7 +33,8 @@ const props = defineProps({
 });
 
 const fromSubtitle = computed(
-  () => `أ/ ${props.reservation?.teacherName || "—"}`,
+  () =>
+    `أ/ ${props.reservation?.product?.teacherName || props.reservation?.teacherName || "—"}`,
 );
 
 const toSubtitle = computed(() => {

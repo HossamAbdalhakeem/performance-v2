@@ -4,36 +4,42 @@
     :columns="columns"
     :loading="loading"
     paginator
-    :rows="20"
+    lazy
+    :rows="rows"
+    :first="first"
+    :total-records="totalRecords"
     empty-message="لا توجد مبيعات قابلة للعرض."
+    @page="$emit('page', $event)"
   >
     <template #amountLabel="{ data }">
       <span
         class="rounded-md bg-sky-500/20 px-2 py-1 text-xs font-bold text-sky-300"
       >
-        {{ data.amountLabel }}
+        {{ data.product?.amountLabel || data.amountLabel }}
       </span>
     </template>
 
     <template #quantity="{ data }">
       <div class="flex flex-col items-center gap-0.5">
-        <span class="font-medium">{{ data.remainingQuantity }}</span>
+        <span class="font-medium">
+          {{ data.quantity?.remaining ?? data.remainingQuantity }}
+        </span>
         <span
           v-if="data.status === 'PARTIALLY_RETURNED'"
           class="text-[11px] text-amber-600"
         >
-          مرتجع {{ data.returnedQuantity ?? 0 }}
+          مرتجع {{ data.quantity?.returned ?? data.returnedQuantity ?? 0 }}
         </span>
       </div>
     </template>
 
     <template #paymentMethod="{ data }">
       <PaymentProofThumb
-        :method="data.paymentMethod"
-        :method-label="data.paymentMethodLabel"
-        :payment-id="data.paymentId"
-        :proof-url="data.proofUrl"
-        :has-proof="data.hasProof"
+        :method="data.payment?.method || data.paymentMethod"
+        :method-label="data.payment?.methodLabel || data.paymentMethodLabel"
+        :payment-id="data.payment?.id || data.paymentId"
+        :proof-url="data.payment?.image?.url || data.proofUrl"
+        :has-proof="data.payment?.image?.hasProof ?? data.hasProof"
       />
     </template>
 
@@ -80,12 +86,14 @@ import PaymentProofThumb from "~/components/shared/payment-proof-thumb/index.vue
 defineProps({
   sales: { type: Array, default: () => [] },
   loading: { type: Boolean, default: false },
+  rows: { type: Number, default: 20 },
+  first: { type: Number, default: 0 },
+  totalRecords: { type: Number, default: 0 },
 });
 
-defineEmits(["exchange", "refund"]);
+defineEmits(["exchange", "refund", "page"]);
 
 const columns = [
-  // { field: "saleNumber", header: "رقم العملية" },
   { field: "createdAtLabel", header: "تاريخ البيع" },
   { field: "studentName", header: "الطالب" },
   { field: "phone", header: "الموبايل", fallback: "—" },
