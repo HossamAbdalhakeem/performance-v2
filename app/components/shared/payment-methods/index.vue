@@ -13,7 +13,7 @@
         <span>{{ option.label }}</span>
         <input
           type="radio"
-          class="accent-sky-400"
+          class="accent-primary-400"
           :value="option.value"
           :checked="modelValue === option.value"
           @change="onSelect(option.value)"

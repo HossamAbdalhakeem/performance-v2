@@ -41,10 +41,10 @@ const actions = [
     actionLabel: "عرض التقارير",
     icon: "pi-chart-bar",
     to: "/reports",
-    iconWrapClass: "bg-sky-500/15 text-sky-300",
-    buttonClass: "bg-sky-600 hover:bg-sky-500",
+    iconWrapClass: "bg-primary-500/15 text-primary-300",
+    buttonClass: "bg-primary-600 hover:bg-primary-500",
     accentLineClass:
-      "bg-gradient-to-l from-transparent via-sky-400/60 to-transparent",
+      "bg-gradient-to-l from-transparent via-primary-400/60 to-transparent",
   },
   {
     key: "reservations",

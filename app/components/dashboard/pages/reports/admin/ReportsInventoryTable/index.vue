@@ -110,7 +110,7 @@ const columns = [
 const TYPE_META = {
   [ProductType.BOOK]: {
     icon: "pi-book",
-    iconWrapClass: "bg-sky-500/15 text-sky-300",
+    iconWrapClass: "bg-primary-500/15 text-primary-300",
   },
   [ProductType.CARD]: {
     icon: "pi-id-card",

@@ -78,7 +78,7 @@ const INVENTORY_UI = {
   exchanges: {
     hint: "عمليات استبدال",
     icon: "pi-sync",
-    iconWrapClass: "bg-sky-500/15 text-sky-300",
+    iconWrapClass: "bg-primary-500/15 text-primary-300",
     sectionKey: "exchanges",
   },
 };

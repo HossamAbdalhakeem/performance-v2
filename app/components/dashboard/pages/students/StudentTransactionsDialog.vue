@@ -52,6 +52,9 @@
         empty-message="لا توجد معاملات لهذا الطالب."
         @page="onPage"
       >
+        <template #product="{ data }">
+          <ProductCell :product="data.productCell" />
+        </template>
         <template #typeLabel="{ data }">
           <AppStatusTag
             kind="transaction"
@@ -96,6 +99,7 @@ import AppStatusTag from "~/components/shared/app-status-tag/index.vue";
 import DateRangePicker from "~/components/shared/date-range-picker/index.vue";
 import PaymentProofThumb from "~/components/shared/payment-proof-thumb/index.vue";
 import ProductSelect from "~/components/shared/product-select/index.vue";
+import ProductCell from "~/components/shared/product-cell/index.vue";
 import AppGlobalSelectTeacher from "~/components/shared/app-global-select-teacher/index.vue";
 import { studentService } from "~/services/studentService";
 import { useAppToast } from "~/composables/useAppToast";
@@ -181,8 +185,7 @@ const statusSeverity = (status, type) => {
 const columns = [
   { field: "dateLabel", header: "التاريخ" },
   { field: "typeLabel", header: "النوع", slot: "typeLabel" },
-  { field: "productName", header: "المنتج" },
-  { field: "teacherName", header: "المدرس" },
+  { field: "productCell", header: "المنتج", slot: "product" },
   { field: "branchName", header: "الفرع" },
   { field: "quantity", header: "الكمية" },
   { field: "amountLabel", header: "المبلغ", slot: "amountLabel" },
@@ -218,12 +221,17 @@ const normalizeTransaction = (item) => {
     item.productName ||
     item.product?.name ||
     item.product_name ||
-    "—";
+    null;
   const teacherName =
     item.teacherName ||
     item.teacher?.name ||
     item.teacher_name ||
-    "";
+    null;
+  const studyYearName =
+    item.studyYearName ||
+    item.studyYear?.name ||
+    item.product?.studyYear?.name ||
+    null;
   const branchName =
     item.branchName ||
     item.branch?.name ||
@@ -242,8 +250,13 @@ const normalizeTransaction = (item) => {
     typeLabel: typeMeta.label,
     dateLabel: formatDateTime(dateValue, { empty: "—" }),
     amountLabel: formatMoney(amount),
-    productName,
+    productName: productName || "—",
     teacherName: teacherName ? `أ. ${teacherName}` : "—",
+    productCell: {
+      name: productName,
+      teacherName,
+      studyYearName,
+    },
     branchName,
     quantity: item.quantity ?? item.qty ?? "—",
     statusLabel,

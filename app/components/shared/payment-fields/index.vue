@@ -26,7 +26,7 @@
         @clear="onImageClear"
         @error="onImageError"
       />
-      <p v-if="uploading" class="text-xs text-sky-600">جاري رفع صورة الإثبات...</p>
+      <p v-if="uploading" class="text-xs text-primary-600">جاري رفع صورة الإثبات...</p>
       <p v-if="imageError" class="text-xs text-red-500">{{ imageError }}</p>
       <p
         v-else-if="imageKey && !uploading"

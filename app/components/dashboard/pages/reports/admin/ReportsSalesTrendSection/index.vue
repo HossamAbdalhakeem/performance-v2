@@ -56,7 +56,7 @@ defineOptions({ name: "ReportsSalesTrendSection" });
 const props = defineProps({
   params: { type: Object, default: () => ({}) },
   reloadKey: { type: Number, default: 0 },
-  lineColor: { type: String, default: "#38bdf8" },
+  lineColor: { type: String, default: "#f5af52" },
 });
 
 const emit = defineEmits(["loading"]);
@@ -99,19 +99,19 @@ const chartData = computed(() => {
         backgroundColor: (context) => {
           const chart = context.chart;
           const { ctx, chartArea } = chart;
-          if (!chartArea) return "rgba(56, 189, 248, 0.15)";
+          if (!chartArea) return "rgba(245, 175, 82, 0.15)";
           const gradient = ctx.createLinearGradient(
             0,
             chartArea.top,
             0,
             chartArea.bottom,
           );
-          gradient.addColorStop(0, "rgba(56, 189, 248, 0.35)");
-          gradient.addColorStop(1, "rgba(56, 189, 248, 0.02)");
+          gradient.addColorStop(0, "rgba(245, 175, 82, 0.35)");
+          gradient.addColorStop(1, "rgba(245, 175, 82, 0.02)");
           return gradient;
         },
         pointBackgroundColor: props.lineColor,
-        pointBorderColor: "#0f172a",
+        pointBorderColor: "#111111",
         pointBorderWidth: 2,
         pointRadius: 3,
         pointHoverRadius: 5,
@@ -130,7 +130,7 @@ const chartOptions = {
     legend: { display: false },
     tooltip: {
       rtl: true,
-      backgroundColor: "rgba(15, 23, 42, 0.95)",
+      backgroundColor: "rgba(17, 17, 17, 0.95)",
       callbacks: {
         label(context) {
           return Number(context.parsed.y || 0).toLocaleString("en-US");
@@ -140,19 +140,19 @@ const chartOptions = {
   },
   scales: {
     x: {
-      ticks: { color: "#94a3b8", font: { size: 11 } },
-      grid: { color: "rgba(148, 163, 184, 0.12)" },
+      ticks: { color: "#a3a3a3", font: { size: 11 } },
+      grid: { color: "rgba(163, 163, 163, 0.12)" },
     },
     y: {
       beginAtZero: true,
       ticks: {
-        color: "#94a3b8",
+        color: "#a3a3a3",
         font: { size: 11 },
         callback(value) {
           return Number(value).toLocaleString("en-US");
         },
       },
-      grid: { color: "rgba(148, 163, 184, 0.18)" },
+      grid: { color: "rgba(163, 163, 163, 0.18)" },
     },
   },
 };

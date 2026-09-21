@@ -31,8 +31,8 @@ const TONE_MAP = {
     text: "text-rose-400",
   },
   sky: {
-    bg: "bg-sky-500/[0.06]",
-    text: "text-sky-400",
+    bg: "bg-primary-500/[0.06]",
+    text: "text-primary-400",
   },
   indigo: {
     bg: "bg-indigo-500/[0.06]",

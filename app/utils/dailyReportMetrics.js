@@ -140,7 +140,7 @@ export const buildBranchHeroChips = (summary = {}) => {
       label: "المحصل",
       value: s.paymentsCollected ?? s.paymentsTotal ?? 0,
       format: "money",
-      valueClass: "text-sky-300",
+      valueClass: "text-primary-300",
     },
     {
       key: "expenses",
@@ -167,7 +167,7 @@ export const buildCustomerServiceHeroChips = (summary = {}) => {
       label: "المحصل",
       value: s.paymentsCollected ?? 0,
       format: "money",
-      valueClass: "text-sky-300",
+      valueClass: "text-primary-300",
     },
     {
       key: "refunds",

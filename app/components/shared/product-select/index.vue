@@ -44,7 +44,7 @@
             <span
               v-if="selectedOption.priceLabel"
               class="shrink-0 text-xs"
-              :class="selectedOption.isSellingPrice ? 'text-sky-300' : 'text-amber-200'"
+              :class="selectedOption.isSellingPrice ? 'text-primary-300' : 'text-amber-200'"
             >
               {{ selectedOption.priceKindLabel }} {{ selectedOption.priceLabel }}
             </span>
@@ -78,7 +78,7 @@
             <span
               v-if="option.priceLabel"
               class="shrink-0 text-sm"
-              :class="option.isSellingPrice ? 'text-sky-600' : 'text-amber-700'"
+              :class="option.isSellingPrice ? 'text-primary-600' : 'text-amber-700'"
             >
               {{ option.priceKindLabel }} {{ option.priceLabel }}
             </span>

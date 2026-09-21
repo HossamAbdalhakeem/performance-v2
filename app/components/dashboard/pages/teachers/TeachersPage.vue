@@ -7,7 +7,7 @@
           <Button
             label="إضافة مدرس جديد"
             icon="pi pi-plus"
-            severity="info"
+            severity="primary"
             :disabled="!currentAcademicYearId"
             @click="openCreate"
           />

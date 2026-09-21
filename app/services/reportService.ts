@@ -24,6 +24,8 @@ export type DailyReportSection =
   | "allMovements"
   | "stockOperations"
   | "studentOperations"
+  | "studentAdjustments"
+  | "studentExchanges"
   | "returns"
   | "exchanges";
 
@@ -40,6 +42,8 @@ const BRANCH_SECTION_PATH: Record<
   allMovements: "all-movements",
   stockOperations: "stock-operations",
   studentOperations: "student-operations",
+  studentAdjustments: "student-adjustments",
+  studentExchanges: "student-exchanges",
   returns: "returns",
   exchanges: "exchanges",
 };
@@ -76,12 +80,31 @@ export const reportService = {
     if (!path) {
       throw new Error(`Unsupported branch report section: ${section}`);
     }
-    return asData(
-      await apiFetch(`/reports/branch/${path}`, {
-        method: "GET",
-        params: withDefaultRange(params),
-      }),
-    );
+    const response = await apiFetch(`/reports/branch/${path}`, {
+      method: "GET",
+      params: withDefaultRange(params),
+    });
+
+    // Paginated section payloads use top-level `data` + `pagination`.
+    // Do not unwrap with asData() or the list/pagination are lost.
+    if (
+      response &&
+      typeof response === "object" &&
+      "pagination" in response &&
+      Array.isArray((response as any).data)
+    ) {
+      return response;
+    }
+    if (
+      response?.data &&
+      typeof response.data === "object" &&
+      "pagination" in response.data &&
+      Array.isArray(response.data.data)
+    ) {
+      return response.data;
+    }
+
+    return asData(response);
   },
 
   async getCustomerServiceSummary(params: Record<string, any> = {}) {

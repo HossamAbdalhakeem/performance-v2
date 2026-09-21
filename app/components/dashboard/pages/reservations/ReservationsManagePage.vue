@@ -131,7 +131,7 @@
         <div class="flex w-full justify-start gap-2">
           <Button
             label="تأكيد الاستبدال"
-            severity="info"
+            severity="primary"
             icon="pi pi-sync"
             :disabled="!canConfirmExchange"
             @click="requestExchangeConfirm"
@@ -169,7 +169,7 @@
         <div class="flex w-full justify-start gap-2">
           <Button
             label="نعم، تأكيد الاستبدال"
-            severity="info"
+            severity="primary"
             :loading="busy"
             :disabled="busy"
             @click="confirmExchange"

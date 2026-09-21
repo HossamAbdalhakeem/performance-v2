@@ -9,7 +9,7 @@
 export const RESERVATION_STATUS_TAGS = Object.freeze({
   PENDING: { label: "قيد الانتظار", severity: "warn" },
   WAITING_FOR_STOCK: { label: "بانتظار المخزون", severity: "warn" },
-  READY: { label: "جاهز", severity: "info" },
+  READY: { label: "جاهز", severity: "primary" },
   DELIVERED: { label: "تم التسليم", severity: "success" },
   CANCELLED: { label: "ملغي", severity: "danger" },
 });
@@ -24,7 +24,7 @@ export const ENTITY_STATUS_TAGS = Object.freeze({
 export const STOCK_MOVEMENT_TAGS = Object.freeze({
   STOCK_IN: { label: "استلام", severity: "success" },
   STOCK_OUT: { label: "سحب", severity: "warn" },
-  SALE: { label: "بيع", severity: "info" },
+  SALE: { label: "بيع", severity: "primary" },
   RESERVATION: { label: "حجز", severity: "contrast" },
   RESERVATION_RELEASE: { label: "إلغاء حجز", severity: "danger" },
   RETURN: { label: "مرتجع", severity: "danger" },
@@ -36,7 +36,7 @@ export const STOCK_MOVEMENT_TAGS = Object.freeze({
 
 /** @type {Record<string, { label: string, severity: string }>} */
 export const TRANSACTION_TYPE_TAGS = Object.freeze({
-  SALE: { label: "بيع", severity: "info" },
+  SALE: { label: "بيع", severity: "primary" },
   RESERVATION: { label: "حجز", severity: "warn" },
   RETURN: { label: "مرتجع", severity: "danger" },
   EXCHANGE: { label: "استبدال", severity: "secondary" },
@@ -60,7 +60,7 @@ export const PRODUCT_AVAILABILITY_TAGS = Object.freeze({
 
 /** @type {Record<string, { label: string, severity: string }>} */
 export const PRODUCT_TYPE_TAGS = Object.freeze({
-  BOOK: { label: "كتاب", severity: "info" },
+  BOOK: { label: "كتاب", severity: "primary" },
   CARD: { label: "كارت", severity: "secondary" },
   BOOKLET: { label: "ملزمة", severity: "warn" },
 });

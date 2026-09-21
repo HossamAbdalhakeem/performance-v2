@@ -29,29 +29,50 @@ export const STOCK_MOVEMENT_LABELS = {
   REFUND: "استرداد",
 };
 
-/** Warehouse stock operation types (add / remove / adjust). */
+/** Warehouse stock operation types (add / remove). */
 export const STOCK_OPERATION_LABELS = {
   STOCK_IN: "إضافة للمخزن",
   STOCK_OUT: "سحب من المخزن",
-  DAMAGED: "تالف",
-  ADJUSTMENT: "تسوية",
 };
 
-/** Student-facing operation types. */
-export const STUDENT_OPERATION_LABELS = {
+/** Sales and new reservations. */
+export const STUDENT_SALE_LABELS = {
   SALE: "بيع",
   RESERVATION: "حجز",
+};
+
+/** Cancellations, refunds, and returns. */
+export const STUDENT_REFUND_LABELS = {
   RESERVATION_RELEASE: "إلغاء حجز",
-  RETURN: "مرتجع",
-  EXCHANGE: "استبدال",
-  REFUND: "استرداد",
+  REFUND_SALE: "استرداد بيع",
+  REFUND_RESERVATION: "استرداد حجز",
+  RETURN_SALE: "مرتجع بيع",
+  RETURN_RESERVATION: "مرتجع حجز",
+};
+
+/** Product exchanges (old → new). */
+export const STUDENT_EXCHANGE_LABELS = {
+  EXCHANGE_SALE: "استبدال بيع",
+  EXCHANGE_RESERVATION: "استبدال حجز",
+};
+
+/** @deprecated prefer STUDENT_REFUND_LABELS / STUDENT_EXCHANGE_LABELS */
+export const STUDENT_ADJUSTMENT_LABELS = {
+  ...STUDENT_EXCHANGE_LABELS,
+  ...STUDENT_REFUND_LABELS,
+};
+
+/** @deprecated combined list — prefer the two maps above */
+export const STUDENT_OPERATION_LABELS = {
+  ...STUDENT_SALE_LABELS,
+  ...STUDENT_ADJUSTMENT_LABELS,
 };
 
 /** Distinct accent colors for stock-movement type chips in tables. */
 export const STOCK_MOVEMENT_COLORS = {
   STOCK_IN: "#10b981",
   STOCK_OUT: "#f97316",
-  SALE: "#38bdf8",
+  SALE: "#f5af52",
   RESERVATION: "#a78bfa",
   RESERVATION_RELEASE: "#fb7185",
   RETURN: "#e11d48",
@@ -59,6 +80,12 @@ export const STOCK_MOVEMENT_COLORS = {
   ADJUSTMENT: "#94a3b8",
   EXCHANGE: "#6366f1",
   REFUND: "#f43f5e",
+  EXCHANGE_SALE: "#6366f1",
+  EXCHANGE_RESERVATION: "#8b5cf6",
+  REFUND_SALE: "#f43f5e",
+  REFUND_RESERVATION: "#fb7185",
+  RETURN_SALE: "#e11d48",
+  RETURN_RESERVATION: "#be123c",
 };
 
 
@@ -114,9 +141,9 @@ export const REPORT_ACTIVITY_KEY_LABELS = {
 
 /** Chart / legend colors by report metric key (frontend only). */
 export const REPORT_METRIC_COLORS = {
-  sales: "#0ea5e9",
+  sales: "#f5af52",
   delivered: "#10b981",
-  undelivered: "#f59e0b",
+  undelivered: "#f5af52",
   cancelled: "#e11d48",
   received: "#14b8a6",
   stockOut: "#ea580c",
@@ -126,7 +153,7 @@ export const REPORT_METRIC_COLORS = {
   returns: "#d946ef",
   exchanges: "#6366f1",
   refunds: "#f43f5e",
-  reservations: "#f59e0b",
+  reservations: "#f5af52",
   ready: "#10b981",
   waiting: "#06b6d4",
   branches: "#64748b",

@@ -40,7 +40,7 @@
         v-if="showAddButton"
         type="button"
         icon="pi pi-user-plus"
-        severity="info"
+        severity="primary"
         :aria-label="addButtonLabel"
         :title="addButtonLabel"
         class="shrink-0"

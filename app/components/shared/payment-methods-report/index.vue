@@ -104,7 +104,7 @@ const hasData = computed(() => resolvedItems.value.length > 0);
 
 const conicGradient = computed(() => {
   const items = resolvedItems.value;
-  if (!items.length) return "#334155";
+  if (!items.length) return "#262626";
 
   let cursor = 0;
   const segments = items.map((item) => {
@@ -115,7 +115,7 @@ const conicGradient = computed(() => {
   });
 
   if (cursor < 100) {
-    segments.push(`#334155 ${cursor}% 100%`);
+    segments.push(`#262626 ${cursor}% 100%`);
   }
 
   return `conic-gradient(${segments.join(", ")})`;

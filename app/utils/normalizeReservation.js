@@ -97,6 +97,12 @@ export const normalizeReservation = (item = {}) => {
     // Flat aliases for AppDataTable field binding
     productId,
     productName: normalizedProduct.name,
+    productCell: {
+      name: normalizedProduct.name,
+      price:
+        sellingPrice > 0 ? normalizedProduct.unitPriceLabel : null,
+      teacherName: teacherName !== "-" ? teacherName : null,
+    },
     teacherName,
     studentName: student.name || "-",
     phone: student.phone || "",

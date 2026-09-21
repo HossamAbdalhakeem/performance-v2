@@ -11,12 +11,8 @@
     empty-message="لا توجد حجوزات."
     @page="$emit('page', $event)"
   >
-    <template #sellingPriceLabel="{ data }">
-      <span
-        class="rounded-md px-2 py-1 text-xs font-bold bg-sky-500/20 text-sky-300"
-      >
-        {{ data.product?.unitPriceLabel }}
-      </span>
+    <template #product="{ data }">
+      <ProductCell :product="data.productCell" />
     </template>
 
     <template #paidAmountLabel="{ data }">
@@ -77,7 +73,7 @@
           icon="pi pi-sync"
           text
           size="small"
-          severity="info"
+          severity="primary"
           @click="$emit('change-product', data)"
         />
         <Button
@@ -99,6 +95,7 @@ import Button from "primevue/button";
 import AppDataTable from "~/components/shared/app-data-table/index.vue";
 import AppStatusTag from "~/components/shared/app-status-tag/index.vue";
 import PaymentProofThumb from "~/components/shared/payment-proof-thumb/index.vue";
+import ProductCell from "~/components/shared/product-cell/index.vue";
 
 defineProps({
   reservations: { type: Array, default: () => [] },
@@ -114,9 +111,8 @@ const columns = [
   { field: "reservationNumber", header: "رقم الحجز" },
   { field: "createdAtLabel", header: "تاريخ الحجز" },
   { field: "studentName", header: "الطالب" },
-  { field: "productName", header: "المنتج" },
+  { field: "productCell", header: "المنتج", slot: "product" },
   { field: "createdByName", header: "أنشئ بواسطة", slot: "createdBy" },
-  { field: "sellingPriceLabel", header: "سعر البيع", slot: "sellingPriceLabel" },
   { field: "branchName", header: "الفرع" },
   { field: "quantity", header: "الكمية" },
   { field: "paidAmountLabel", header: "المقدم", slot: "paidAmountLabel" },

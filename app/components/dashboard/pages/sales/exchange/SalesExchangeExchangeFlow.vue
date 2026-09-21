@@ -36,7 +36,7 @@
         <div class="flex w-full justify-start gap-2">
           <Button
             label="تأكيد الاستبدال"
-            severity="info"
+            severity="primary"
             icon="pi pi-sync"
             :disabled="!canConfirmExchange"
             @click="requestConfirm"
@@ -76,7 +76,7 @@
         <div class="flex w-full justify-start gap-2">
           <Button
             label="نعم، تأكيد الاستبدال"
-            severity="info"
+            severity="primary"
             :loading="busy"
             :disabled="busy"
             @click="confirm"
@@ -130,9 +130,9 @@ const COMPARISON_UI = {
     diffClass: "text-emerald-300",
   },
   same: {
-    titleClass: "text-sky-300",
+    titleClass: "text-primary-300",
     boxClass: "border-white/10 bg-slate-900",
-    diffClass: "text-sky-300",
+    diffClass: "text-primary-300",
   },
 };
 

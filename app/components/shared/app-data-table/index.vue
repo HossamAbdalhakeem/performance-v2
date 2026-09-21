@@ -1,5 +1,8 @@
 <template>
-  <div class="app-data-table-wrap overflow-hidden rounded-xl border border-slate-700 bg-slate-900">
+  <div
+    ref="wrapRef"
+    class="app-data-table-wrap overflow-hidden rounded-xl border border-slate-700 bg-slate-900"
+  >
     <div v-if="loading" class="grid gap-3 p-4">
       <Skeleton
         v-for="i in skeletonRows"
@@ -21,6 +24,8 @@
         :total-records="totalRecords"
         :row-class="rowClass"
         :table-style="resolvedTableStyle"
+        paginator-template="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport"
+        current-page-report-template="{first} إلى {last} من {totalRecords}"
         class="app-data-table"
         size="small"
         striped-rows
@@ -75,6 +80,7 @@
 import DataTable from "primevue/datatable";
 import Column from "primevue/column";
 import Skeleton from "primevue/skeleton";
+import { toArabicDigits } from "~/utils/format.js";
 
 defineOptions({
   name: "AppDataTable",
@@ -99,8 +105,33 @@ const props = defineProps({
 
 const emit = defineEmits(["page", "row-expand"]);
 
+const wrapRef = ref(null);
+let paginatorObserver = null;
+
+const arabicizePaginatorDigits = () => {
+  const root = wrapRef.value;
+  if (!root) return;
+
+  const targets = root.querySelectorAll(
+    [
+      ".p-paginator-page",
+      ".p-paginator-current",
+      ".p-paginator .p-select-label",
+      ".p-paginator .p-dropdown-label",
+    ].join(", "),
+  );
+
+  targets.forEach((node) => {
+    const raw = node.textContent ?? "";
+    if (!/[0-9]/.test(raw)) return;
+    const next = toArabicDigits(raw);
+    if (raw !== next) node.textContent = next;
+  });
+};
+
 const onPage = (event) => {
   emit("page", event);
+  nextTick(arabicizePaginatorDigits);
 };
 
 const onRowExpand = (event) => {
@@ -146,6 +177,30 @@ const resolveCell = (row, col) => {
   if (raw == null || raw === "") return col.fallback ?? "-";
   return raw;
 };
+
+onMounted(() => {
+  nextTick(arabicizePaginatorDigits);
+  if (!wrapRef.value || typeof MutationObserver === "undefined") return;
+
+  paginatorObserver = new MutationObserver(() => {
+    arabicizePaginatorDigits();
+  });
+  paginatorObserver.observe(wrapRef.value, {
+    childList: true,
+    subtree: true,
+    characterData: true,
+  });
+});
+
+onBeforeUnmount(() => {
+  paginatorObserver?.disconnect();
+  paginatorObserver = null;
+});
+
+watch(
+  () => [props.loading, props.first, props.totalRecords, props.value?.length],
+  () => nextTick(arabicizePaginatorDigits),
+);
 </script>
 
 <style scoped>
@@ -165,22 +220,22 @@ const resolveCell = (row, col) => {
 }
 
 .app-data-table-scroll::-webkit-scrollbar-track {
-  background: #0f172a;
+  background: #111111;
 }
 
 .app-data-table-scroll::-webkit-scrollbar-thumb {
-  background: #475569;
+  background: #404040;
   border-radius: 999px;
 }
 
 .app-data-table-scroll::-webkit-scrollbar-thumb:hover {
-  background: #64748b;
+  background: #525252;
 }
 
 .app-data-table-wrap :deep(.p-datatable-table-container),
 .app-data-table-wrap :deep(.p-datatable-wrapper),
 .app-data-table-wrap :deep(.p-datatable-table) {
-  background: #0f172a !important;
+  background: #111111 !important;
   border: none !important;
   border-collapse: collapse !important;
 }
@@ -194,9 +249,9 @@ const resolveCell = (row, col) => {
 .app-data-table-wrap :deep(.p-datatable-thead > tr > th),
 .app-data-table-wrap :deep(.p-datatable-tbody > tr > td) {
   background: transparent !important;
-  color: #e2e8f0 !important;
+  color: #e5e5e5 !important;
   border: none !important;
-  border-bottom: 1px solid #334155 !important;
+  border-bottom: 1px solid #262626 !important;
   padding: 0.85rem 0.75rem !important;
   text-align: center !important;
   vertical-align: middle !important;
@@ -206,14 +261,14 @@ const resolveCell = (row, col) => {
 }
 
 .app-data-table-wrap :deep(.p-datatable-thead > tr > th) {
-  background: #1e293b !important;
+  background: #1a1a1a !important;
   font-weight: 700 !important;
   white-space: nowrap;
 }
 
 .app-data-table-wrap :deep(.p-datatable-tbody > tr) {
-  background: #0f172a !important;
-  color: #e2e8f0 !important;
+  background: #111111 !important;
+  color: #e5e5e5 !important;
   transition: background-color 0.15s ease;
 }
 
@@ -223,42 +278,42 @@ const resolveCell = (row, col) => {
 
 .app-data-table-wrap :deep(.p-datatable-tbody > tr:hover > td),
 .app-data-table-wrap :deep(.p-datatable-tbody > tr.p-datatable-row-odd:hover > td) {
-  background: #1e293b !important;
+  background: #1a1a1a !important;
 }
 
 .app-data-table-wrap :deep(.p-datatable-tbody > tr.p-datatable-row-odd > td) {
-  background: #0b1220 !important;
+  background: #0a0a0a !important;
 }
 
 .app-data-table-wrap :deep(.p-datatable-tbody > tr.app-row-matched > td) {
-  background: rgba(14, 165, 233, 0.12) !important;
+  background: rgba(245, 175, 82, 0.12) !important;
 }
 
 .app-data-table-wrap :deep(.p-datatable-empty-message > td),
 .app-data-table-wrap :deep(.p-datatable-emptymessage > td) {
   text-align: center !important;
-  color: #94a3b8 !important;
+  color: #a3a3a3 !important;
   padding: 2.5rem 1rem !important;
   border: none !important;
   border-bottom: none !important;
   border-top: none !important;
-  background: #0f172a !important;
+  background: #111111 !important;
   box-shadow: none !important;
   white-space: normal;
 }
 
 .app-data-table-empty {
   text-align: center;
-  color: #94a3b8;
+  color: #a3a3a3;
   font-size: 0.875rem;
   padding: 0.5rem 0;
 }
 
 .app-data-table-wrap :deep(.p-paginator) {
-  background: #0f172a !important;
+  background: #111111 !important;
   border: none !important;
-  border-top: 1px solid #334155 !important;
-  color: #e2e8f0 !important;
+  border-top: 1px solid #262626 !important;
+  color: #e5e5e5 !important;
   padding: 0.75rem !important;
   justify-content: center;
   position: sticky;
@@ -272,16 +327,16 @@ const resolveCell = (row, col) => {
 .app-data-table-wrap :deep(.p-paginator .p-paginator-first),
 .app-data-table-wrap :deep(.p-paginator .p-paginator-last) {
   background: transparent !important;
-  color: #cbd5e1 !important;
+  color: #d4d4d4 !important;
   border: 1px solid transparent !important;
   min-width: 2.25rem;
   height: 2.25rem;
 }
 
 .app-data-table-wrap :deep(.p-paginator .p-paginator-page.p-highlight) {
-  background: #1e293b !important;
-  color: #f8fafc !important;
-  border-color: #475569 !important;
+  background: #1a1a1a !important;
+  color: #fafafa !important;
+  border-color: #404040 !important;
 }
 </style>
 

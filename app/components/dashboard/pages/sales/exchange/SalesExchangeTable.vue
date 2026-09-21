@@ -11,9 +11,13 @@
     empty-message="لا توجد مبيعات قابلة للعرض."
     @page="$emit('page', $event)"
   >
+    <template #product="{ data }">
+      <ProductCell :product="data.productCell" />
+    </template>
+
     <template #amountLabel="{ data }">
       <span
-        class="rounded-md bg-sky-500/20 px-2 py-1 text-xs font-bold text-sky-300"
+        class="rounded-md bg-primary-500/20 px-2 py-1 text-xs font-bold text-primary-300"
       >
         {{ data.product?.amountLabel || data.amountLabel }}
       </span>
@@ -59,7 +63,7 @@
           icon="pi pi-sync"
           text
           size="small"
-          severity="info"
+          severity="primary"
           @click="$emit('exchange', data)"
         />
         <Button
@@ -82,6 +86,7 @@ import Button from "primevue/button";
 import AppDataTable from "~/components/shared/app-data-table/index.vue";
 import AppStatusTag from "~/components/shared/app-status-tag/index.vue";
 import PaymentProofThumb from "~/components/shared/payment-proof-thumb/index.vue";
+import ProductCell from "~/components/shared/product-cell/index.vue";
 
 defineProps({
   sales: { type: Array, default: () => [] },
@@ -97,7 +102,7 @@ const columns = [
   { field: "createdAtLabel", header: "تاريخ البيع" },
   { field: "studentName", header: "الطالب" },
   { field: "phone", header: "الموبايل", fallback: "—" },
-  { field: "productName", header: "المنتج" },
+  { field: "productCell", header: "المنتج", slot: "product" },
   { field: "remainingQuantity", header: "الكمية", slot: "quantity" },
   { field: "amountLabel", header: "المبلغ", slot: "amountLabel" },
   { field: "paymentMethodLabel", header: "طريقة الدفع", slot: "paymentMethod" },

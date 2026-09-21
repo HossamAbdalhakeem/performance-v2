@@ -35,6 +35,9 @@
         :empty-message="emptyMessage"
         :skeleton-rows="4"
       >
+        <template #product="{ data }">
+          <ProductCell :product="data.productCell" />
+        </template>
         <template #status="{ data }">
           <AppStatusTag
             kind="product-availability"
@@ -91,7 +94,7 @@
                 v-if="data.reservationAllowed"
                 label="حجز"
                 size="small"
-                severity="info"
+                severity="primary"
                 @click.stop="selectBranch(data, branch)"
               />
             </div>
@@ -118,6 +121,7 @@ import Dialog from "primevue/dialog";
 import Button from "primevue/button";
 import AppDataTable from "~/components/shared/app-data-table/index.vue";
 import AppStatusTag from "~/components/shared/app-status-tag/index.vue";
+import ProductCell from "~/components/shared/product-cell/index.vue";
 import SearchInput from "~/components/shared/search-input/index.vue";
 import { productService } from "~/services/productService";
 import { useAppToast } from "~/composables/useAppToast";
@@ -136,10 +140,7 @@ const search = ref("");
 const books = ref([]);
 
 const bookColumns = [
-  { field: "title", header: "اسم المنتج" },
-  { field: "teacher", header: "الأستاذ" },
-  { field: "studyYearName", header: "السنة الدراسية" },
-  { field: "sellingPriceLabel", header: "سعر البيع" },
+  { field: "productCell", header: "المنتج", slot: "product" },
   { field: "statusLabel", header: "الحالة", slot: "status" },
   { field: "branches", header: "الفروع / الحجز", slot: "branches" },
 ];
@@ -181,23 +182,33 @@ const unavailableMessages = (product) => {
 const normalizeBook = (item) => {
   const status = String(item.status || "").toUpperCase();
   const meta = getStatusTagMeta("product-availability", status);
+  const title = item.name || item.title || "-";
+  const teacher = item.teacher?.name || null;
+  const studyYearName = item.studyYear?.name || null;
+  const sellingPriceLabel = formatMoney(item.sellingPrice);
 
   return {
     id: item.id,
-    title: item.name || item.title || "-",
+    title,
     type: String(item.type || "").toUpperCase() || null,
-    teacher: item.teacher?.name || "-",
+    teacher: teacher || "-",
     teacherId: item.teacher?.id || null,
     studyYearId: item.studyYear?.id || null,
-    studyYearName: item.studyYear?.name || "-",
+    studyYearName: studyYearName || "-",
     sellingPrice: item.sellingPrice,
-    sellingPriceLabel: formatMoney(item.sellingPrice),
+    sellingPriceLabel,
     reservationPrice: item.reservationPrice,
     status,
     statusLabel: meta.label,
     reservationAllowed: Boolean(item.reservationAllowed),
     branches: Array.isArray(item.branches) ? item.branches : [],
     totalAvailable: Number(item.totalAvailable ?? 0),
+    productCell: {
+      name: title,
+      price: sellingPriceLabel,
+      teacherName: teacher,
+      studyYearName,
+    },
     raw: item,
   };
 };

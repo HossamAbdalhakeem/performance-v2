@@ -6,7 +6,7 @@
     >
       <i
         class="pi pi-spin pi-spinner text-3xl"
-        :class="isCustomerService ? 'text-sky-300' : 'text-sky-600'"
+        :class="isCustomerService ? 'text-primary-300' : 'text-primary-600'"
       />
       <p
         class="text-sm font-medium"
@@ -184,19 +184,19 @@
           class="md:col-span-2 rounded-2xl px-4 py-5 text-center sm:px-6 sm:py-8"
           :class="
             isCustomerService
-              ? 'border border-sky-400/25 bg-black'
+              ? 'border border-primary-400/25 bg-black'
               : 'border border-slate-700 bg-black'
           "
         >
           <p
             class="mb-2 text-sm font-medium"
-            :class="isCustomerService ? 'text-sky-200/80' : 'text-slate-300'"
+            :class="isCustomerService ? 'text-primary-200/80' : 'text-slate-300'"
           >
             {{ selectedProductOption.priceKindLabel || "مبلغ المنتج" }}
           </p>
           <p
             class="text-3xl font-extrabold tracking-tight sm:text-4xl md:text-5xl"
-            :class="isCustomerService ? 'text-sky-300' : 'text-white'"
+            :class="isCustomerService ? 'text-primary-300' : 'text-white'"
           >
             {{ formatMoney(productDisplayPrice, "rtl") }}
           </p>

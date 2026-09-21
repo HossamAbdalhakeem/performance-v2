@@ -39,11 +39,11 @@ const ACCENT_META = {
       "border-emerald-400/40 shadow-[0_0_28px_-6px_rgba(52,211,153,0.45)]",
   },
   sky: {
-    borderClass: "border-sky-500/15",
-    valueClass: "text-sky-300",
-    iconWrapClass: "bg-sky-500/15 text-sky-300",
+    borderClass: "border-primary-500/15",
+    valueClass: "text-primary-300",
+    iconWrapClass: "bg-primary-500/15 text-primary-300",
     emphasizeClass:
-      "border-sky-400/40 shadow-[0_0_28px_-6px_rgba(56,189,248,0.4)]",
+      "border-primary-400/40 shadow-[0_0_28px_-6px_rgba(245, 175, 82,0.4)]",
   },
   amber: {
     borderClass: "border-amber-500/15",

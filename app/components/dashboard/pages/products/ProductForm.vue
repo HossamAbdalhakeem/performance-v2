@@ -49,7 +49,7 @@
             <Button
               type="button"
               icon="pi pi-plus"
-              severity="info"
+              severity="primary"
               outlined
               class="mb-0.5"
               aria-label="إضافة سنة دراسية"
@@ -81,7 +81,7 @@
             <Button
               type="button"
               icon="pi pi-plus"
-              severity="info"
+              severity="primary"
               outlined
               class="mb-0.5"
               aria-label="إضافة مدرس"

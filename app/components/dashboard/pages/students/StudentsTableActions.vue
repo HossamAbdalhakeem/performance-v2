@@ -17,7 +17,7 @@
         text
         rounded
         size="small"
-        severity="info"
+        severity="primary"
         aria-label="تعديل"
         @click="$emit('edit', student)"
       />

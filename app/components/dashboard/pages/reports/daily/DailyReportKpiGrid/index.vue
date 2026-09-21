@@ -74,9 +74,9 @@ const cards = computed(() => {
         hint: "من حجوزاتك اليوم",
         icon: "pi-clock",
         clickable: false,
-        borderClass: "border-sky-500/25 bg-slate-900",
-        iconWrapClass: "bg-sky-500/15 text-sky-300",
-        glowClass: "bg-gradient-to-bl from-sky-500/10 to-transparent",
+        borderClass: "border-primary-500/25 bg-slate-900",
+        iconWrapClass: "bg-primary-500/15 text-primary-300",
+        glowClass: "bg-gradient-to-bl from-primary-500/10 to-transparent",
       },
       {
         key: "branches",
@@ -100,9 +100,9 @@ const cards = computed(() => {
       hint: "عمليات بيع مباشر",
       icon: "pi-shopping-cart",
       clickable: true,
-      borderClass: "border-sky-500/25 bg-slate-900",
-      iconWrapClass: "bg-sky-500/15 text-sky-300",
-      glowClass: "bg-gradient-to-bl from-sky-500/10 to-transparent",
+      borderClass: "border-primary-500/25 bg-slate-900",
+      iconWrapClass: "bg-primary-500/15 text-primary-300",
+      glowClass: "bg-gradient-to-bl from-primary-500/10 to-transparent",
     },
     {
       key: "undelivered",
@@ -188,9 +188,9 @@ const cards = computed(() => {
       hint: "عمليات استبدال",
       icon: "pi-sync",
       clickable: true,
-      borderClass: "border-sky-500/25 bg-slate-900",
-      iconWrapClass: "bg-sky-500/15 text-sky-300",
-      glowClass: "bg-gradient-to-bl from-sky-500/10 to-transparent",
+      borderClass: "border-primary-500/25 bg-slate-900",
+      iconWrapClass: "bg-primary-500/15 text-primary-300",
+      glowClass: "bg-gradient-to-bl from-primary-500/10 to-transparent",
     },
   ];
 });

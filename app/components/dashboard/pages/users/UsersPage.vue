@@ -4,7 +4,7 @@
       <template #title>
         <div class="flex flex-wrap items-center justify-between gap-3">
           <span class="text-lg font-bold text-slate-900">المستخدمون</span>
-          <Button label="إضافة مستخدم" icon="pi pi-plus" severity="info" @click="openCreate" />
+          <Button label="إضافة مستخدم" icon="pi pi-plus" severity="primary" @click="openCreate" />
         </div>
       </template>
       <template #content>

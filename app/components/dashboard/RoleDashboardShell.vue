@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-[#111827] text-slate-100" dir="rtl">
+  <div class="min-h-screen bg-black text-slate-100" dir="rtl">
     <!-- Mobile overlay -->
     <div
       v-if="mobileNavOpen"
@@ -9,14 +9,14 @@
     />
 
     <aside
-      class="fixed inset-y-0 z-40 flex w-72 max-w-[85vw] flex-col border-l border-white/10 bg-[#0b1220] text-slate-100 shadow-xl transition-[right] duration-200"
+      class="fixed inset-y-0 z-40 flex w-72 max-w-[85vw] flex-col border-l border-white/10 bg-[#0a0a0a] text-slate-100 shadow-xl transition-[right] duration-200"
       :class="mobileNavOpen ? 'right-0' : '-right-72 lg:right-0'"
     >
       <div
         class="flex shrink-0 items-center justify-between border-b border-white/10 px-4 py-4 sm:px-6 sm:py-5"
       >
         <div>
-          <p class="text-xs tracking-[0.28em] text-sky-200/80">مكتبة</p>
+          <p class="text-xs tracking-[0.28em] text-primary-200/80">مكتبة</p>
           <h2 class="mt-1 text-lg font-bold sm:text-xl">لوحة التحكم</h2>
         </div>
         <button
@@ -45,7 +45,7 @@
             :aria-expanded="openSectionId === section.id"
             @click="toggleSection(section.id)"
           >
-            <span class="text-xs font-bold tracking-wide text-sky-300">
+            <span class="text-xs font-bold tracking-wide text-primary-300">
               {{ section.label }}
             </span>
             <span
@@ -69,7 +69,7 @@
               class="flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-right text-sm font-medium transition hover:bg-white/5"
               :class="
                 isActive(item.to)
-                  ? 'bg-slate-800 text-sky-200 ring-1 ring-sky-500/40'
+                  ? 'bg-[#1a1a1a] text-primary-200 ring-1 ring-primary-500/40'
                   : 'text-slate-300'
               "
               @click="mobileNavOpen = false"
@@ -82,7 +82,7 @@
       </nav>
 
       <div
-        class="absolute bottom-0 left-0 right-0 space-y-3 border-t border-white/10 bg-[#0b1220] p-3 sm:p-4"
+        class="absolute bottom-0 left-0 right-0 space-y-3 border-t border-white/10 bg-[#0a0a0a] p-3 sm:p-4"
       >
         <!-- Hidden for now
         <AcademicYearSwitcher />
@@ -100,13 +100,13 @@
 
     <div class="min-h-screen lg:mr-72">
       <header
-        class="border-b border-white/10 bg-[#0f172a]/90 px-3 py-3 backdrop-blur-sm sm:px-6 sm:py-5"
+        class="border-b border-white/10 bg-black/90 px-3 py-3 backdrop-blur-sm sm:px-6 sm:py-5"
       >
         <div class="flex flex-wrap items-center justify-between gap-3 sm:gap-4">
           <div class="flex min-w-0 items-center gap-2 sm:gap-3">
             <button
               type="button"
-              class="rounded-xl border border-white/10 bg-slate-900 p-2.5 text-slate-200 hover:bg-white/5 lg:hidden"
+              class="rounded-xl border border-white/10 bg-[#111111] p-2.5 text-slate-200 hover:bg-white/5 lg:hidden"
               aria-label="فتح القائمة"
               @click="mobileNavOpen = true"
             >
@@ -123,10 +123,10 @@
           <div class="flex items-center gap-2 sm:gap-3">
             <NotificationBell v-if="normalizedRole !== 'social'" />
             <div
-              class="flex items-center gap-2 rounded-2xl border border-white/10 bg-slate-900 px-2 py-1.5 shadow-sm sm:gap-3 sm:px-3 sm:py-2"
+              class="flex items-center gap-2 rounded-2xl border border-white/10 bg-[#111111] px-2 py-1.5 shadow-sm sm:gap-3 sm:px-3 sm:py-2"
             >
               <div
-                class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-sky-500/20 text-sm font-bold text-sky-200 sm:h-10 sm:w-10"
+                class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/10 text-sm font-bold text-white sm:h-10 sm:w-10"
               >
                 {{ userInitials }}
               </div>
@@ -134,12 +134,12 @@
                 <p class="max-w-[9rem] truncate text-sm font-semibold text-white sm:max-w-none">
                   {{ userName }}
                 </p>
-                <p class="text-xs text-slate-400">{{ roleLabel }}</p>
+                <p class="text-xs text-neutral-400">{{ roleLabel }}</p>
               </div>
             </div>
             <div
               v-if="contextLabel"
-              class="rounded-2xl border border-sky-500/30 bg-sky-500/10 px-3 py-1.5 text-sm font-semibold text-sky-100 shadow-sm sm:px-4 sm:py-2"
+              class="rounded-2xl border border-white/10 bg-[#111111] px-3 py-1.5 text-sm font-semibold text-white shadow-sm sm:px-4 sm:py-2"
             >
               {{ contextLabel }}
             </div>
@@ -155,12 +155,12 @@
           <div
             v-for="stat in stats"
             :key="stat.label"
-            class="rounded-2xl border border-white/10 bg-slate-900 p-4 shadow-sm"
+            class="rounded-2xl border border-white/10 bg-[#111111] p-4 shadow-sm"
           >
             <div class="flex items-center justify-between gap-2">
               <p class="text-sm text-slate-400">{{ stat.label }}</p>
               <span
-                class="shrink-0 rounded-lg bg-sky-500/15 px-2 py-1 text-xs font-semibold text-sky-200"
+                class="shrink-0 rounded-lg bg-primary-500/15 px-2 py-1 text-xs font-semibold text-primary-200"
                 >{{ stat.tag }}</span
               >
             </div>

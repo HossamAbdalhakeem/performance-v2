@@ -99,9 +99,9 @@ const onValidate = (payload) => {
 .phone-input {
   direction: ltr;
   width: 100%;
-  border: 1px solid #475569;
+  border: 1px solid #404040;
   border-radius: 0.375rem;
-  background: #0b1220;
+  background: #0a0a0a;
   overflow: visible;
   transition:
     border-color 0.15s ease,
@@ -109,46 +109,46 @@ const onValidate = (payload) => {
 }
 
 .phone-input :deep(.vti__dropdown) {
-  background: #0b1220;
-  border-inline-end: 1px solid #475569;
+  background: #0a0a0a;
+  border-inline-end: 1px solid #404040;
   border-radius: 0.375rem 0 0 0.375rem;
   padding-inline: 0.5rem;
-  color: #f8fafc;
+  color: #fafafa;
 }
 
 .phone-input :deep(.vti__dropdown:hover),
 .phone-input :deep(.vti__dropdown.open) {
-  background: #111827;
+  background: #111111;
 }
 
 .phone-input :deep(.vti__selection),
 .phone-input :deep(.vti__country-code),
 .phone-input :deep(.vti__dropdown-arrow) {
-  color: #f8fafc;
+  color: #fafafa;
 }
 
 .phone-input :deep(.vti__dropdown-list) {
   z-index: 40;
   max-height: 16rem;
   text-align: left;
-  background: #0b1220;
-  border: 1px solid #475569;
-  color: #f8fafc;
+  background: #0a0a0a;
+  border: 1px solid #404040;
+  color: #fafafa;
 }
 
 .phone-input :deep(.vti__dropdown-item) {
-  color: #e2e8f0;
+  color: #e5e5e5;
 }
 
 .phone-input :deep(.vti__dropdown-item:hover),
 .phone-input :deep(.vti__dropdown-item.highlighted) {
-  background: #1e293b;
+  background: #1a1a1a;
 }
 
 .phone-input :deep(.vti__search_box) {
-  background: #111827 !important;
-  border: 1px solid #475569 !important;
-  color: #f8fafc !important;
+  background: #111111 !important;
+  border: 1px solid #404040 !important;
+  color: #fafafa !important;
 }
 
 .phone-input :deep(.vti__input),
@@ -159,7 +159,7 @@ const onValidate = (payload) => {
   outline: none !important;
   box-shadow: none !important;
   background: transparent !important;
-  color: #f8fafc !important;
+  color: #fafafa !important;
   font-size: 0.875rem;
   line-height: 1.25rem;
   padding: 0.625rem 0.75rem !important;
@@ -167,12 +167,12 @@ const onValidate = (payload) => {
 
 .phone-input :deep(.vti__input::placeholder),
 .phone-input :deep(.phone-input__field::placeholder) {
-  color: #94a3b8 !important;
+  color: #a3a3a3 !important;
 }
 
 .phone-input:focus-within {
-  border-color: #38bdf8;
-  box-shadow: 0 0 0 1px #38bdf8;
+  border-color: #f5af52;
+  box-shadow: 0 0 0 1px #f5af52;
 }
 
 .phone-input--invalid {

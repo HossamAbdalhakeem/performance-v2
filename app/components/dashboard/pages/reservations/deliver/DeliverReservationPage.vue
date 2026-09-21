@@ -1,5 +1,5 @@
 <template>
-  <div class="space-y-4 bg-[#0f172a] p-4 text-right text-slate-100" dir="rtl">
+  <div class="space-y-4 bg-[#111111] p-4 text-right text-slate-100" dir="rtl">
     <div class="relative w-full max-w-xl">
       <SearchInput
         label=""
@@ -16,6 +16,10 @@
       :empty-message="emptyMessage"
       :skeleton-rows="4"
     >
+      <template #product="{ data }">
+        <ProductCell :product="data.productCell" />
+      </template>
+
       <template #createdBy="{ data }">
         <div class="flex flex-col items-center gap-0.5">
           <span class="text-sm font-medium text-slate-100">
@@ -25,14 +29,6 @@
             {{ data.createdBy?.roleLabel }}
           </span>
         </div>
-      </template>
-
-      <template #sellingPrice="{ data }">
-        <span
-          class="rounded-md bg-sky-500/20 px-2 py-1 text-xs font-bold text-sky-300"
-        >
-          {{ data.product?.unitPriceLabel }}
-        </span>
       </template>
 
       <template #paidAmount="{ data }">
@@ -78,7 +74,7 @@
         <Button
           label="تسليم"
           size="small"
-          class="rounded-lg bg-[#f59e0b] px-4 py-2 text-sm font-bold text-white"
+          class="rounded-lg bg-[#f5af52] px-4 py-2 text-sm font-bold text-white"
           :disabled="!isDeliverable(data)"
           @click="openDeliverDialog(data)"
         />
@@ -101,6 +97,7 @@ import { reservationService } from "~/services/reservationService";
 import { useAppToast } from "~/composables/useAppToast";
 import PaymentProofThumb from "~/components/shared/payment-proof-thumb/index.vue";
 import AppStatusTag from "~/components/shared/app-status-tag/index.vue";
+import ProductCell from "~/components/shared/product-cell/index.vue";
 import { normalizeReservation } from "~/utils/normalizeReservation";
 
 defineOptions({ name: "DeliverReservationPage" });
@@ -130,10 +127,8 @@ const tableColumns = [
   { field: "createdAtLabel", header: "التاريخ والوقت" },
   { field: "studentName", header: "اسم الطالب" },
   { field: "phone", header: "الموبايل", fallback: "-" },
-  { field: "productName", header: "المنتج" },
-  { field: "teacherName", header: "المدرس" },
+  { field: "productCell", header: "المنتج", slot: "product" },
   { field: "createdByLabel", header: "أنشئ بواسطة", slot: "createdBy" },
-  { field: "sellingPriceLabel", header: "سعر البيع", slot: "sellingPrice" },
   { field: "paidAmountLabel", header: "المقدم", slot: "paidAmount" },
   { field: "paymentMethodLabel", header: "طريقة الدفع", slot: "paymentMethod" },
   { field: "remainingAmountLabel", header: "المتبقي", slot: "remainingAmount" },

@@ -44,9 +44,9 @@ defineOptions({ name: "AdminHomeKpiCard" });
 const TYPE_META = {
   branches: {
     icon: "pi-building",
-    borderClass: "border-sky-500/25 bg-slate-900",
-    iconWrapClass: "bg-sky-500/15 text-sky-300",
-    glowClass: "bg-gradient-to-bl from-sky-500/10 to-transparent",
+    borderClass: "border-primary-500/25 bg-slate-900",
+    iconWrapClass: "bg-primary-500/15 text-primary-300",
+    glowClass: "bg-gradient-to-bl from-primary-500/10 to-transparent",
   },
   students: {
     icon: "pi-users",

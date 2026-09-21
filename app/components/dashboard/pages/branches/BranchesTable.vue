@@ -27,7 +27,7 @@
           {{ item.productName }}:
           <strong>{{ item.physicalQuantity }}</strong>
         </span>
-        <span v-if="data?.inventoryItems?.length > 3" class="text-xs font-medium text-sky-600">
+        <span v-if="data?.inventoryItems?.length > 3" class="text-xs font-medium text-primary-600">
           +{{ data.inventoryItems.length - 3 }} منتج آخر
         </span>
       </div>
@@ -40,7 +40,7 @@
           rounded
           text
           size="small"
-          severity="info"
+          severity="primary"
           title="تعديل"
           aria-label="تعديل"
           @click="$emit('edit', data)"
@@ -91,7 +91,7 @@
           <template #soldQuantity="{ data: item }">
             <AppStatusTag
               :label="String(item.soldQuantity ?? 0)"
-              severity="info"
+              severity="primary"
             />
           </template>
           <template #stockAlert="{ data: item }">

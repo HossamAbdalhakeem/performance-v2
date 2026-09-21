@@ -41,15 +41,15 @@ defineProps({
   icon: { type: String, default: "pi-bolt" },
   iconWrapClass: {
     type: String,
-    default: "bg-sky-500/15 text-sky-300",
+    default: "bg-primary-500/15 text-primary-300",
   },
   buttonClass: {
     type: String,
-    default: "bg-sky-600 hover:bg-sky-500",
+    default: "bg-primary-600 hover:bg-primary-500",
   },
   accentLineClass: {
     type: String,
-    default: "bg-gradient-to-l from-transparent via-sky-400/60 to-transparent",
+    default: "bg-gradient-to-l from-transparent via-primary-400/60 to-transparent",
   },
 });
 

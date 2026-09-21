@@ -19,7 +19,7 @@ defineProps({
   label: { type: String, default: "" },
   loading: { type: Boolean, default: false },
   valid: { type: Boolean, default: true },
-  severity: { type: String, default: "info" },
+  severity: { type: String, default: "primary" },
   size: { type: String, default: undefined },
   buttonClass: { type: String, default: "" },
 });

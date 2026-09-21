@@ -5,7 +5,7 @@
     <button
       v-if="canShowProof"
       type="button"
-      class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-white/15 bg-slate-800 text-slate-300 transition hover:border-sky-400/50 hover:text-sky-300 hover:ring-2 hover:ring-sky-400/30 disabled:opacity-60"
+      class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-white/15 bg-slate-800 text-slate-300 transition hover:border-primary-400/50 hover:text-primary-300 hover:ring-2 hover:ring-primary-400/30 disabled:opacity-60"
       :title="'عرض إثبات الدفع'"
       :disabled="loading"
       @click.stop="openPreview"

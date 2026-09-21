@@ -37,7 +37,7 @@
           class="group flex w-full items-center justify-between gap-2 px-3 py-2.5 text-right text-sm transition hover:bg-white/5"
           :class="
             String(year.id) === String(selectedId)
-              ? 'bg-sky-500/10 text-sky-200'
+              ? 'bg-primary-500/10 text-primary-200'
               : 'text-slate-200'
           "
           @click="onSelect(year)"
@@ -51,7 +51,7 @@
               نشط
             </span>
             <span
-              class="inline-flex h-7 w-7 items-center justify-center rounded-lg text-slate-400 opacity-0 transition hover:bg-white/10 hover:text-sky-300 group-hover:opacity-100"
+              class="inline-flex h-7 w-7 items-center justify-center rounded-lg text-slate-400 opacity-0 transition hover:bg-white/10 hover:text-primary-300 group-hover:opacity-100"
               title="إدارة"
               @click.stop="openEdit(year)"
             >
@@ -64,7 +64,7 @@
       <div class="border-t border-white/10 p-2">
         <button
           type="button"
-          class="flex w-full items-center justify-center gap-2 rounded-lg bg-sky-500/15 px-3 py-2 text-sm font-medium text-sky-200 transition hover:bg-sky-500/25"
+          class="flex w-full items-center justify-center gap-2 rounded-lg bg-primary-500/15 px-3 py-2 text-sm font-medium text-primary-200 transition hover:bg-primary-500/25"
           @click="openCreate"
         >
           <i class="pi pi-plus text-xs" />

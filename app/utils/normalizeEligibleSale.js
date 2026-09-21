@@ -107,6 +107,11 @@ export const normalizeEligibleSale = (item = {}) => {
     // Flat aliases for AppDataTable / existing flow code
     productId,
     productName: normalizedProduct.name,
+    productCell: {
+      name: normalizedProduct.name,
+      price: normalizedProduct.unitPriceLabel,
+      teacherName: teacherName !== "-" ? teacherName : null,
+    },
     teacherName,
     studentName: student.name || item.studentName || "-",
     phone: student.phone || item.phone || "",

@@ -52,11 +52,11 @@ const ACCENT_META = {
     iconWrapClass: "bg-emerald-500/15 text-emerald-300",
   },
   sky: {
-    borderClass: "border-sky-500/20",
-    barClass: "bg-sky-400",
-    shadowClass: "shadow-[0_0_24px_-8px_rgba(56,189,248,0.35)]",
-    valueClass: "text-sky-300",
-    iconWrapClass: "bg-sky-500/15 text-sky-300",
+    borderClass: "border-primary-500/20",
+    barClass: "bg-primary-400",
+    shadowClass: "shadow-[0_0_24px_-8px_rgba(245, 175, 82,0.35)]",
+    valueClass: "text-primary-300",
+    iconWrapClass: "bg-primary-500/15 text-primary-300",
   },
   amber: {
     borderClass: "border-amber-500/20",

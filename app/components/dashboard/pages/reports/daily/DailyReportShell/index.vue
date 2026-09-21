@@ -30,10 +30,11 @@
 
       <div v-if="showOperations" class="mt-2 space-y-4">
         <DailyReportOperationsSection
-          title="عمليات الطلاب"
-          subtitle="بيع وحجز واستبدال واسترداد"
-          empty-message="لا توجد عمليات طلاب خلال الفترة المحددة."
-          :type-labels="studentTypeLabels"
+          title="البيع والحجز"
+          subtitle="بيع وحجز"
+          empty-message="لا توجد عمليات بيع أو حجز خلال الفترة المحددة."
+          variant="sales"
+          :type-labels="saleTypeLabels"
           :rows="studentRows"
           :loading="studentLoading"
           :error="studentError"
@@ -41,16 +42,52 @@
           :page-size="studentPageSize"
           :total-records="studentTotal"
           :movement-type="studentType"
-          :show-student="true"
           @retry="$emit('retry-student')"
           @update:page="$emit('update:studentPage', $event)"
           @update:movement-type="$emit('update:studentType', $event)"
         />
 
         <DailyReportOperationsSection
+          title="الاستبدال"
+          subtitle="استبدال منتج قديم بمنتج جديد"
+          empty-message="لا توجد عمليات استبدال خلال الفترة المحددة."
+          variant="exchanges"
+          :type-labels="exchangeTypeLabels"
+          :rows="exchangeRows"
+          :loading="exchangeLoading"
+          :error="exchangeError"
+          :page="exchangePage"
+          :page-size="exchangePageSize"
+          :total-records="exchangeTotal"
+          :movement-type="exchangeType"
+          @retry="$emit('retry-exchanges')"
+          @update:page="$emit('update:exchangePage', $event)"
+          @update:movement-type="$emit('update:exchangeType', $event)"
+        />
+
+        <DailyReportOperationsSection
+          title="الاسترداد والإلغاء"
+          subtitle="استرداد ومرتجع وإلغاء حجز"
+          empty-message="لا توجد عمليات استرداد أو إلغاء خلال الفترة المحددة."
+          variant="refunds"
+          :type-labels="refundTypeLabels"
+          :rows="adjustmentRows"
+          :loading="adjustmentLoading"
+          :error="adjustmentError"
+          :page="adjustmentPage"
+          :page-size="adjustmentPageSize"
+          :total-records="adjustmentTotal"
+          :movement-type="adjustmentType"
+          @retry="$emit('retry-adjustments')"
+          @update:page="$emit('update:adjustmentPage', $event)"
+          @update:movement-type="$emit('update:adjustmentType', $event)"
+        />
+
+        <DailyReportOperationsSection
           title="عمليات المخزن"
-          subtitle="إضافة وسحب وتسوية المخزون"
+          subtitle="إضافة وسحب المخزون"
           empty-message="لا توجد عمليات مخزن خلال الفترة المحددة."
+          variant="stock"
           :type-labels="stockTypeLabels"
           :rows="stockRows"
           :loading="stockLoading"
@@ -59,7 +96,6 @@
           :page-size="stockPageSize"
           :total-records="stockTotal"
           :movement-type="stockType"
-          :show-student="false"
           @retry="$emit('retry-stock')"
           @update:page="$emit('update:stockPage', $event)"
           @update:movement-type="$emit('update:stockType', $event)"
@@ -72,7 +108,9 @@
 <script setup>
 import {
   STOCK_OPERATION_LABELS,
-  STUDENT_OPERATION_LABELS,
+  STUDENT_EXCHANGE_LABELS,
+  STUDENT_REFUND_LABELS,
+  STUDENT_SALE_LABELS,
 } from "~/utils/domainLabels";
 
 defineOptions({ name: "DailyReportShell" });
@@ -117,17 +155,39 @@ defineProps({
   studentPageSize: { type: Number, default: 15 },
   studentTotal: { type: Number, default: 0 },
   studentType: { type: String, default: null },
+  exchangeRows: { type: Array, default: () => [] },
+  exchangeLoading: { type: Boolean, default: false },
+  exchangeError: { type: String, default: "" },
+  exchangePage: { type: Number, default: 1 },
+  exchangePageSize: { type: Number, default: 15 },
+  exchangeTotal: { type: Number, default: 0 },
+  exchangeType: { type: String, default: null },
+  adjustmentRows: { type: Array, default: () => [] },
+  adjustmentLoading: { type: Boolean, default: false },
+  adjustmentError: { type: String, default: "" },
+  adjustmentPage: { type: Number, default: 1 },
+  adjustmentPageSize: { type: Number, default: 15 },
+  adjustmentTotal: { type: Number, default: 0 },
+  adjustmentType: { type: String, default: null },
 });
 
 defineEmits([
   "retry-stock",
   "retry-student",
+  "retry-exchanges",
+  "retry-adjustments",
   "update:stockPage",
   "update:stockType",
   "update:studentPage",
   "update:studentType",
+  "update:exchangePage",
+  "update:exchangeType",
+  "update:adjustmentPage",
+  "update:adjustmentType",
 ]);
 
 const stockTypeLabels = STOCK_OPERATION_LABELS;
-const studentTypeLabels = STUDENT_OPERATION_LABELS;
+const saleTypeLabels = STUDENT_SALE_LABELS;
+const exchangeTypeLabels = STUDENT_EXCHANGE_LABELS;
+const refundTypeLabels = STUDENT_REFUND_LABELS;
 </script>

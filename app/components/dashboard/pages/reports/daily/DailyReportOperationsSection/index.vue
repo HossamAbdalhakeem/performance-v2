@@ -54,15 +54,49 @@
       @page="onPage"
     >
       <template #type="{ data }">
-        <span
-          class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold"
-          :style="{
-            color: data.typeColor,
-            backgroundColor: `${data.typeColor}22`,
-            border: `1px solid ${data.typeColor}55`,
-          }"
-        >
+        <span class="ops-tag" :style="tagStyle(data.typeColor)">
           {{ data.type }}
+        </span>
+      </template>
+
+      <template #product="{ data }">
+        <ProductCell :product="data.productObj" />
+      </template>
+
+      <template #newProduct="{ data }">
+        <ProductCell :product="data.newProductObj" />
+      </template>
+
+      <template #qty="{ data }">
+        <span class="ops-tag tabular-nums" :style="tagStyle(METRIC_COLORS.qty)">
+          {{ data.qty }}
+        </span>
+      </template>
+
+      <template #price="{ data }">
+        <span class="ops-tag tabular-nums" :style="tagStyle(METRIC_COLORS.price)">
+          {{ data.price }}
+        </span>
+      </template>
+
+      <template #paidAmount="{ data }">
+        <span class="ops-tag tabular-nums" :style="tagStyle(METRIC_COLORS.paid)">
+          {{ data.paidAmount }}
+        </span>
+      </template>
+
+      <template #remainingAmount="{ data }">
+        <span
+          class="ops-tag tabular-nums"
+          :style="
+            tagStyle(
+              data.remainingRaw > 0
+                ? METRIC_COLORS.remaining
+                : METRIC_COLORS.remainingZero,
+            )
+          "
+        >
+          {{ data.remainingAmount }}
         </span>
       </template>
     </AppDataTable>
@@ -74,8 +108,11 @@ import Skeleton from "primevue/skeleton";
 import Select from "primevue/select";
 import ReportsSectionError from "~/components/dashboard/pages/reports/admin/ReportsSectionError/index.vue";
 import ReportsSectionEmpty from "~/components/dashboard/pages/reports/admin/ReportsSectionEmpty/index.vue";
+import ProductCell from "~/components/shared/product-cell/index.vue";
 import { formatDateTime, formatMoney } from "~/utils/format";
 import {
+  DEFAULT_METRIC_COLOR,
+  STOCK_MOVEMENT_COLORS,
   getStockMovementColor,
   getStockMovementLabel,
 } from "~/utils/domainLabels";
@@ -85,6 +122,25 @@ const AppDataTable = defineAsyncComponent(() =>
 );
 
 defineOptions({ name: "DailyReportOperationsSection" });
+
+/** Same chip palette as type tags (STOCK_MOVEMENT_COLORS). */
+const METRIC_COLORS = {
+  qty: STOCK_MOVEMENT_COLORS.STOCK_IN,
+  price: STOCK_MOVEMENT_COLORS.SALE,
+  newPrice: STOCK_MOVEMENT_COLORS.RESERVATION,
+  paid: STOCK_MOVEMENT_COLORS.STOCK_IN,
+  remaining: STOCK_MOVEMENT_COLORS.RETURN,
+  remainingZero: DEFAULT_METRIC_COLOR,
+};
+
+const tagStyle = (color) => {
+  const c = color || DEFAULT_METRIC_COLOR;
+  return {
+    color: c,
+    backgroundColor: `${c}22`,
+    border: `1px solid ${c}55`,
+  };
+};
 
 const props = defineProps({
   title: { type: String, required: true },
@@ -102,7 +158,8 @@ const props = defineProps({
   pageSize: { type: Number, default: 15 },
   totalRecords: { type: Number, default: 0 },
   movementType: { type: String, default: null },
-  showStudent: { type: Boolean, default: true },
+  /** sales | exchanges | refunds | stock — controls columns */
+  variant: { type: String, default: "sales" },
 });
 
 const emit = defineEmits(["retry", "update:page", "update:movementType"]);
@@ -123,52 +180,59 @@ const typeOptions = computed(() =>
   })),
 );
 
+const isSales = computed(
+  () => props.variant === "sales" || props.variant === "student",
+);
+const isExchanges = computed(
+  () => props.variant === "exchanges" || props.variant === "adjustments",
+);
+const isRefunds = computed(() => props.variant === "refunds");
+
 const resolvedColumns = computed(() => {
-  const cols = [
+  if (isExchanges.value) {
+    return [
+      { field: "time", header: "التاريخ والوقت" },
+      { field: "type", header: "النوع", slot: "type" },
+      { field: "studentName", header: "الطالب" },
+      { field: "product", header: "المنتج", slot: "product" },
+      { field: "newProduct", header: "المنتج الجديد", slot: "newProduct" },
+      { field: "price", header: "الفرق", slot: "price" },
+      { field: "qty", header: "الكمية", slot: "qty" },
+    ];
+  }
+
+  if (isRefunds.value) {
+    return [
+      { field: "time", header: "التاريخ والوقت" },
+      { field: "type", header: "النوع", slot: "type" },
+      { field: "studentName", header: "الطالب" },
+      { field: "product", header: "المنتج", slot: "product" },
+      { field: "price", header: "مبلغ الاسترداد", slot: "price" },
+      { field: "qty", header: "الكمية", slot: "qty" },
+    ];
+  }
+
+  if (isSales.value) {
+    return [
+      { field: "time", header: "التاريخ والوقت" },
+      { field: "type", header: "النوع", slot: "type" },
+      { field: "studentName", header: "الطالب" },
+      { field: "product", header: "المنتج", slot: "product" },
+      { field: "qty", header: "الكمية", slot: "qty" },
+      { field: "paidAmount", header: "المدفوع", slot: "paidAmount" },
+      { field: "remainingAmount", header: "المتبقي", slot: "remainingAmount" },
+      { field: "by", header: "بواسطة" },
+    ];
+  }
+
+  return [
     { field: "time", header: "التاريخ والوقت" },
-    { field: "product", header: "المنتج" },
-    { field: "teacherName", header: "المدرس" },
-    { field: "studyYear", header: "الصف الدراسي" },
-  ];
-  if (props.showStudent) {
-    cols.push({ field: "studentName", header: "الطالب" });
-  }
-  cols.push(
     { field: "type", header: "النوع", slot: "type" },
-    { field: "qty", header: "الكمية" },
-    { field: "price", header: "السعر" },
-    { field: "by", header: "بواسطة" },
-  );
-  return cols;
+    { field: "product", header: "المنتج", slot: "product" },
+    { field: "qty", header: "الكمية", slot: "qty" },
+    { field: "price", header: "السعر", slot: "price" },
+  ];
 });
-
-const formatMovementQty = (change) => {
-  const n = Number(change || 0);
-  if (!Number.isFinite(n) || change === "-" || change === "") return "-";
-  return n > 0 ? `+${n}` : String(n);
-};
-
-const resolveMovementQuantity = (row = {}) => {
-  if (row.quantityLabel === "-") return null;
-  const type = String(
-    row.type || row.typeKey || row.movementType || "",
-  ).toUpperCase();
-  const physical = Number(row.physicalQuantityChange ?? 0);
-  const reserved = Number(row.reservedQuantityChange ?? 0);
-
-  if (type === "RESERVATION" || type === "RESERVATION_RELEASE") {
-    if (reserved !== 0) return reserved;
-    const mapped = Number(row.quantityChange);
-    return Number.isFinite(mapped) && mapped !== 0 ? mapped : physical;
-  }
-
-  if (row.quantityChange != null && row.quantityChange !== "") {
-    return Number(row.quantityChange);
-  }
-
-  if (physical === 0 && reserved !== 0) return reserved;
-  return physical;
-};
 
 const first = computed(() =>
   Math.max(0, (Number(props.page) - 1) * props.pageSize),
@@ -180,30 +244,73 @@ const resolveLabel = (typeKey) => {
   return getStockMovementLabel(typeKey);
 };
 
+const moneyLabel = (value) => {
+  if (value == null || value === "") return null;
+  return formatMoney(value, "locale");
+};
+
+const moneyOrDash = (value) => moneyLabel(value) || "-";
+
+/** Shape ProductCell expects: { name, price?, teacherName?, studyYearName?, priceColor? } */
+const toProductCell = (product, options = {}) => {
+  const name = product?.name || null;
+  if (!name) return null;
+
+  const priceValue =
+    options.price ?? product?.price ?? product?.sellingPrice ?? null;
+  const teacherName =
+    options.teacherName ||
+    product?.teacher?.name ||
+    product?.teacherName ||
+    null;
+  const studyYearName =
+    product?.studyYear?.name || product?.studyYearName || null;
+
+  return {
+    name,
+    price: moneyLabel(priceValue),
+    teacherName: teacherName || null,
+    studyYearName: studyYearName || null,
+    priceColor: options.priceColor || STOCK_MOVEMENT_COLORS.SALE,
+  };
+};
+
 const displayRows = computed(() =>
   (Array.isArray(props.rows) ? props.rows : []).map((row) => {
-    const rawType = String(
-      row.type || row.typeKey || row.movementType || "",
-    ).toUpperCase();
-    const qtyChange = resolveMovementQuantity(row);
-    const inferredType =
-      rawType ||
-      (qtyChange > 0 ? "STOCK_IN" : qtyChange < 0 ? "STOCK_OUT" : "");
+    const typeKey = String(row.type || "").toUpperCase();
+    const product = row.product || row.oldProduct || null;
+    const newProduct = row.newProduct || null;
+    const teacher = row.teacher || product?.teacher || null;
+    const student = row.student || null;
+    const qty = Number(row.quantity ?? 0);
+    const remainingRaw = Number(row.remainingAmount ?? 0);
 
     return {
-      time: formatDateTime(row.time || row.createdAt, "datetime"),
-      product: row.product?.name || row.product || "-",
-      teacherName: row.teacherName || "-",
-      studyYear: row.studyYear || "-",
-      studentName: row.studentName || "-",
-      type: resolveLabel(inferredType),
-      typeKey: inferredType,
-      typeColor: getStockMovementColor(inferredType),
-      qty:
-        row.quantityLabel ??
-        (qtyChange == null ? "-" : formatMovementQty(qtyChange)),
-      price: formatMoney(row.price ?? 0, "locale"),
-      by: row.by || row.createdBy?.fullName || row.createdBy?.name || "-",
+      time: formatDateTime(row.createdAt || row.time, "datetime"),
+      productObj: toProductCell(product, {
+        teacherName: teacher?.name || null,
+        price:
+          row.oldProduct?.price ??
+          row.oldProduct?.sellingPrice ??
+          product?.price ??
+          product?.sellingPrice ??
+          null,
+      }),
+      newProductObj: toProductCell(newProduct, {
+        priceColor: STOCK_MOVEMENT_COLORS.EXCHANGE_SALE,
+      }),
+      studentName: student?.name || "-",
+      paidAmount: moneyOrDash(row.paidAmount),
+      remainingAmount: moneyOrDash(row.remainingAmount),
+      remainingRaw: Number.isFinite(remainingRaw) ? remainingRaw : 0,
+      type: resolveLabel(typeKey),
+      typeKey,
+      typeColor: getStockMovementColor(typeKey),
+      qty: Number.isFinite(qty) ? Math.abs(qty) : 0,
+      price: moneyOrDash(
+        row.differenceAmount ?? row.refundAmount ?? row.price,
+      ),
+      by: row.createdBy?.fullName || row.createdBy?.name || "-",
     };
   }),
 );
@@ -217,3 +324,19 @@ const onPage = (event) => {
   emit("update:page", nextPage);
 };
 </script>
+
+<style scoped>
+.ops-tag {
+  display: inline-flex;
+  max-width: 100%;
+  align-items: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  border-radius: 9999px;
+  padding: 0.125rem 0.625rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.25rem;
+}
+</style>

@@ -29,7 +29,7 @@
           <Button
             type="button"
             icon="pi pi-plus"
-            severity="info"
+            severity="primary"
             outlined
             aria-label="إضافة تصنيف"
             @click="showCategoryDialog = true"
@@ -136,7 +136,7 @@
     </div>
     <template #footer>
       <Button label="إلغاء" text severity="secondary" @click="showCategoryDialog = false" />
-      <Button label="حفظ" severity="info" :loading="savingCategory" @click="createCategory" />
+      <Button label="حفظ" severity="primary" :loading="savingCategory" @click="createCategory" />
     </template>
   </Dialog>
 </template>

@@ -18,7 +18,7 @@
       >
         <div class="flex min-w-0 items-center gap-3">
           <span
-            class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-sky-500/10 text-sm font-bold text-sky-300"
+            class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary-500/10 text-sm font-bold text-primary-300"
           >
             {{ index + 1 }}
           </span>

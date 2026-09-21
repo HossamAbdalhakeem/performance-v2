@@ -30,7 +30,7 @@
         </template>
         <template #branch="{ data }">
           <span
-            class="inline-flex max-w-full truncate rounded-lg bg-sky-500/10 px-2 py-1 text-xs font-medium text-sky-300"
+            class="inline-flex max-w-full truncate rounded-lg bg-primary-500/10 px-2 py-1 text-xs font-medium text-primary-300"
           >
             {{ data.branch }}
           </span>

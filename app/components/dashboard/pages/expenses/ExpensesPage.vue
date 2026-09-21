@@ -4,7 +4,7 @@
       <template #title>
         <div class="flex flex-wrap items-center justify-between gap-3">
           <span class="text-lg font-bold text-slate-900">المصروفات</span>
-          <Button label="إضافة مصروف" icon="pi pi-plus" severity="info" @click="openCreate" />
+          <Button label="إضافة مصروف" icon="pi pi-plus" severity="primary" @click="openCreate" />
         </div>
       </template>
       <template #content>

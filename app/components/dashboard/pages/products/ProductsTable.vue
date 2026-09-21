@@ -11,6 +11,9 @@
     empty-message="لا توجد منتجات."
     @page="$emit('page', $event)"
   >
+    <template #product="{ data }">
+      <ProductCell :product="data.productCell" />
+    </template>
     <template #type="{ data }">
       <AppStatusTag
         kind="product-type"
@@ -24,7 +27,7 @@
         icon="pi pi-pencil"
         text
         size="small"
-        severity="info"
+        severity="primary"
         @click="$emit('edit', data)"
       />
     </template>
@@ -35,6 +38,7 @@
 import Button from "primevue/button";
 import AppDataTable from "~/components/shared/app-data-table/index.vue";
 import AppStatusTag from "~/components/shared/app-status-tag/index.vue";
+import ProductCell from "~/components/shared/product-cell/index.vue";
 
 defineProps({
   products: { type: Array, default: () => [] },
@@ -47,10 +51,7 @@ defineProps({
 defineEmits(["edit", "page"]);
 
 const columns = [
-  { field: "name", header: "اسم المنتج" },
-  { field: "sellingPriceLabel", header: "سعر البيع" },
-  { field: "teacherName", header: "المدرس" },
-  { field: "studyYearName", header: "السنة الدراسية" },
+  { field: "productCell", header: "المنتج", slot: "product" },
   { field: "typeLabel", header: "النوع", slot: "type" },
   { field: "reservationLabel", header: "الحجز" },
   { field: "actions", header: "إجراء", slot: "actions", style: "width: 8rem" },

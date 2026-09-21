@@ -20,7 +20,7 @@
         icon="pi pi-pencil"
         text
         size="small"
-        severity="info"
+        severity="primary"
         @click="$emit('edit', data)"
       />
     </template>

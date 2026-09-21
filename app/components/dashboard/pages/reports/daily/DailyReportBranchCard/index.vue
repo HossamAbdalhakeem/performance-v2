@@ -7,7 +7,7 @@
     <div class="flex items-center justify-between">
       <div class="flex items-center gap-3">
         <div
-          class="flex h-10 w-10 items-center justify-center rounded-xl bg-sky-500/10 text-sky-400"
+          class="flex h-10 w-10 items-center justify-center rounded-xl bg-primary-500/10 text-primary-400"
         >
           <i class="pi pi-building text-base" />
         </div>
@@ -39,7 +39,7 @@
       </div>
 
       <div
-        class="flex items-center gap-1.5 rounded-lg bg-sky-500/10 px-2.5 py-1.5 text-xs font-medium text-sky-300"
+        class="flex items-center gap-1.5 rounded-lg bg-primary-500/10 px-2.5 py-1.5 text-xs font-medium text-primary-300"
       >
         <i class="pi pi-calendar text-xs" />
         اليوم

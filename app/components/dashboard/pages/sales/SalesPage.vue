@@ -121,7 +121,7 @@
                 <label class="text-sm font-medium text-slate-700">الكمية</label>
                 <span
                   v-if="selectedProductOption"
-                  class="rounded-full bg-sky-500/10 px-2.5 py-0.5 text-xs font-semibold text-sky-700"
+                  class="rounded-full bg-primary-500/10 px-2.5 py-0.5 text-xs font-semibold text-primary-700"
                 >
                   المتاح للبيع: {{ selectedProductOption.availableQuantity }}
                 </span>

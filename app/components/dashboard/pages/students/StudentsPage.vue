@@ -7,7 +7,7 @@
           <Button
             label="إضافة طالب جديد"
             icon="pi pi-user-plus"
-            severity="info"
+            severity="primary"
             :disabled="!currentAcademicYearId"
             @click="openCreate"
           />

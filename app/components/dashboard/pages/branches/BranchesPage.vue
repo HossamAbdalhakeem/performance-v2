@@ -7,7 +7,7 @@
           <Button
             label="إضافة فرع جديد"
             icon="pi pi-plus"
-            severity="info"
+            severity="primary"
             @click="openCreate"
           />
         </div>
