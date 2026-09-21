@@ -35,34 +35,13 @@ export const STOCK_OPERATION_LABELS = {
   STOCK_OUT: "سحب من المخزن",
 };
 
-/** Sales and new reservations. */
+/** Sales and reservations in سجل العمليات. */
 export const STUDENT_SALE_LABELS = {
   SALE: "بيع",
   RESERVATION: "حجز",
 };
 
-/** Row display labels for refund/cancel/return action types. */
-export const STUDENT_REFUND_LABELS = {
-  CANCEL_AND_REFUND_RESERVATION: "إلغاء واسترداد حجز",
-  CANCEL_RESERVATION: "إلغاء حجز",
-  REFUND_SALE: "استرداد بيع",
-  REFUND_RESERVATION: "استرداد حجز",
-  RETURN_SALE: "مرتجع بيع",
-  RETURN_RESERVATION: "مرتجع حجز",
-};
-
-/**
- * Filter dropdown for الاسترداد والإلغاء — grouped, no duplicates.
- * REFUND / RETURN expand to sale+reservation variants on the API.
- */
-export const STUDENT_REFUND_FILTER_LABELS = {
-  CANCEL_AND_REFUND_RESERVATION: "إلغاء واسترداد حجز",
-  CANCEL_RESERVATION: "إلغاء حجز",
-  REFUND: "استرداد",
-  RETURN: "مرتجع",
-};
-
-/** Derived lifecycle status for البيع والحجز */
+/** Derived lifecycle status for سجل العمليات */
 export const OPERATION_STATUS_LABELS = {
   ACTIVE: "نشط",
   COMPLETED: "مكتمل",
@@ -81,22 +60,21 @@ export const OPERATION_STATUS_COLORS = {
   FULLY_REFUNDED: "#e11d48",
 };
 
-/** Product exchanges (old → new). */
-export const STUDENT_EXCHANGE_LABELS = {
-  EXCHANGE_SALE: "استبدال بيع",
-  EXCHANGE_RESERVATION: "استبدال حجز",
-};
-
-/** @deprecated prefer STUDENT_REFUND_LABELS / STUDENT_EXCHANGE_LABELS */
-export const STUDENT_ADJUSTMENT_LABELS = {
-  ...STUDENT_EXCHANGE_LABELS,
-  ...STUDENT_REFUND_LABELS,
-};
-
-/** @deprecated combined list — prefer the two maps above */
-export const STUDENT_OPERATION_LABELS = {
-  ...STUDENT_SALE_LABELS,
-  ...STUDENT_ADJUSTMENT_LABELS,
+/** Timeline event titles (backend sends English type codes only). */
+export const TIMELINE_EVENT_LABELS = {
+  CREATED: "إنشاء العملية",
+  CREATED_SALE: "إنشاء البيع",
+  CREATED_RESERVATION: "إنشاء الحجز",
+  PAYMENT: "دفعة",
+  PAYMENT_SALE: "استلام الدفع",
+  PAYMENT_RESERVATION: "دفعة",
+  DELIVERED: "تسليم المنتج",
+  CANCELLED: "إلغاء الحجز",
+  REFUND: "استرداد المبلغ",
+  EXCHANGE: "استبدال المنتج",
+  RETURN: "مرتجع منتج",
+  COMPLETED: "اكتمال العملية",
+  COMPLETED_SALE: "تم الدفع والاستلام",
 };
 
 /** Distinct accent colors for stock-movement type chips in tables. */
@@ -111,14 +89,6 @@ export const STOCK_MOVEMENT_COLORS = {
   ADJUSTMENT: "#94a3b8",
   EXCHANGE: "#6366f1",
   REFUND: "#f43f5e",
-  EXCHANGE_SALE: "#6366f1",
-  EXCHANGE_RESERVATION: "#8b5cf6",
-  CANCEL_AND_REFUND_RESERVATION: "#fb7185",
-  CANCEL_RESERVATION: "#fb7185",
-  REFUND_SALE: "#f43f5e",
-  REFUND_RESERVATION: "#fb7185",
-  RETURN_SALE: "#e11d48",
-  RETURN_RESERVATION: "#be123c",
 };
 
 
@@ -217,9 +187,6 @@ export const getStockMovementLabel = (type) =>
 export const getStockOperationLabel = (type) =>
   getLabel(STOCK_OPERATION_LABELS, String(type || "").toUpperCase());
 
-export const getStudentOperationLabel = (type) =>
-  getLabel(STUDENT_OPERATION_LABELS, String(type || "").toUpperCase());
-
 export const getStockMovementColor = (type) =>
   STOCK_MOVEMENT_COLORS[String(type || "").toUpperCase()] || DEFAULT_METRIC_COLOR;
 
@@ -229,6 +196,19 @@ export const getOperationStatusLabel = (status) =>
 export const getOperationStatusColor = (status) =>
   OPERATION_STATUS_COLORS[String(status || "").toUpperCase()] ||
   DEFAULT_METRIC_COLOR;
+
+export const getStudentSaleLabel = (type) =>
+  getLabel(STUDENT_SALE_LABELS, String(type || "").toUpperCase());
+
+export const getTimelineEventLabel = (eventType, operationType) => {
+  const type = String(eventType || "").toUpperCase();
+  const op = String(operationType || "").toUpperCase();
+  if (type === "CREATED" || type === "PAYMENT" || type === "COMPLETED") {
+    const scoped = TIMELINE_EVENT_LABELS[`${type}_${op}`];
+    if (scoped) return scoped;
+  }
+  return getLabel(TIMELINE_EVENT_LABELS, type);
+};
 
 
 export const getTransactionTypeLabel = (type) =>

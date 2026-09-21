@@ -211,7 +211,7 @@ watch(
 .app-data-table-scroll {
   width: 100%;
   overflow-x: auto;
-  overflow-y: hidden;
+  overflow-y: auto;
   -webkit-overflow-scrolling: touch;
 }
 
@@ -283,6 +283,15 @@ watch(
 
 .app-data-table-wrap :deep(.p-datatable-tbody > tr.p-datatable-row-odd > td) {
   background: #0a0a0a !important;
+}
+
+/* Expansion rows must wrap and use full width — not table cell nowrap/center rules */
+.app-data-table-wrap :deep(.p-datatable-tbody > tr.p-datatable-row-expansion > td),
+.app-data-table-wrap :deep(.p-datatable-tbody > tr[data-p-expansion-row="true"] > td) {
+  white-space: normal !important;
+  text-align: start !important;
+  vertical-align: top !important;
+  padding: 0.75rem !important;
 }
 
 .app-data-table-wrap :deep(.p-datatable-tbody > tr.app-row-matched > td) {
@@ -370,5 +379,19 @@ watch(
 .app-data-table-wrap .p-datatable-tbody > tr > td > * {
   margin-left: auto !important;
   margin-right: auto !important;
+}
+
+.app-data-table-wrap .p-datatable-tbody > tr.p-datatable-row-expansion > td,
+.app-data-table-wrap .p-datatable-tbody > tr[data-p-expansion-row="true"] > td {
+  text-align: start !important;
+  white-space: normal !important;
+}
+
+.app-data-table-wrap .p-datatable-tbody > tr.p-datatable-row-expansion > td > *,
+.app-data-table-wrap .p-datatable-tbody > tr[data-p-expansion-row="true"] > td > * {
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  width: 100%;
+  max-width: 100%;
 }
 </style>

@@ -72,6 +72,17 @@
     <template #actions="{ data }">
       <div class="flex flex-wrap justify-center gap-1">
         <Button
+          v-if="data.hasExchanges || data.exchangeCount > 0"
+          v-tooltip.top="'سجل الاستبدال'"
+          icon="pi pi-history"
+          text
+          rounded
+          size="small"
+          severity="secondary"
+          aria-label="سجل الاستبدال"
+          @click="$emit('view-history', data)"
+        />
+        <Button
           v-if="canModify(data)"
           label="استبدال منتج"
           icon="pi pi-sync"
@@ -110,7 +121,7 @@ defineProps({
   totalRecords: { type: Number, default: 0 },
 });
 
-defineEmits(["change-product", "cancel", "page"]);
+defineEmits(["change-product", "cancel", "view-history", "page"]);
 
 const columns = [
   { field: "reservationNumber", header: "رقم الحجز" },

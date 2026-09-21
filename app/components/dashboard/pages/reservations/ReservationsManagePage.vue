@@ -17,6 +17,7 @@
           :total-records="pagination.total"
           @change-product="openExchangeDialog"
           @cancel="openCancelDialog"
+          @view-history="openHistoryDialog"
           @page="onPage"
         />
       </template>
@@ -184,6 +185,11 @@
         </div>
       </template>
     </Dialog>
+      <ReservationExchangeHistoryDialog
+      v-model:visible="historyVisible"
+      :reservation-id="historyReservationId"
+      :reservation-number="historyReservationNumber"
+    />
   </div>
 </template>
 
@@ -191,6 +197,7 @@
 import Button from "primevue/button";
 import Card from "primevue/card";
 import Dialog from "primevue/dialog";
+import ReservationExchangeHistoryDialog from "~/components/shared/reservation-exchange-history-dialog/index.vue";
 import ReservationsTable from "~/components/dashboard/pages/reservations/ReservationsTable.vue";
 import SearchInput from "~/components/shared/search-input/index.vue";
 import { reservationService } from "~/services/reservationService";
@@ -245,6 +252,9 @@ const pagination = reactive({
 
 const cancelDetailVisible = ref(false);
 const cancelConfirmVisible = ref(false);
+const historyVisible = ref(false);
+const historyReservationId = ref(null);
+const historyReservationNumber = ref(null);
 const exchangeDetailVisible = ref(false);
 const exchangeConfirmVisible = ref(false);
 
@@ -408,6 +418,13 @@ const confirmCancel = async () => {
   } finally {
     busy.value = false;
   }
+};
+
+
+const openHistoryDialog = (row) => {
+  historyReservationId.value = row?.id || null;
+  historyReservationNumber.value = row?.reservationNumber || null;
+  historyVisible.value = true;
 };
 
 const openExchangeDialog = (item) => {

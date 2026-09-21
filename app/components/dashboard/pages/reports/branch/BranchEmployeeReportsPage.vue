@@ -1,7 +1,7 @@
 <template>
   <DailyReportShell
     title="التقرير"
-    subtitle="نظرة سريعة على نشاط الفرع والمدفوعات وعمليات المخزن والطلاب"
+    subtitle="نظرة سريعة على نشاط الفرع والمدفوعات وعمليات الطلاب والمخزن"
     hero-title="صافي المدفوعات"
     :loading="loading"
     :payments-total="summary.paymentsTotal"
@@ -24,43 +24,17 @@
     :student-total="studentTotal"
     :student-type="studentType"
     :student-status="studentStatus"
-    :exchange-rows="exchangeRows"
-    :exchange-loading="exchangeLoading"
-    :exchange-error="exchangeError"
-    :exchange-page="exchangePage"
-    :exchange-page-size="pageSize"
-    :exchange-total="exchangeTotal"
-    :exchange-type="exchangeType"
-    :adjustment-rows="adjustmentRows"
-    :adjustment-loading="adjustmentLoading"
-    :adjustment-error="adjustmentError"
-    :adjustment-page="adjustmentPage"
-    :adjustment-page-size="pageSize"
-    :adjustment-total="adjustmentTotal"
-    :adjustment-type="adjustmentType"
     @retry-stock="loadStockOperations"
     @retry-student="loadStudentOperations"
-    @retry-exchanges="loadExchanges"
-    @retry-adjustments="loadAdjustments"
     @update:stock-page="onStockPage"
     @update:stock-type="onStockType"
     @update:student-page="onStudentPage"
     @update:student-type="onStudentType"
     @update:student-status="onStudentStatus"
-    @update:exchange-page="onExchangePage"
-    @update:exchange-type="onExchangeType"
-    @update:adjustment-page="onAdjustmentPage"
-    @update:adjustment-type="onAdjustmentType"
   >
     <template #filters>
       <DailyReportFilters
-        :loading="
-          loading ||
-          stockLoading ||
-          studentLoading ||
-          exchangeLoading ||
-          adjustmentLoading
-        "
+        :loading="loading || stockLoading || studentLoading"
         @change="onFiltersChange"
         @refresh="loadReport"
       />
@@ -102,20 +76,6 @@ const studentPage = ref(1);
 const studentTotal = ref(0);
 const studentType = ref(null);
 const studentStatus = ref(null);
-
-const exchangeLoading = ref(false);
-const exchangeError = ref("");
-const exchangeRows = ref([]);
-const exchangePage = ref(1);
-const exchangeTotal = ref(0);
-const exchangeType = ref(null);
-
-const adjustmentLoading = ref(false);
-const adjustmentError = ref("");
-const adjustmentRows = ref([]);
-const adjustmentPage = ref(1);
-const adjustmentTotal = ref(0);
-const adjustmentType = ref(null);
 
 const paymentMethodItems = computed(() =>
   Array.isArray(summary.value.paymentsByMethod)
@@ -190,63 +150,9 @@ const loadStudentOperations = async (
     if (generation !== loadGeneration) return;
     studentRows.value = [];
     studentTotal.value = 0;
-    studentError.value = error?.message || "تعذر تحميل عمليات الطلاب.";
+    studentError.value = error?.message || "تعذر تحميل سجل العمليات.";
   } finally {
     if (generation === loadGeneration) studentLoading.value = false;
-  }
-};
-
-const loadExchanges = async (
-  params = filterParams.value,
-  generation = loadGeneration,
-) => {
-  if (!params) return;
-  exchangeLoading.value = true;
-  exchangeError.value = "";
-  try {
-    const payload = await reportService.getBranchSection("studentExchanges", {
-      ...params,
-      page: exchangePage.value,
-      per_page: pageSize,
-      ...(exchangeType.value ? { movementType: exchangeType.value } : {}),
-    });
-    if (generation !== loadGeneration) return;
-    exchangeRows.value = extractRows(payload);
-    exchangeTotal.value = extractTotal(payload);
-  } catch (error) {
-    if (generation !== loadGeneration) return;
-    exchangeRows.value = [];
-    exchangeTotal.value = 0;
-    exchangeError.value = error?.message || "تعذر تحميل عمليات الاستبدال.";
-  } finally {
-    if (generation === loadGeneration) exchangeLoading.value = false;
-  }
-};
-
-const loadAdjustments = async (
-  params = filterParams.value,
-  generation = loadGeneration,
-) => {
-  if (!params) return;
-  adjustmentLoading.value = true;
-  adjustmentError.value = "";
-  try {
-    const payload = await reportService.getBranchSection("studentAdjustments", {
-      ...params,
-      page: adjustmentPage.value,
-      per_page: pageSize,
-      ...(adjustmentType.value ? { movementType: adjustmentType.value } : {}),
-    });
-    if (generation !== loadGeneration) return;
-    adjustmentRows.value = extractRows(payload);
-    adjustmentTotal.value = extractTotal(payload);
-  } catch (error) {
-    if (generation !== loadGeneration) return;
-    adjustmentRows.value = [];
-    adjustmentTotal.value = 0;
-    adjustmentError.value = error?.message || "تعذر تحميل الاسترداد والإلغاء.";
-  } finally {
-    if (generation === loadGeneration) adjustmentLoading.value = false;
   }
 };
 
@@ -257,16 +163,10 @@ const loadReport = async () => {
   loading.value = true;
   stockRows.value = [];
   studentRows.value = [];
-  exchangeRows.value = [];
-  adjustmentRows.value = [];
   stockError.value = "";
   studentError.value = "";
-  exchangeError.value = "";
-  adjustmentError.value = "";
   stockPage.value = 1;
   studentPage.value = 1;
-  exchangePage.value = 1;
-  adjustmentPage.value = 1;
 
   const params = filterParams.value;
 
@@ -286,8 +186,6 @@ const loadReport = async () => {
   await Promise.all([
     loadStockOperations(params, generation),
     loadStudentOperations(params, generation),
-    loadExchanges(params, generation),
-    loadAdjustments(params, generation),
   ]);
 };
 
@@ -319,35 +217,11 @@ const onStudentStatus = (status) => {
   loadStudentOperations();
 };
 
-const onExchangePage = (page) => {
-  exchangePage.value = Number(page) || 1;
-  loadExchanges();
-};
-
-const onExchangeType = (type) => {
-  exchangeType.value = type || null;
-  exchangePage.value = 1;
-  loadExchanges();
-};
-
-const onAdjustmentPage = (page) => {
-  adjustmentPage.value = Number(page) || 1;
-  loadAdjustments();
-};
-
-const onAdjustmentType = (type) => {
-  adjustmentType.value = type || null;
-  adjustmentPage.value = 1;
-  loadAdjustments();
-};
-
 const onFiltersChange = (params) => {
   filterParams.value = params;
   stockType.value = null;
   studentType.value = null;
   studentStatus.value = null;
-  exchangeType.value = null;
-  adjustmentType.value = null;
   loadReport();
 };
 </script>

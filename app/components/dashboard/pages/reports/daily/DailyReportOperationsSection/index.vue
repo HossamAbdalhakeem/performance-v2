@@ -13,15 +13,9 @@
         <ReportOperationTypeFilter
           v-model="selectedType"
           :labels="typeFilterLabels"
+          label="نوع العملية"
           :disabled="loading"
           @change="onTypeChange"
-        />
-        <ReportStatusFilter
-          v-if="isSales"
-          v-model="selectedStatus"
-          :options="statusOptions"
-          :disabled="loading"
-          @change="onStatusChange"
         />
       </div>
     </div>
@@ -64,18 +58,8 @@
         </span>
       </template>
 
-      <template #status="{ data }">
-        <span class="ops-tag" :style="tagStyle(data.statusColor)">
-          {{ data.statusLabel }}
-        </span>
-      </template>
-
       <template #product="{ data }">
         <ProductCell :product="data.productObj" />
-      </template>
-
-      <template #newProduct="{ data }">
-        <ProductCell :product="data.newProductObj" />
       </template>
 
       <template #qty="{ data }">
@@ -89,110 +73,23 @@
           {{ data.price }}
         </span>
       </template>
-
-      <template #paidAmount="{ data }">
-        <span class="ops-tag tabular-nums" :style="tagStyle(METRIC_COLORS.paid)">
-          {{ data.paidAmount }}
-        </span>
-      </template>
-
-      <template #remainingAmount="{ data }">
-        <span
-          class="ops-tag tabular-nums"
-          :style="
-            tagStyle(
-              data.remainingRaw > 0
-                ? METRIC_COLORS.remaining
-                : METRIC_COLORS.remainingZero,
-            )
-          "
-        >
-          {{ data.remainingAmount }}
-        </span>
-      </template>
-
-      <template #totalAmount="{ data }">
-        <span class="ops-tag tabular-nums" :style="tagStyle(METRIC_COLORS.price)">
-          {{ data.totalAmount }}
-        </span>
-      </template>
-
-      <template #history="{ data }">
-        <Button
-          v-if="data.historyCount > 0"
-          v-tooltip.top="'سجل الاستبدال'"
-          icon="pi pi-history"
-          text
-          rounded
-          severity="secondary"
-          aria-label="سجل الاستبدال"
-          @click="openHistory(data)"
-        />
-        <span v-else class="text-slate-500">—</span>
-      </template>
     </AppDataTable>
-
-    <Dialog
-      v-model:visible="historyVisible"
-      modal
-      dir="rtl"
-      :header="historyDialogTitle"
-      :style="{ width: 'min(920px, 96vw)' }"
-      :pt="{ header: { class: 'text-right' }, content: { class: 'text-right' } }"
-    >
-      <AppDataTable
-        :value="historyRows"
-        :columns="historyColumns"
-        empty-message="لا يوجد سجل استبدال."
-      >
-        <template #time="{ data }">
-          <AppDateTimeCell :value="data.createdAt" />
-        </template>
-        <template #oldProduct="{ data }">
-          <ProductCell :product="data.oldProductObj" />
-        </template>
-        <template #newProduct="{ data }">
-          <ProductCell :product="data.newProductObj" />
-        </template>
-        <template #paid="{ data }">
-          <span class="ops-tag tabular-nums" :style="tagStyle(METRIC_COLORS.paid)">
-            {{ data.paidLabel }}
-          </span>
-        </template>
-        <template #diff="{ data }">
-          <span class="ops-tag tabular-nums" :style="tagStyle(METRIC_COLORS.price)">
-            {{ data.diffLabel }}
-          </span>
-        </template>
-        <template #qty="{ data }">
-          <span class="ops-tag tabular-nums" :style="tagStyle(METRIC_COLORS.qty)">
-            {{ data.qty }}
-          </span>
-        </template>
-      </AppDataTable>
-    </Dialog>
   </section>
 </template>
 
 <script setup>
 import Skeleton from "primevue/skeleton";
-import Button from "primevue/button";
-import Dialog from "primevue/dialog";
 import ReportsSectionError from "~/components/dashboard/pages/reports/admin/ReportsSectionError/index.vue";
 import ReportsSectionEmpty from "~/components/dashboard/pages/reports/admin/ReportsSectionEmpty/index.vue";
 import ProductCell from "~/components/shared/product-cell/index.vue";
 import AppDateTimeCell from "~/components/shared/app-datetime-cell/index.vue";
 import ReportOperationTypeFilter from "~/components/shared/report-operation-type-filter/index.vue";
-import ReportStatusFilter from "~/components/shared/report-status-filter/index.vue";
 import { formatMoney } from "~/utils/format";
 import {
   DEFAULT_METRIC_COLOR,
   STOCK_MOVEMENT_COLORS,
-  getOperationStatusColor,
-  getOperationStatusLabel,
   getStockMovementColor,
   getStockMovementLabel,
-  getStudentOperationLabel,
 } from "~/utils/domainLabels";
 
 const AppDataTable = defineAsyncComponent(() =>
@@ -205,10 +102,6 @@ defineOptions({ name: "DailyReportOperationsSection" });
 const METRIC_COLORS = {
   qty: STOCK_MOVEMENT_COLORS.STOCK_IN,
   price: STOCK_MOVEMENT_COLORS.SALE,
-  newPrice: STOCK_MOVEMENT_COLORS.RESERVATION,
-  paid: STOCK_MOVEMENT_COLORS.STOCK_IN,
-  remaining: STOCK_MOVEMENT_COLORS.RETURN,
-  remainingZero: DEFAULT_METRIC_COLOR,
 };
 
 const tagStyle = (color) => {
@@ -238,36 +131,16 @@ const props = defineProps({
   pageSize: { type: Number, default: 15 },
   totalRecords: { type: Number, default: 0 },
   movementType: { type: String, default: null },
-  operationStatus: { type: String, default: null },
-  /** Status filter options: [{ value, label }] — passed from parent */
-  statusOptions: { type: Array, default: () => [] },
-  /** sales | exchanges | refunds | stock — controls columns */
-  variant: { type: String, default: "sales" },
 });
 
-const emit = defineEmits([
-  "retry",
-  "update:page",
-  "update:movementType",
-  "update:operationStatus",
-]);
+const emit = defineEmits(["retry", "update:page", "update:movementType"]);
 
 const selectedType = ref(props.movementType || null);
-const selectedStatus = ref(props.operationStatus || null);
-const historyVisible = ref(false);
-const historyContext = ref(null);
 
 watch(
   () => props.movementType,
   (value) => {
     selectedType.value = value || null;
-  },
-);
-
-watch(
-  () => props.operationStatus,
-  (value) => {
-    selectedStatus.value = value || null;
   },
 );
 
@@ -278,84 +151,13 @@ const typeFilterLabels = computed(() => {
   return props.typeLabels || {};
 });
 
-const isSales = computed(
-  () => props.variant === "sales" || props.variant === "student",
-);
-const isExchanges = computed(
-  () => props.variant === "exchanges" || props.variant === "adjustments",
-);
-const isRefunds = computed(() => props.variant === "refunds");
-
-const resolvedColumns = computed(() => {
-  if (isExchanges.value) {
-    return [
-      { field: "createdAt", header: "التاريخ والوقت", slot: "time" },
-      { field: "type", header: "النوع", slot: "type" },
-      { field: "studentName", header: "الطالب" },
-      { field: "reservationNumber", header: "رقم الحجز" },
-      { field: "product", header: "المنتج", slot: "product" },
-      { field: "newProduct", header: "المنتج الجديد", slot: "newProduct" },
-      { field: "paidAmount", header: "المدفوع", slot: "paidAmount" },
-      { field: "remainingAmount", header: "المتبقي", slot: "remainingAmount" },
-      { field: "price", header: "الفرق", slot: "price" },
-      { field: "qty", header: "الكمية", slot: "qty" },
-      { field: "by", header: "بواسطة" },
-      {
-        field: "history",
-        header: "السجل",
-        slot: "history",
-        style: "width: 4.5rem",
-      },
-    ];
-  }
-
-  if (isRefunds.value) {
-    return [
-      { field: "createdAt", header: "التاريخ والوقت", slot: "time" },
-      { field: "type", header: "النوع", slot: "type" },
-      { field: "studentName", header: "الطالب" },
-      { field: "operationNumber", header: "رقم العملية" },
-      { field: "product", header: "المنتج", slot: "product" },
-      { field: "paidAmount", header: "المدفوع", slot: "paidAmount" },
-      { field: "price", header: "مبلغ الاسترداد", slot: "price" },
-      { field: "qty", header: "الكمية", slot: "qty" },
-      { field: "by", header: "بواسطة" },
-    ];
-  }
-
-  if (isSales.value) {
-    return [
-      { field: "createdAt", header: "التاريخ والوقت", slot: "time" },
-      { field: "type", header: "النوع", slot: "type" },
-      { field: "studentName", header: "الطالب" },
-      { field: "product", header: "المنتج", slot: "product" },
-      { field: "qty", header: "الكمية", slot: "qty" },
-      { field: "paidAmount", header: "المدفوع", slot: "paidAmount" },
-      { field: "remainingAmount", header: "المتبقي", slot: "remainingAmount" },
-      { field: "totalAmount", header: "الإجمالي", slot: "totalAmount" },
-      { field: "statusLabel", header: "الحالة", slot: "status" },
-      { field: "by", header: "بواسطة" },
-    ];
-  }
-
-  return [
-    { field: "createdAt", header: "التاريخ والوقت", slot: "time" },
-    { field: "type", header: "النوع", slot: "type" },
-    { field: "product", header: "المنتج", slot: "product" },
-    { field: "qty", header: "الكمية", slot: "qty" },
-    { field: "price", header: "السعر", slot: "price" },
-  ];
-});
-
-const historyColumns = [
+const resolvedColumns = computed(() => [
   { field: "createdAt", header: "التاريخ والوقت", slot: "time" },
-  { field: "oldProduct", header: "المنتج القديم", slot: "oldProduct" },
-  { field: "newProduct", header: "المنتج الجديد", slot: "newProduct" },
-  { field: "paidLabel", header: "المدفوع", slot: "paid" },
-  { field: "diffLabel", header: "الفرق", slot: "diff" },
+  { field: "type", header: "النوع", slot: "type" },
+  { field: "product", header: "المنتج", slot: "product" },
   { field: "qty", header: "الكمية", slot: "qty" },
-  { field: "by", header: "بواسطة" },
-];
+  { field: "price", header: "السعر", slot: "price" },
+]);
 
 const first = computed(() =>
   Math.max(0, (Number(props.page) - 1) * props.pageSize),
@@ -364,9 +166,7 @@ const first = computed(() =>
 const resolveLabel = (typeKey) => {
   const custom = props.typeLabels?.[typeKey];
   if (custom) return custom;
-  return (
-    getStudentOperationLabel(typeKey) || getStockMovementLabel(typeKey)
-  );
+  return getStockMovementLabel(typeKey);
 };
 
 const moneyLabel = (value) => {
@@ -403,100 +203,26 @@ const toProductCell = (product, options = {}) => {
 const displayRows = computed(() =>
   (Array.isArray(props.rows) ? props.rows : []).map((row) => {
     const typeKey = String(row.type || "").toUpperCase();
-    const product = row.product || row.oldProduct || null;
-    const newProduct = row.newProduct || null;
+    const product = row.product || null;
     const teacher = row.teacher || product?.teacher || null;
-    const student = row.student || null;
     const qty = Number(row.quantity ?? 0);
-    const remainingRaw = Number(row.remainingAmount ?? 0);
-    const history = Array.isArray(row.history) ? row.history : [];
-
     return {
       createdAt: row.createdAt || row.time || null,
       productObj: toProductCell(product, {
         teacherName: teacher?.name || null,
-        price:
-          row.oldProduct?.price ??
-          row.oldProduct?.sellingPrice ??
-          product?.price ??
-          product?.sellingPrice ??
-          null,
+        price: product?.price ?? product?.sellingPrice ?? null,
       }),
-      newProductObj: toProductCell(newProduct, {
-        priceColor: STOCK_MOVEMENT_COLORS.EXCHANGE_SALE,
-      }),
-      studentName: student?.name || "-",
-      reservationNumber:
-        row.reservation?.reservationNumber ||
-        row.reservationNumber ||
-        row.operationNumber ||
-        "—",
-      operationNumber: row.operationNumber || row.reservationNumber || "—",
-      paidAmount: moneyOrDash(row.paidAmount),
-      paidAmountRaw:
-        row.paidAmount == null || row.paidAmount === ""
-          ? null
-          : Number(row.paidAmount),
-      remainingAmount: moneyOrDash(row.remainingAmount),
-      totalAmount: moneyOrDash(row.totalAmount),
-      remainingRaw: Number.isFinite(remainingRaw) ? remainingRaw : 0,
       type: resolveLabel(typeKey),
       typeKey,
       typeColor: getStockMovementColor(typeKey),
-      statusKey: row.operationStatus || null,
-      statusLabel:
-        row.operationStatusLabel ||
-        getOperationStatusLabel(row.operationStatus) ||
-        "—",
-      statusColor: getOperationStatusColor(row.operationStatus),
       qty: Number.isFinite(qty) ? Math.abs(qty) : 0,
-      price: moneyOrDash(
-        row.differenceAmount ?? row.refundAmount ?? row.price,
-      ),
-      by: row.createdBy?.fullName || row.createdBy?.name || "-",
-      history,
-      historyCount: Number(row.historyCount ?? history.length) || 0,
+      price: moneyOrDash(row.price),
     };
   }),
 );
 
-const historyDialogTitle = computed(() => {
-  const number = historyContext.value?.reservationNumber;
-  if (number && number !== "—") return `سجل استبدال الحجز ${number}`;
-  return "سجل الاستبدال";
-});
-
-const historyRows = computed(() => {
-  const hops = historyContext.value?.history || [];
-  return hops.map((hop) => ({
-    createdAt: hop.createdAt || null,
-    oldProductObj: toProductCell(hop.oldProduct, {
-      price: hop.oldProduct?.price ?? hop.oldProduct?.sellingPrice ?? null,
-    }),
-    newProductObj: toProductCell(hop.newProduct, {
-      price: hop.newProduct?.price ?? hop.newProduct?.sellingPrice ?? null,
-      priceColor: STOCK_MOVEMENT_COLORS.EXCHANGE_SALE,
-    }),
-    paidLabel: moneyOrDash(
-      hop.paidAmount ?? historyContext.value?.paidAmountRaw ?? null,
-    ),
-    diffLabel: moneyOrDash(hop.differenceAmount),
-    qty: Math.abs(Number(hop.quantity ?? 0)),
-    by: hop.createdBy?.fullName || hop.createdBy?.name || "—",
-  }));
-});
-
-const openHistory = (row) => {
-  historyContext.value = row;
-  historyVisible.value = true;
-};
-
 const onTypeChange = (value) => {
   emit("update:movementType", value || null);
-};
-
-const onStatusChange = (value) => {
-  emit("update:operationStatus", value || null);
 };
 
 const onPage = (event) => {

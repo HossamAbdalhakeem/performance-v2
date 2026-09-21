@@ -6,7 +6,7 @@
     :header="dialogTitle"
     :style="{ width: 'min(920px, 96vw)' }"
     :pt="{ header: { class: 'text-right' }, content: { class: 'text-right' } }"
-    @update:visible="onVisibleUpdate"
+    @update:visible="onVisibleChange"
   >
     <div v-if="loading" class="space-y-2 py-2">
       <Skeleton v-for="i in 4" :key="`hist-skel-${i}`" height="2.4rem" />
@@ -19,7 +19,7 @@
         label="إعادة المحاولة"
         text
         size="small"
-        @click="loadHistory"
+        @click="fetchHistory"
       />
     </p>
 
@@ -44,7 +44,10 @@
         </span>
       </template>
       <template #diff="{ data }">
-        <span class="hist-tag tabular-nums" :style="tagStyle(METRIC_COLORS.price)">
+        <span
+          class="hist-tag tabular-nums"
+          :style="tagStyle(METRIC_COLORS.price)"
+        >
           {{ data.diffLabel }}
         </span>
       </template>
@@ -132,7 +135,10 @@ const toProductCell = (product, options = {}) => {
     options.price ?? product?.price ?? product?.sellingPrice ?? null;
   return {
     name,
-    price: priceValue == null || priceValue === "" ? null : formatMoney(priceValue, "locale"),
+    price:
+      priceValue == null || priceValue === ""
+        ? null
+        : formatMoney(priceValue, "locale"),
     teacherName: product?.teacher?.name || product?.teacherName || null,
     studyYearName:
       product?.studyYear?.name || product?.studyYearName || null,
@@ -145,7 +151,7 @@ const rows = computed(() =>
     createdAt: hop.createdAt || null,
     oldProductObj: toProductCell(hop.oldProduct),
     newProductObj: toProductCell(hop.newProduct, {
-      priceColor: STOCK_MOVEMENT_COLORS.EXCHANGE_SALE || STOCK_MOVEMENT_COLORS.EXCHANGE,
+      priceColor: STOCK_MOVEMENT_COLORS.EXCHANGE_SALE,
     }),
     paidLabel: moneyOrDash(hop.paidAmount),
     diffLabel: moneyOrDash(hop.differenceAmount),
@@ -154,7 +160,7 @@ const rows = computed(() =>
   })),
 );
 
-const loadHistory = async () => {
+const fetchHistory = async () => {
   const id = props.reservationId;
   if (!id) {
     items.value = [];
@@ -180,8 +186,11 @@ const loadHistory = async () => {
   }
 };
 
-const onVisibleUpdate = (value) => {
+const onVisibleChange = (value) => {
   emit("update:visible", value);
+  if (!value) {
+    error.value = "";
+  }
 };
 
 watch(
@@ -193,8 +202,8 @@ watch(
       error.value = "لا يمكن تحميل السجل: معرف الحجز غير موجود.";
       return;
     }
-    if (loadedForId.value === id && items.value.length) return;
-    loadHistory();
+    if (loadedForId.value === id && !error.value) return;
+    fetchHistory();
   },
 );
 </script>

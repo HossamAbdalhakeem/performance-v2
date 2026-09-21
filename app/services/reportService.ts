@@ -24,8 +24,6 @@ export type DailyReportSection =
   | "allMovements"
   | "stockOperations"
   | "studentOperations"
-  | "studentAdjustments"
-  | "studentExchanges"
   | "returns"
   | "exchanges";
 
@@ -42,8 +40,6 @@ const BRANCH_SECTION_PATH: Record<
   allMovements: "all-movements",
   stockOperations: "stock-operations",
   studentOperations: "student-operations",
-  studentAdjustments: "student-adjustments",
-  studentExchanges: "student-exchanges",
   returns: "returns",
   exchanges: "exchanges",
 };
@@ -105,6 +101,15 @@ export const reportService = {
     }
 
     return asData(response);
+  },
+
+  async getBranchOperationTimeline(operationId: string) {
+    return asData(
+      await apiFetch(
+        `/reports/branch/student-operations/${encodeURIComponent(operationId)}/timeline`,
+        { method: "GET" },
+      ),
+    );
   },
 
   async getCustomerServiceSummary(params: Record<string, any> = {}) {
