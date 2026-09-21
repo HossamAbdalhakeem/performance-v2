@@ -42,9 +42,11 @@
           :page-size="studentPageSize"
           :total-records="studentTotal"
           :movement-type="studentType"
+          :operation-status="studentStatus"
           @retry="$emit('retry-student')"
           @update:page="$emit('update:studentPage', $event)"
           @update:movement-type="$emit('update:studentType', $event)"
+          @update:operation-status="$emit('update:studentStatus', $event)"
         />
 
         <DailyReportOperationsSection
@@ -155,6 +157,7 @@ defineProps({
   studentPageSize: { type: Number, default: 15 },
   studentTotal: { type: Number, default: 0 },
   studentType: { type: String, default: null },
+  studentStatus: { type: String, default: null },
   exchangeRows: { type: Array, default: () => [] },
   exchangeLoading: { type: Boolean, default: false },
   exchangeError: { type: String, default: "" },
@@ -180,6 +183,7 @@ defineEmits([
   "update:stockType",
   "update:studentPage",
   "update:studentType",
+  "update:studentStatus",
   "update:exchangePage",
   "update:exchangeType",
   "update:adjustmentPage",

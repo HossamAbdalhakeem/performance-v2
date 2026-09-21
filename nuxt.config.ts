@@ -104,9 +104,7 @@ export default defineNuxtConfig({
   },
   devtools: { enabled: true },
   compatibilityDate: '2024-04-03',
-  // Site config used by @nuxtjs/robots & @nuxtjs/sitemap
-  // (NUXT_PUBLIC_SITE_URL comes from .env, set the real domain in production)
-
+ 
   devServer: {
     port: 8000,
   },
@@ -114,7 +112,6 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       baseUrl: process.env.NUXT_ENV_BASE_URL || 'http://localhost:8000',
-      siteUrl: process.env.NUXT_PUBLIC_SITE_URL,
       paymentScreenshotMaxBytes: Number(
         process.env.NUXT_PUBLIC_PAYMENT_SCREENSHOT_MAX_BYTES || 409600,
       ),

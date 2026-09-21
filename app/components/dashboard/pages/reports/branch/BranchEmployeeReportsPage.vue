@@ -23,6 +23,7 @@
     :student-page-size="pageSize"
     :student-total="studentTotal"
     :student-type="studentType"
+    :student-status="studentStatus"
     :exchange-rows="exchangeRows"
     :exchange-loading="exchangeLoading"
     :exchange-error="exchangeError"
@@ -45,6 +46,7 @@
     @update:stock-type="onStockType"
     @update:student-page="onStudentPage"
     @update:student-type="onStudentType"
+    @update:student-status="onStudentStatus"
     @update:exchange-page="onExchangePage"
     @update:exchange-type="onExchangeType"
     @update:adjustment-page="onAdjustmentPage"
@@ -99,6 +101,7 @@ const studentRows = ref([]);
 const studentPage = ref(1);
 const studentTotal = ref(0);
 const studentType = ref(null);
+const studentStatus = ref(null);
 
 const exchangeLoading = ref(false);
 const exchangeError = ref("");
@@ -176,6 +179,9 @@ const loadStudentOperations = async (
       page: studentPage.value,
       per_page: pageSize,
       ...(studentType.value ? { movementType: studentType.value } : {}),
+      ...(studentStatus.value
+        ? { operationStatus: studentStatus.value }
+        : {}),
     });
     if (generation !== loadGeneration) return;
     studentRows.value = extractRows(payload);
@@ -307,6 +313,12 @@ const onStudentType = (type) => {
   loadStudentOperations();
 };
 
+const onStudentStatus = (status) => {
+  studentStatus.value = status || null;
+  studentPage.value = 1;
+  loadStudentOperations();
+};
+
 const onExchangePage = (page) => {
   exchangePage.value = Number(page) || 1;
   loadExchanges();
@@ -333,6 +345,7 @@ const onFiltersChange = (params) => {
   filterParams.value = params;
   stockType.value = null;
   studentType.value = null;
+  studentStatus.value = null;
   exchangeType.value = null;
   adjustmentType.value = null;
   loadReport();

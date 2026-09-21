@@ -43,11 +43,32 @@ export const STUDENT_SALE_LABELS = {
 
 /** Cancellations, refunds, and returns. */
 export const STUDENT_REFUND_LABELS = {
+  CANCEL_AND_REFUND_RESERVATION: "إلغاء واسترداد حجز",
+  CANCEL_RESERVATION: "إلغاء حجز",
   RESERVATION_RELEASE: "إلغاء حجز",
   REFUND_SALE: "استرداد بيع",
   REFUND_RESERVATION: "استرداد حجز",
   RETURN_SALE: "مرتجع بيع",
   RETURN_RESERVATION: "مرتجع حجز",
+};
+
+/** Derived lifecycle status for البيع والحجز */
+export const OPERATION_STATUS_LABELS = {
+  ACTIVE: "نشط",
+  COMPLETED: "مكتمل",
+  CANCELLED: "ملغي",
+  EXCHANGED: "مستبدل",
+  PARTIALLY_REFUNDED: "مسترد جزئياً",
+  FULLY_REFUNDED: "مسترد بالكامل",
+};
+
+export const OPERATION_STATUS_COLORS = {
+  ACTIVE: "#10b981",
+  COMPLETED: "#38bdf8",
+  CANCELLED: "#fb7185",
+  EXCHANGED: "#8b5cf6",
+  PARTIALLY_REFUNDED: "#f97316",
+  FULLY_REFUNDED: "#e11d48",
 };
 
 /** Product exchanges (old → new). */
@@ -82,6 +103,8 @@ export const STOCK_MOVEMENT_COLORS = {
   REFUND: "#f43f5e",
   EXCHANGE_SALE: "#6366f1",
   EXCHANGE_RESERVATION: "#8b5cf6",
+  CANCEL_AND_REFUND_RESERVATION: "#fb7185",
+  CANCEL_RESERVATION: "#fb7185",
   REFUND_SALE: "#f43f5e",
   REFUND_RESERVATION: "#fb7185",
   RETURN_SALE: "#e11d48",
@@ -189,6 +212,13 @@ export const getStudentOperationLabel = (type) =>
 
 export const getStockMovementColor = (type) =>
   STOCK_MOVEMENT_COLORS[String(type || "").toUpperCase()] || DEFAULT_METRIC_COLOR;
+
+export const getOperationStatusLabel = (status) =>
+  getLabel(OPERATION_STATUS_LABELS, String(status || "").toUpperCase());
+
+export const getOperationStatusColor = (status) =>
+  OPERATION_STATUS_COLORS[String(status || "").toUpperCase()] ||
+  DEFAULT_METRIC_COLOR;
 
 
 export const getTransactionTypeLabel = (type) =>

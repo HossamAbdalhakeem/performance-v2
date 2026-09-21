@@ -80,9 +80,14 @@ const priceStyle = computed(() => {
 .product-cell__name {
   margin: 0;
   min-width: 0;
+  max-width: 100%;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  white-space: normal;
+  word-break: break-word;
+  line-height: 1.35;
   font-weight: 600;
   color: rgb(241 245 249);
 }
