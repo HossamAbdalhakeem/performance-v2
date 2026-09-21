@@ -5,9 +5,7 @@
   >
     <div class="mb-4 min-w-0">
       <p class="font-bold text-white">سجل العمليات</p>
-      <p class="mt-1 text-xs text-slate-400">
-        بيع وحجز — افتح الصف لعرض سجل العملية
-      </p>
+   
     </div>
 
     <div v-if="loading && !rows.length" class="space-y-2">
