@@ -1,6 +1,6 @@
 <template>
   <div
-    class="rounded-2xl border border-white/10 bg-slate-900/90 p-5"
+    class="w-full min-w-0 overflow-hidden rounded-2xl border border-white/10 bg-slate-900/90 p-5"
     dir="rtl"
   >
     <div class="mb-4 flex flex-wrap items-center justify-between gap-3">

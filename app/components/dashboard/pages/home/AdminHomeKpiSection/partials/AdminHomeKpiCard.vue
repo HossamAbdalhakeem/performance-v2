@@ -15,8 +15,8 @@
       class="pointer-events-none absolute inset-0 opacity-0 transition group-hover:opacity-100"
       :class="resolved.glowClass"
     />
-    <div class="relative flex items-start justify-between gap-3">
-      <div>
+    <div class="relative flex min-w-0 items-start justify-between gap-3">
+      <div class="min-w-0">
         <p class="text-sm text-slate-300">{{ title }}</p>
         <p class="mt-2 text-2xl font-extrabold text-white">{{ count }}</p>
         <p v-if="hint" class="mt-1 text-xs text-slate-500">{{ hint }}</p>

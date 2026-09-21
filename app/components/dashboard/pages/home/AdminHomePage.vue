@@ -1,5 +1,5 @@
 <template>
-  <div class="space-y-8 text-right" dir="rtl">
+  <div class="w-full min-w-0 space-y-8 overflow-x-hidden text-right" dir="rtl">
     <div>
       <h2 class="text-xl font-bold text-white">الرئيسية</h2>
       <p class="mt-1 text-sm text-slate-400">
@@ -9,7 +9,7 @@
 
     <AdminHomeKpiSection />
 
-    <div class="space-y-4">
+    <div class="w-full min-w-0 space-y-4 overflow-x-hidden">
       <ReportsSummaryCards
         :params="reportParams"
         :reload-key="reloadKey"
