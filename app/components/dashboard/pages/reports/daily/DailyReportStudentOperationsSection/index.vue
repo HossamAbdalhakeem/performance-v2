@@ -28,7 +28,7 @@
       v-model:expandedRows="expandedRows"
       data-key="id"
       :value="displayRows"
-      :columns="STUDENT_OPS_COLUMNS"
+      :columns="columns"
       :loading="loading"
       lazy
       paginator
@@ -136,13 +136,26 @@ const props = defineProps({
   page: { type: Number, default: 1 },
   pageSize: { type: Number, default: 15 },
   totalRecords: { type: Number, default: 0 },
+  /** Optional: (operationId) => Promise<timelinePayload> */
+  timelineFetcher: { type: Function, default: null },
+  showBranch: { type: Boolean, default: false },
 });
 
 const emit = defineEmits(["retry", "update:page"]);
 
 const expandedRows = ref({});
 const { timelineState, getTimelineEvents, loadTimeline, onRowExpand } =
-  useOperationTimeline();
+  useOperationTimeline((operationId) => props.timelineFetcher?.(operationId));
+
+const columns = computed(() => {
+  if (!props.showBranch) return STUDENT_OPS_COLUMNS;
+  const cols = [...STUDENT_OPS_COLUMNS];
+  const studentIdx = cols.findIndex((c) => c.field === "studentName");
+  const branchCol = { field: "branchName", header: "الفرع" };
+  if (studentIdx >= 0) cols.splice(studentIdx, 0, branchCol);
+  else cols.splice(5, 0, branchCol);
+  return cols;
+});
 
 watch(
   () => [props.page, props.rows],

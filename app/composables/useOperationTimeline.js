@@ -1,10 +1,10 @@
-import { reportService } from "~/services/reportService";
 import { mapTimelineEvents } from "~/utils/studentOperationsReport";
 
 /**
- * Loads and caches branch operation timelines keyed by operation id.
+ * Loads operation timelines keyed by operation id.
+ * Pass a fetcher so branch / customer-service can use their own endpoints.
  */
-export const useOperationTimeline = () => {
+export const useOperationTimeline = (fetcher) => {
   const timelineState = reactive({});
 
   const ensureState = (operationId) => {
@@ -22,14 +22,14 @@ export const useOperationTimeline = () => {
     mapTimelineEvents(timelineState[operationId]?.payload);
 
   const loadTimeline = async (operationId) => {
-    if (!operationId) return;
+    if (!operationId || typeof fetcher !== "function") return;
 
     const state = ensureState(operationId);
     state.loading = true;
     state.error = "";
 
     try {
-      state.payload = await reportService.getBranchOperationTimeline(operationId);
+      state.payload = await fetcher(operationId);
     } catch (error) {
       state.error = error?.message || "تعذر تحميل سجل العملية.";
     } finally {
