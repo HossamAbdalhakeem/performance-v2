@@ -1,14 +1,13 @@
 <template>
-  <div class="ops-timeline-panel space-y-3 text-right" dir="rtl">
+  <div class="ops-timeline-panel w-full space-y-3 text-right" dir="rtl">
     <p class="text-sm font-semibold text-white">سجل العملية</p>
 
     <div v-if="loading" class="space-y-4">
       <div v-for="i in 3" :key="`tl-skel-${i}`" class="flex gap-3">
         <Skeleton height="2.5rem" width="30%" />
-        <Skeleton shape="circle" size="1.75rem" class="mt-0.5 shrink-0" />
+        <Skeleton shape="circle" size="2.75rem" class="mt-0.5 shrink-0" />
         <div class="min-w-0 flex-1 space-y-2">
-          <Skeleton height="0.9rem" width="60%" />
-          <Skeleton height="0.75rem" width="80%" />
+          <Skeleton height="4.5rem" width="100%" border-radius="0.75rem" />
         </div>
       </div>
     </div>
@@ -31,61 +30,71 @@
       لا توجد أحداث إضافية لهذه العملية.
     </p>
 
-    <ol v-else class="ops-timeline m-0 list-none p-0">
-      <li
-        v-for="(item, index) in timeline"
-        :key="item.id || index"
-        class="ops-timeline-item"
-        dir="ltr"
-      >
-        <!-- Left side: event details -->
-        <div class="ops-timeline-content" dir="rtl">
-          <p class="m-0 font-semibold text-white">{{ item.title }}</p>
+    <Timeline
+      v-else
+      :value="timeline"
+      align="right"
+      class="ops-timeline w-[82%] @container"
+      :pt="{
+        eventOpposite: { class: '@max-[280px]:hidden' },
+        eventContent: { class: '@max-[280px]:text-right!' },
+        eventConnector: { class: 'mb-4' },
+      }"
+    >
+      <template #opposite="{ item }">
+        <div class="pt-1 text-left" dir="ltr">
+          <AppDateTimeCell :value="item.date" />
+        </div>
+      </template>
+
+      <template #marker="{ item }">
+        <span
+          class="flex h-12 w-12 items-center justify-center rounded-full text-white shadow-lg"
+          :style="{ backgroundColor: markerMeta(item).color }"
+        >
+          <i :class="[markerMeta(item).icon, 'text-base']" />
+        </span>
+      </template>
+
+      <template #content="{ item }">
+        <div
+          class="mb-4 rounded-xl border border-slate-700 bg-slate-900/80 p-4 text-right shadow-sm"
+          dir="rtl"
+        >
+          <div class="mb-2 hidden text-sm text-slate-400 @max-[280px]:block">
+            <AppDateTimeCell :value="item.date" />
+          </div>
+
+          <p class="mb-3 font-bold text-white">{{ item.title }}</p>
+
           <ul
             v-if="item.details?.length"
-            class="mt-2 space-y-1 text-xs text-slate-300"
+            class="mt-1 space-y-1.5"
           >
             <li
               v-for="(line, idx) in item.details"
               :key="`${item.id}-d-${idx}`"
-              class="break-words"
+              class="flex items-start gap-2 break-words text-sm leading-relaxed text-slate-300"
             >
-              {{ line }}
+              <i class="pi pi-box mt-0.5 shrink-0 text-xs text-slate-500" />
+              <span>{{ line }}</span>
             </li>
           </ul>
-          <p v-if="item.actorName" class="mt-2 text-xs text-slate-500">
+
+          <p
+            v-if="item.actorName"
+            class="mt-3 text-xs text-slate-500"
+          >
             بواسطة: {{ item.actorName }}
           </p>
         </div>
-
-        <!-- Center: marker + connector -->
-        <div class="ops-timeline-rail" aria-hidden="true">
-          <span
-            class="ops-timeline-marker"
-            :style="{
-              backgroundColor: `${markerMeta(item).color}22`,
-              borderColor: markerMeta(item).color,
-              color: markerMeta(item).color,
-            }"
-          >
-            <i :class="markerMeta(item).icon" />
-          </span>
-          <span
-            v-if="index < timeline.length - 1"
-            class="ops-timeline-connector"
-          />
-        </div>
-
-        <!-- Right side: date/time -->
-        <div class="ops-timeline-opposite">
-          <AppDateTimeCell :value="item.date" />
-        </div>
-      </li>
-    </ol>
+      </template>
+    </Timeline>
   </div>
 </template>
 
 <script setup>
+import Timeline from "primevue/timeline";
 import Skeleton from "primevue/skeleton";
 import Button from "primevue/button";
 import AppDateTimeCell from "~/components/shared/app-datetime-cell/index.vue";
@@ -101,101 +110,29 @@ defineProps({
 defineEmits(["retry"]);
 
 const EVENT_MARKERS = {
-  CREATED: { icon: "pi pi-plus", color: "#38bdf8" },
+  CREATED: { icon: "pi pi-plus", color: "#0ea5e9" },
   PAYMENT: { icon: "pi pi-wallet", color: "#10b981" },
   DELIVERED: { icon: "pi pi-check", color: "#34d399" },
   CANCELLED: { icon: "pi pi-times", color: "#fb7185" },
   REFUND: { icon: "pi pi-replay", color: "#f43f5e" },
   EXCHANGE: { icon: "pi pi-sync", color: "#8b5cf6" },
   RETURN: { icon: "pi pi-undo", color: "#e11d48" },
-  COMPLETED: { icon: "pi pi-check", color: "#34d399" },
+  COMPLETED: { icon: "pi pi-check", color: "#22c55e" },
 };
 
-const DEFAULT_MARKER = { icon: "pi pi-circle", color: "#94a3b8" };
+const DEFAULT_MARKER = { icon: "pi pi-circle", color: "#64748b" };
 
 const markerMeta = (item) =>
   EVENT_MARKERS[String(item?.type || "").toUpperCase()] || DEFAULT_MARKER;
 </script>
 
 <style scoped>
-.ops-timeline-item {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 1.75rem minmax(7.5rem, 28%);
-  width: 100%;
-  max-width: 100%;
-  column-gap: 0.85rem;
-  align-items: stretch;
-}
-
-.ops-timeline-opposite {
-  padding-top: 0.2rem;
-  text-align: start;
-  font-size: 0.75rem;
-  line-height: 1.35;
-  color: #94a3b8;
-  white-space: normal;
-  overflow-wrap: anywhere;
-}
-
-.ops-timeline-rail {
-  display: flex;
-  width: 1.75rem;
-  flex-shrink: 0;
-  flex-direction: column;
-  align-items: center;
-}
-
-.ops-timeline-marker {
-  z-index: 1;
-  display: inline-flex;
-  width: 1.75rem;
-  height: 1.75rem;
-  flex-shrink: 0;
-  align-items: center;
-  justify-content: center;
-  border-radius: 9999px;
-  border: 1.5px solid;
-  font-size: 0.75rem;
-}
-
-.ops-timeline-connector {
-  width: 2px;
-  flex: 1 1 auto;
-  min-height: 0.75rem;
-  margin-top: 0.25rem;
-  margin-bottom: 0.25rem;
+.ops-timeline :deep(.p-timeline-event-connector) {
   background: rgba(148, 163, 184, 0.35);
-  border-radius: 9999px;
 }
 
-.ops-timeline-content {
+.ops-timeline :deep(.p-timeline-event-opposite),
+.ops-timeline :deep(.p-timeline-event-content) {
   min-width: 0;
-  padding-bottom: 1.25rem;
-  overflow-wrap: anywhere;
-  white-space: normal;
-  text-align: right;
-}
-
-@media (max-width: 640px) {
-  .ops-timeline-item {
-    grid-template-columns: minmax(0, 1fr) 1.75rem;
-  }
-
-  .ops-timeline-content {
-    grid-column: 1;
-    grid-row: 2;
-  }
-
-  .ops-timeline-rail {
-    grid-column: 2;
-    grid-row: 1 / span 2;
-  }
-
-  .ops-timeline-opposite {
-    grid-column: 1;
-    grid-row: 1;
-    margin-bottom: 0.25rem;
-    text-align: right;
-  }
 }
 </style>
