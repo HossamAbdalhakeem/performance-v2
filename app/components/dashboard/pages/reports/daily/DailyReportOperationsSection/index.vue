@@ -10,34 +10,19 @@
       </div>
 
       <div class="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-end">
-        <div class="w-full sm:w-72">
-          <label class="mb-1 block text-xs text-slate-400">نوع العملية</label>
-          <Select
-            v-model="selectedType"
-            :options="typeOptions"
-            option-label="label"
-            option-value="value"
-            placeholder="كل الأنواع"
-            show-clear
-            class="w-full"
-            :disabled="loading"
-            @update:model-value="onTypeChange"
-          />
-        </div>
-        <div v-if="isSales" class="w-full sm:w-72">
-          <label class="mb-1 block text-xs text-slate-400">الحالة</label>
-          <Select
-            v-model="selectedStatus"
-            :options="statusOptions"
-            option-label="label"
-            option-value="value"
-            placeholder="كل الحالات"
-            show-clear
-            class="w-full"
-            :disabled="loading"
-            @update:model-value="onStatusChange"
-          />
-        </div>
+        <ReportOperationTypeFilter
+          v-model="selectedType"
+          :labels="typeFilterLabels"
+          :disabled="loading"
+          @change="onTypeChange"
+        />
+        <ReportStatusFilter
+          v-if="isSales"
+          v-model="selectedStatus"
+          :options="statusOptions"
+          :disabled="loading"
+          @change="onStatusChange"
+        />
       </div>
     </div>
 
@@ -191,22 +176,23 @@
 
 <script setup>
 import Skeleton from "primevue/skeleton";
-import Select from "primevue/select";
 import Button from "primevue/button";
 import Dialog from "primevue/dialog";
 import ReportsSectionError from "~/components/dashboard/pages/reports/admin/ReportsSectionError/index.vue";
 import ReportsSectionEmpty from "~/components/dashboard/pages/reports/admin/ReportsSectionEmpty/index.vue";
 import ProductCell from "~/components/shared/product-cell/index.vue";
 import AppDateTimeCell from "~/components/shared/app-datetime-cell/index.vue";
+import ReportOperationTypeFilter from "~/components/shared/report-operation-type-filter/index.vue";
+import ReportStatusFilter from "~/components/shared/report-status-filter/index.vue";
 import { formatMoney } from "~/utils/format";
 import {
   DEFAULT_METRIC_COLOR,
-  OPERATION_STATUS_LABELS,
   STOCK_MOVEMENT_COLORS,
   getOperationStatusColor,
   getOperationStatusLabel,
   getStockMovementColor,
   getStockMovementLabel,
+  getStudentOperationLabel,
 } from "~/utils/domainLabels";
 
 const AppDataTable = defineAsyncComponent(() =>
@@ -241,8 +227,10 @@ const props = defineProps({
     type: String,
     default: "لا توجد عمليات خلال الفترة المحددة.",
   },
-  /** Map of type code → Arabic label for the filter */
+  /** Map of type code → Arabic label (row chips + fallback filter) */
   typeLabels: { type: Object, default: () => ({}) },
+  /** Optional shorter map for the type filter only */
+  filterLabels: { type: Object, default: null },
   rows: { type: Array, default: () => [] },
   loading: { type: Boolean, default: false },
   error: { type: String, default: "" },
@@ -251,6 +239,8 @@ const props = defineProps({
   totalRecords: { type: Number, default: 0 },
   movementType: { type: String, default: null },
   operationStatus: { type: String, default: null },
+  /** Status filter options: [{ value, label }] — passed from parent */
+  statusOptions: { type: Array, default: () => [] },
   /** sales | exchanges | refunds | stock — controls columns */
   variant: { type: String, default: "sales" },
 });
@@ -281,19 +271,12 @@ watch(
   },
 );
 
-const typeOptions = computed(() =>
-  Object.entries(props.typeLabels || {}).map(([value, label]) => ({
-    value,
-    label,
-  })),
-);
-
-const statusOptions = computed(() =>
-  Object.entries(OPERATION_STATUS_LABELS).map(([value, label]) => ({
-    value,
-    label,
-  })),
-);
+const typeFilterLabels = computed(() => {
+  if (props.filterLabels && Object.keys(props.filterLabels).length) {
+    return props.filterLabels;
+  }
+  return props.typeLabels || {};
+});
 
 const isSales = computed(
   () => props.variant === "sales" || props.variant === "student",
@@ -381,7 +364,9 @@ const first = computed(() =>
 const resolveLabel = (typeKey) => {
   const custom = props.typeLabels?.[typeKey];
   if (custom) return custom;
-  return getStockMovementLabel(typeKey);
+  return (
+    getStudentOperationLabel(typeKey) || getStockMovementLabel(typeKey)
+  );
 };
 
 const moneyLabel = (value) => {

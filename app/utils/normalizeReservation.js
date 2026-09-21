@@ -125,5 +125,11 @@ export const normalizeReservation = (item = {}) => {
     proofReference: normalizedPayment.image.reference,
     proofUrl: normalizedPayment.image.url,
     hasProof: normalizedPayment.image.hasProof,
+    exchangeCount: Number(item.exchangeCount ?? item._count?.exchanges ?? 0) || 0,
+    hasExchanges: Boolean(
+      item.hasExchanges ??
+        Number(item.exchangeCount ?? item._count?.exchanges ?? 0) > 0,
+    ),
   };
 };
+

@@ -41,15 +41,25 @@ export const STUDENT_SALE_LABELS = {
   RESERVATION: "حجز",
 };
 
-/** Cancellations, refunds, and returns. */
+/** Row display labels for refund/cancel/return action types. */
 export const STUDENT_REFUND_LABELS = {
   CANCEL_AND_REFUND_RESERVATION: "إلغاء واسترداد حجز",
   CANCEL_RESERVATION: "إلغاء حجز",
-  RESERVATION_RELEASE: "إلغاء حجز",
   REFUND_SALE: "استرداد بيع",
   REFUND_RESERVATION: "استرداد حجز",
   RETURN_SALE: "مرتجع بيع",
   RETURN_RESERVATION: "مرتجع حجز",
+};
+
+/**
+ * Filter dropdown for الاسترداد والإلغاء — grouped, no duplicates.
+ * REFUND / RETURN expand to sale+reservation variants on the API.
+ */
+export const STUDENT_REFUND_FILTER_LABELS = {
+  CANCEL_AND_REFUND_RESERVATION: "إلغاء واسترداد حجز",
+  CANCEL_RESERVATION: "إلغاء حجز",
+  REFUND: "استرداد",
+  RETURN: "مرتجع",
 };
 
 /** Derived lifecycle status for البيع والحجز */

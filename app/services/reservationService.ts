@@ -109,4 +109,10 @@ export const reservationService = {
   async exchangeReservation(id: string, payload: Record<string, any>) {
     return this.changeProduct(id, payload);
   },
+
+  async getExchangeHistory(id: string) {
+    return firstRow(
+      await apiFetch(`/reservations/${id}/exchanges`, { method: "GET" }),
+    );
+  },
 };

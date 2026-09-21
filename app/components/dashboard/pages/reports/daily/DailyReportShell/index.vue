@@ -43,6 +43,7 @@
           :total-records="studentTotal"
           :movement-type="studentType"
           :operation-status="studentStatus"
+          :status-options="operationStatusOptions"
           @retry="$emit('retry-student')"
           @update:page="$emit('update:studentPage', $event)"
           @update:movement-type="$emit('update:studentType', $event)"
@@ -73,6 +74,7 @@
           empty-message="لا توجد عمليات استرداد أو إلغاء خلال الفترة المحددة."
           variant="refunds"
           :type-labels="refundTypeLabels"
+          :filter-labels="refundFilterLabels"
           :rows="adjustmentRows"
           :loading="adjustmentLoading"
           :error="adjustmentError"
@@ -109,8 +111,10 @@
 
 <script setup>
 import {
+  OPERATION_STATUS_LABELS,
   STOCK_OPERATION_LABELS,
   STUDENT_EXCHANGE_LABELS,
+  STUDENT_REFUND_FILTER_LABELS,
   STUDENT_REFUND_LABELS,
   STUDENT_SALE_LABELS,
 } from "~/utils/domainLabels";
@@ -192,6 +196,10 @@ defineEmits([
 
 const stockTypeLabels = STOCK_OPERATION_LABELS;
 const saleTypeLabels = STUDENT_SALE_LABELS;
+const operationStatusOptions = Object.entries(OPERATION_STATUS_LABELS).map(
+  ([value, label]) => ({ value, label }),
+);
 const exchangeTypeLabels = STUDENT_EXCHANGE_LABELS;
 const refundTypeLabels = STUDENT_REFUND_LABELS;
+const refundFilterLabels = STUDENT_REFUND_FILTER_LABELS;
 </script>
