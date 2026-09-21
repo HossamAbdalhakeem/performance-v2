@@ -4,14 +4,9 @@
 
 <script setup>
 import { useAuthStore } from "~/store/auth.js";
+import { homeForRole } from "~/utils/routeAccess";
 
 const authStore = useAuthStore();
-
-const roleFirstPageMap = {
-  admin: "/home",
-  branch: "/sales/direct",
-  social: "/books/reserve",
-};
 
 definePageMeta({
   middleware: ["local-pages"],
@@ -24,6 +19,6 @@ onMounted(async () => {
   }
 
   const role = authStore.user?.role || "admin";
-  await navigateTo(roleFirstPageMap[role] || "/products");
+  await navigateTo(homeForRole(role));
 });
 </script>

@@ -128,13 +128,13 @@ const authStore = useAuthStore();
 const { showError } = useAppToast();
 const rememberMe = ref(false);
 const form = reactive({
-  email: "admin@library.local",
-  password: "Password123!",
+  email: "",
+  password: "",
 });
 
 const initialValues = {
-  email: "admin@library.local",
-  password: "Password123!",
+  email: "",
+  password: "",
 };
 
 definePageMeta({
