@@ -1,5 +1,7 @@
 <template>
   <AppDataTable
+    v-model:expandedRows="expandedRows"
+    data-key="id"
     :value="reservations"
     :columns="columns"
     :loading="loading"
@@ -10,6 +12,7 @@
     :total-records="totalRecords"
     empty-message="لا توجد حجوزات."
     @page="$emit('page', $event)"
+    @row-expand="onRowExpand"
   >
     <template #createdAt="{ data }">
       <AppDateTimeCell :value="data.createdAt" />
@@ -72,17 +75,6 @@
     <template #actions="{ data }">
       <div class="flex flex-wrap justify-center gap-1">
         <Button
-          v-if="data.hasExchanges || data.exchangeCount > 0"
-          v-tooltip.top="'سجل الاستبدال'"
-          icon="pi pi-history"
-          text
-          rounded
-          size="small"
-          severity="secondary"
-          aria-label="سجل الاستبدال"
-          @click="$emit('view-history', data)"
-        />
-        <Button
           v-if="canModify(data)"
           label="استبدال منتج"
           icon="pi pi-sync"
@@ -102,6 +94,19 @@
         />
       </div>
     </template>
+
+    <template #expansion="{ data }">
+      <div
+        class="w-full max-w-full overflow-visible rounded-xl border border-slate-700 bg-slate-950/70 p-4 text-right"
+      >
+        <OperationTimelinePanel
+          :timeline="getTimelineEvents(timelineKeyFor(data))"
+          :loading="!!timelineState[timelineKeyFor(data)]?.loading"
+          :error="timelineState[timelineKeyFor(data)]?.error || ''"
+          @retry="loadTimeline(timelineKeyFor(data))"
+        />
+      </div>
+    </template>
   </AppDataTable>
 </template>
 
@@ -112,8 +117,11 @@ import AppDateTimeCell from "~/components/shared/app-datetime-cell/index.vue";
 import AppStatusTag from "~/components/shared/app-status-tag/index.vue";
 import PaymentProofThumb from "~/components/shared/payment-proof-thumb/index.vue";
 import ProductCell from "~/components/shared/product-cell/index.vue";
+import OperationTimelinePanel from "~/components/dashboard/pages/reports/daily/DailyReportStudentOperationsSection/partials/OperationTimelinePanel.vue";
+import { reservationService } from "~/services/reservationService";
+import { useOperationTimeline } from "~/composables/useOperationTimeline";
 
-defineProps({
+const props = defineProps({
   reservations: { type: Array, default: () => [] },
   loading: { type: Boolean, default: false },
   rows: { type: Number, default: 20 },
@@ -121,9 +129,29 @@ defineProps({
   totalRecords: { type: Number, default: 0 },
 });
 
-defineEmits(["change-product", "cancel", "view-history", "page"]);
+defineEmits(["change-product", "cancel", "page"]);
+
+const expandedRows = ref({});
+const { timelineState, getTimelineEvents, loadTimeline } = useOperationTimeline(
+  (id) => reservationService.getTimeline(id),
+);
+
+const timelineKeyFor = (row) => row?.id || "";
+
+const onRowExpand = (event) => {
+  const id = timelineKeyFor(event?.data);
+  if (id) loadTimeline(id);
+};
+
+watch(
+  () => [props.first, props.reservations],
+  () => {
+    expandedRows.value = {};
+  },
+);
 
 const columns = [
+  { key: "expander", expander: true, style: "width: 3rem" },
   { field: "reservationNumber", header: "رقم الحجز" },
   { field: "createdAt", header: "تاريخ الحجز", slot: "createdAt" },
   { field: "studentName", header: "الطالب" },

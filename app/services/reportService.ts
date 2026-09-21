@@ -113,6 +113,15 @@ export const reportService = {
     );
   },
 
+  async getCustomerServiceOperationTimeline(operationId: string) {
+    return asData(
+      await apiFetch(
+        `/reports/customer-service/student-operations/${encodeURIComponent(operationId)}/timeline`,
+        { method: "GET" },
+      ),
+    );
+  },
+
   async getCustomerServiceSummary(params: Record<string, any> = {}) {
     return asData(
       await apiFetch("/reports/customer-service/summary", {
@@ -153,15 +162,6 @@ export const reportService = {
     }
 
     return asData(response);
-  },
-
-  async getCustomerServiceOperationTimeline(operationId: string) {
-    return asData(
-      await apiFetch(
-        `/reports/customer-service/student-operations/${encodeURIComponent(operationId)}/timeline`,
-        { method: "GET" },
-      ),
-    );
   },
 
   /** Role-scoped daily summary (branch | customer-service) */

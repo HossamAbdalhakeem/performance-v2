@@ -127,6 +127,11 @@ const markerMeta = (item) =>
 </script>
 
 <style scoped>
+.ops-timeline {
+  width: 82%;
+  max-width: 82%;
+}
+
 .ops-timeline :deep(.p-timeline-event-connector) {
   background: rgba(148, 163, 184, 0.35);
 }

@@ -1,6 +1,7 @@
 import {
   apiFetch,
   firstRow,
+  asData,
   asPaginated,
   type PaginatedResponse,
 } from "~/utils/apiFetch";
@@ -110,9 +111,9 @@ export const reservationService = {
     return this.changeProduct(id, payload);
   },
 
-  async getExchangeHistory(id: string) {
-    return firstRow(
-      await apiFetch(`/reservations/${id}/exchanges`, { method: "GET" }),
+  async getTimeline(id: string) {
+    return asData(
+      await apiFetch(`/reservations/${id}/timeline`, { method: "GET" }),
     );
   },
 };
