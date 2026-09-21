@@ -16,6 +16,9 @@
         empty-message="لا توجد عمليات حديثة."
         :skeleton-rows="5"
       >
+        <template #time="{ data }">
+          <AppDateTimeCell :value="data.time" />
+        </template>
         <template #type="{ data }">
           <AppStatusTag
             :kind="resolveTypeKind(data.typeKey)"
@@ -42,8 +45,9 @@
 
 <script setup>
 import AppDataTable from "~/components/shared/app-data-table/index.vue";
+import AppDateTimeCell from "~/components/shared/app-datetime-cell/index.vue";
 import AppStatusTag from "~/components/shared/app-status-tag/index.vue";
-import { formatMoney, formatDateTime } from "~/utils/format";
+import { formatMoney } from "~/utils/format";
 import {
   getTransactionTypeLabel,
   getReservationStatusLabel,
@@ -71,7 +75,7 @@ const OUTFLOW_TYPES = new Set(["RETURN", "CANCELLED", "REFUND"]);
 
 const columns = [
   { field: "id", header: "#" },
-  { field: "time", header: "الوقت" },
+  { field: "time", header: "الوقت", slot: "time" },
   { field: "type", header: "النوع", slot: "type" },
   { field: "student", header: "اسم الطالب" },
   { field: "product", header: "المنتج" },
@@ -122,7 +126,7 @@ const displayRows = computed(() =>
 
     return {
       id: index + 1,
-      time: formatDateTime(row.time, "datetime"),
+      time: row.time || null,
       typeKey,
       typeLabel: resolveTypeLabel(typeKey),
       student: row.student || "—",

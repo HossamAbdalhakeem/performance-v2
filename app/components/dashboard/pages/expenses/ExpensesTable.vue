@@ -11,6 +11,10 @@
     empty-message="لا توجد مصروفات."
     @page="$emit('page', $event)"
   >
+    <template #expenseDate="{ data }">
+      <AppDateTimeCell :value="data.expenseDate" format="date" />
+    </template>
+
     <template #actions="{ data }">
       <Button
         label="تعديل"
@@ -27,6 +31,7 @@
 <script setup>
 import Button from "primevue/button";
 import AppDataTable from "~/components/shared/app-data-table/index.vue";
+import AppDateTimeCell from "~/components/shared/app-datetime-cell/index.vue";
 
 defineProps({
   expenses: { type: Array, default: () => [] },
@@ -42,7 +47,7 @@ const columns = [
   { field: "categoryName", header: "التصنيف" },
   { field: "branchName", header: "الفرع" },
   { field: "amountLabel", header: "المبلغ" },
-  { field: "expenseDateLabel", header: "التاريخ" },
+  { field: "expenseDate", header: "التاريخ", slot: "expenseDate" },
   { field: "description", header: "الوصف", fallback: "-" },
   { field: "actions", header: "إجراء", slot: "actions", style: "width: 8rem" },
 ];

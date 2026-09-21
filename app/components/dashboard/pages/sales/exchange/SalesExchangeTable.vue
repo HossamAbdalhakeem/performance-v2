@@ -11,6 +11,10 @@
     empty-message="لا توجد مبيعات قابلة للعرض."
     @page="$emit('page', $event)"
   >
+    <template #createdAt="{ data }">
+      <AppDateTimeCell :value="data.createdAt" />
+    </template>
+
     <template #product="{ data }">
       <ProductCell :product="data.productCell" />
     </template>
@@ -84,6 +88,7 @@
 <script setup>
 import Button from "primevue/button";
 import AppDataTable from "~/components/shared/app-data-table/index.vue";
+import AppDateTimeCell from "~/components/shared/app-datetime-cell/index.vue";
 import AppStatusTag from "~/components/shared/app-status-tag/index.vue";
 import PaymentProofThumb from "~/components/shared/payment-proof-thumb/index.vue";
 import ProductCell from "~/components/shared/product-cell/index.vue";
@@ -99,7 +104,7 @@ defineProps({
 defineEmits(["exchange", "refund", "page"]);
 
 const columns = [
-  { field: "createdAtLabel", header: "تاريخ البيع" },
+  { field: "createdAt", header: "تاريخ البيع", slot: "createdAt" },
   { field: "studentName", header: "الطالب" },
   { field: "phone", header: "الموبايل", fallback: "—" },
   { field: "productCell", header: "المنتج", slot: "product" },

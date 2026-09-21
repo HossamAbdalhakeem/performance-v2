@@ -16,6 +16,10 @@
       :empty-message="emptyMessage"
       :skeleton-rows="4"
     >
+      <template #createdAt="{ data }">
+        <AppDateTimeCell :value="data.createdAt" />
+      </template>
+
       <template #product="{ data }">
         <ProductCell :product="data.productCell" />
       </template>
@@ -92,6 +96,7 @@
 <script setup>
 import Button from "primevue/button";
 import AppDataTable from "~/components/shared/app-data-table/index.vue";
+import AppDateTimeCell from "~/components/shared/app-datetime-cell/index.vue";
 import SearchInput from "~/components/shared/search-input/index.vue";
 import { reservationService } from "~/services/reservationService";
 import { useAppToast } from "~/composables/useAppToast";
@@ -124,7 +129,7 @@ const emptyMessage = computed(() =>
 
 const tableColumns = [
   { field: "reservationNumber", header: "رقم الحجز" },
-  { field: "createdAtLabel", header: "التاريخ والوقت" },
+  { field: "createdAt", header: "التاريخ والوقت", slot: "createdAt" },
   { field: "studentName", header: "اسم الطالب" },
   { field: "phone", header: "الموبايل", fallback: "-" },
   { field: "productCell", header: "المنتج", slot: "product" },

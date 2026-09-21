@@ -55,6 +55,9 @@
         <template #product="{ data }">
           <ProductCell :product="data.productCell" />
         </template>
+        <template #date="{ data }">
+          <AppDateTimeCell :value="data.date" />
+        </template>
         <template #typeLabel="{ data }">
           <AppStatusTag
             kind="transaction"
@@ -95,6 +98,7 @@
 <script setup>
 import Dialog from "primevue/dialog";
 import AppDataTable from "~/components/shared/app-data-table/index.vue";
+import AppDateTimeCell from "~/components/shared/app-datetime-cell/index.vue";
 import AppStatusTag from "~/components/shared/app-status-tag/index.vue";
 import DateRangePicker from "~/components/shared/date-range-picker/index.vue";
 import PaymentProofThumb from "~/components/shared/payment-proof-thumb/index.vue";
@@ -103,7 +107,7 @@ import ProductCell from "~/components/shared/product-cell/index.vue";
 import AppGlobalSelectTeacher from "~/components/shared/app-global-select-teacher/index.vue";
 import { studentService } from "~/services/studentService";
 import { useAppToast } from "~/composables/useAppToast";
-import { formatMoney, formatDateTime } from "~/utils/format";
+import { formatMoney } from "~/utils/format";
 import { PAYMENT_METHOD_LABELS } from "~/utils/paymentMethods";
 import { getStatusTagMeta, getStatusTagSeverity } from "~/utils/statusTags";
 import {
@@ -183,7 +187,7 @@ const statusSeverity = (status, type) => {
 };
 
 const columns = [
-  { field: "dateLabel", header: "التاريخ" },
+  { field: "date", header: "التاريخ", slot: "date" },
   { field: "typeLabel", header: "النوع", slot: "typeLabel" },
   { field: "productCell", header: "المنتج", slot: "product" },
   { field: "branchName", header: "الفرع" },
@@ -248,7 +252,7 @@ const normalizeTransaction = (item) => {
     ...item,
     type,
     typeLabel: typeMeta.label,
-    dateLabel: formatDateTime(dateValue, { empty: "—" }),
+    date: dateValue,
     amountLabel: formatMoney(amount),
     productName: productName || "—",
     teacherName: teacherName ? `أ. ${teacherName}` : "—",

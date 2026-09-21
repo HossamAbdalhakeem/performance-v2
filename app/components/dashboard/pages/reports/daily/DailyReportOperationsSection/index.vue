@@ -53,6 +53,10 @@
       :empty-message="emptyMessage"
       @page="onPage"
     >
+      <template #time="{ data }">
+        <AppDateTimeCell :value="data.createdAt" />
+      </template>
+
       <template #type="{ data }">
         <span class="ops-tag" :style="tagStyle(data.typeColor)">
           {{ data.type }}
@@ -109,7 +113,8 @@ import Select from "primevue/select";
 import ReportsSectionError from "~/components/dashboard/pages/reports/admin/ReportsSectionError/index.vue";
 import ReportsSectionEmpty from "~/components/dashboard/pages/reports/admin/ReportsSectionEmpty/index.vue";
 import ProductCell from "~/components/shared/product-cell/index.vue";
-import { formatDateTime, formatMoney } from "~/utils/format";
+import AppDateTimeCell from "~/components/shared/app-datetime-cell/index.vue";
+import { formatMoney } from "~/utils/format";
 import {
   DEFAULT_METRIC_COLOR,
   STOCK_MOVEMENT_COLORS,
@@ -191,7 +196,7 @@ const isRefunds = computed(() => props.variant === "refunds");
 const resolvedColumns = computed(() => {
   if (isExchanges.value) {
     return [
-      { field: "time", header: "التاريخ والوقت" },
+      { field: "createdAt", header: "التاريخ والوقت", slot: "time" },
       { field: "type", header: "النوع", slot: "type" },
       { field: "studentName", header: "الطالب" },
       { field: "product", header: "المنتج", slot: "product" },
@@ -203,7 +208,7 @@ const resolvedColumns = computed(() => {
 
   if (isRefunds.value) {
     return [
-      { field: "time", header: "التاريخ والوقت" },
+      { field: "createdAt", header: "التاريخ والوقت", slot: "time" },
       { field: "type", header: "النوع", slot: "type" },
       { field: "studentName", header: "الطالب" },
       { field: "product", header: "المنتج", slot: "product" },
@@ -214,7 +219,7 @@ const resolvedColumns = computed(() => {
 
   if (isSales.value) {
     return [
-      { field: "time", header: "التاريخ والوقت" },
+      { field: "createdAt", header: "التاريخ والوقت", slot: "time" },
       { field: "type", header: "النوع", slot: "type" },
       { field: "studentName", header: "الطالب" },
       { field: "product", header: "المنتج", slot: "product" },
@@ -226,7 +231,7 @@ const resolvedColumns = computed(() => {
   }
 
   return [
-    { field: "time", header: "التاريخ والوقت" },
+    { field: "createdAt", header: "التاريخ والوقت", slot: "time" },
     { field: "type", header: "النوع", slot: "type" },
     { field: "product", header: "المنتج", slot: "product" },
     { field: "qty", header: "الكمية", slot: "qty" },
@@ -286,7 +291,7 @@ const displayRows = computed(() =>
     const remainingRaw = Number(row.remainingAmount ?? 0);
 
     return {
-      time: formatDateTime(row.createdAt || row.time, "datetime"),
+      createdAt: row.createdAt || row.time || null,
       productObj: toProductCell(product, {
         teacherName: teacher?.name || null,
         price:

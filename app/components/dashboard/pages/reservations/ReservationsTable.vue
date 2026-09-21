@@ -11,6 +11,10 @@
     empty-message="لا توجد حجوزات."
     @page="$emit('page', $event)"
   >
+    <template #createdAt="{ data }">
+      <AppDateTimeCell :value="data.createdAt" />
+    </template>
+
     <template #product="{ data }">
       <ProductCell :product="data.productCell" />
     </template>
@@ -93,6 +97,7 @@
 <script setup>
 import Button from "primevue/button";
 import AppDataTable from "~/components/shared/app-data-table/index.vue";
+import AppDateTimeCell from "~/components/shared/app-datetime-cell/index.vue";
 import AppStatusTag from "~/components/shared/app-status-tag/index.vue";
 import PaymentProofThumb from "~/components/shared/payment-proof-thumb/index.vue";
 import ProductCell from "~/components/shared/product-cell/index.vue";
@@ -109,7 +114,7 @@ defineEmits(["change-product", "cancel", "page"]);
 
 const columns = [
   { field: "reservationNumber", header: "رقم الحجز" },
-  { field: "createdAtLabel", header: "تاريخ الحجز" },
+  { field: "createdAt", header: "تاريخ الحجز", slot: "createdAt" },
   { field: "studentName", header: "الطالب" },
   { field: "productCell", header: "المنتج", slot: "product" },
   { field: "createdByName", header: "أنشئ بواسطة", slot: "createdBy" },

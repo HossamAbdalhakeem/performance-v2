@@ -51,7 +51,7 @@ import AppGlobalSelectBranch from "~/components/shared/app-global-select-branch/
 import ExpensesTable from "~/components/dashboard/pages/expenses/ExpensesTable.vue";
 import { expenseService } from "~/services/expenseService";
 import { useAppToast } from "~/composables/useAppToast";
-import { formatMoney, formatDateTime } from "~/utils/format";
+import { formatMoney } from "~/utils/format";
 
 const ExpenseForm = defineAsyncComponent(() =>
   import("~/components/dashboard/pages/expenses/ExpenseForm.vue"),
@@ -81,7 +81,7 @@ const normalizeExpense = (expense) => ({
   categoryName: expense.category?.name || "-",
   branchName: expense.branch?.name || "عام",
   amountLabel: formatMoney(expense.amount),
-  expenseDateLabel: formatDateTime(expense.expenseDate, "date"),
+  expenseDate: expense.expenseDate,
   description: expense.description || "-",
 });
 
