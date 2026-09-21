@@ -71,6 +71,7 @@ export const mapStudentOperationRows = (rows) =>
       typeLabel: getStudentSaleLabel(typeKey) || typeKey,
       typeColor: getStockMovementColor(typeKey),
       studentName: row.student?.name || "-",
+      branchName: row.branch?.name || "-",
       productObj: toProductCell(row.product),
       totalAmount: moneyOrDash(row.totalAmount),
       paidAmount: moneyOrDash(row.paidAmount),

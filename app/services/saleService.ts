@@ -1,4 +1,4 @@
-import { apiFetch, firstRow, asList } from "~/utils/apiFetch";
+import { apiFetch, firstRow, asList, asData } from "~/utils/apiFetch";
 import {
   PaymentMethod,
   normalizePaymentMethod,
@@ -34,5 +34,9 @@ export const saleService = {
         body: saleBody(payload),
       }),
     );
+  },
+
+  async getTimeline(id: string) {
+    return asData(await apiFetch(`/sales/${id}/timeline`, { method: "GET" }));
   },
 };

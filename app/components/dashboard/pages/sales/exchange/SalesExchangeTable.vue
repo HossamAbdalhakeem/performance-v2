@@ -1,5 +1,7 @@
 <template>
   <AppDataTable
+    v-model:expandedRows="expandedRows"
+    data-key="id"
     :value="sales"
     :columns="columns"
     :loading="loading"
@@ -10,6 +12,7 @@
     :total-records="totalRecords"
     empty-message="لا توجد مبيعات قابلة للعرض."
     @page="$emit('page', $event)"
+    @row-expand="onRowExpand"
   >
     <template #createdAt="{ data }">
       <AppDateTimeCell :value="data.createdAt" />
@@ -82,6 +85,19 @@
         <span v-if="!canModify(data)" class="text-xs text-slate-400">—</span>
       </div>
     </template>
+
+    <template #expansion="{ data }">
+      <div
+        class="w-full max-w-full overflow-visible rounded-xl border border-slate-700 bg-slate-950/70 p-4 text-right"
+      >
+        <OperationTimelinePanel
+          :timeline="getTimelineEvents(timelineKeyFor(data))"
+          :loading="!!timelineState[timelineKeyFor(data)]?.loading"
+          :error="timelineState[timelineKeyFor(data)]?.error || ''"
+          @retry="loadTimeline(timelineKeyFor(data))"
+        />
+      </div>
+    </template>
   </AppDataTable>
 </template>
 
@@ -92,8 +108,11 @@ import AppDateTimeCell from "~/components/shared/app-datetime-cell/index.vue";
 import AppStatusTag from "~/components/shared/app-status-tag/index.vue";
 import PaymentProofThumb from "~/components/shared/payment-proof-thumb/index.vue";
 import ProductCell from "~/components/shared/product-cell/index.vue";
+import OperationTimelinePanel from "~/components/dashboard/pages/reports/daily/DailyReportStudentOperationsSection/partials/OperationTimelinePanel.vue";
+import { saleService } from "~/services/saleService";
+import { useOperationTimeline } from "~/composables/useOperationTimeline";
 
-defineProps({
+const props = defineProps({
   sales: { type: Array, default: () => [] },
   loading: { type: Boolean, default: false },
   rows: { type: Number, default: 20 },
@@ -103,7 +122,27 @@ defineProps({
 
 defineEmits(["exchange", "refund", "page"]);
 
+const expandedRows = ref({});
+const { timelineState, getTimelineEvents, loadTimeline } = useOperationTimeline(
+  (id) => saleService.getTimeline(id),
+);
+
+const timelineKeyFor = (row) => row?.saleId || "";
+
+const onRowExpand = (event) => {
+  const id = timelineKeyFor(event?.data);
+  if (id) loadTimeline(id);
+};
+
+watch(
+  () => [props.first, props.sales],
+  () => {
+    expandedRows.value = {};
+  },
+);
+
 const columns = [
+  { key: "expander", expander: true, style: "width: 3rem" },
   { field: "createdAt", header: "تاريخ البيع", slot: "createdAt" },
   { field: "studentName", header: "الطالب" },
   { field: "phone", header: "الموبايل", fallback: "—" },

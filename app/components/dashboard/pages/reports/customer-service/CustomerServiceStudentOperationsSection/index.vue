@@ -7,6 +7,7 @@
     :page-size="pageSize"
     :total-records="total"
     :timeline-fetcher="timelineFetcher"
+    show-branch
     @retry="reload"
     @update:page="setPage"
   />
@@ -16,7 +17,7 @@
 import { reportService } from "~/services/reportService";
 import { usePaginatedReportSection } from "~/composables/usePaginatedReportSection";
 
-defineOptions({ name: "BranchStudentOperationsSection" });
+defineOptions({ name: "CustomerServiceStudentOperationsSection" });
 
 const DailyReportStudentOperationsSection = defineAsyncComponent(() =>
   import(
@@ -33,11 +34,12 @@ const props = defineProps({
 const emit = defineEmits(["loading"]);
 
 const timelineFetcher = (operationId) =>
-  reportService.getBranchOperationTimeline(operationId);
+  reportService.getCustomerServiceOperationTimeline(operationId);
 
 const { loading, rows, error, total, page, setPage, reload } =
   usePaginatedReportSection(
-    (query) => reportService.getBranchSection("studentOperations", query),
+    (query) =>
+      reportService.getCustomerServiceSection("studentOperations", query),
     {
       params: toRef(props, "params"),
       reloadKey: toRef(props, "reloadKey"),

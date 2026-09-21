@@ -45,12 +45,13 @@ const BRANCH_SECTION_PATH: Record<
 };
 
 const CUSTOMER_SERVICE_SECTION_PATH: Record<
-  "reservations" | "delivered" | "cancelled",
+  "reservations" | "delivered" | "cancelled" | "studentOperations",
   string
 > = {
   reservations: "reservations",
   delivered: "delivered",
   cancelled: "cancelled",
+  studentOperations: "student-operations",
 };
 
 const withDefaultRange = (params: Record<string, any> = {}) => ({
@@ -112,6 +113,15 @@ export const reportService = {
     );
   },
 
+  async getCustomerServiceOperationTimeline(operationId: string) {
+    return asData(
+      await apiFetch(
+        `/reports/customer-service/student-operations/${encodeURIComponent(operationId)}/timeline`,
+        { method: "GET" },
+      ),
+    );
+  },
+
   async getCustomerServiceSummary(params: Record<string, any> = {}) {
     return asData(
       await apiFetch("/reports/customer-service/summary", {
@@ -122,19 +132,36 @@ export const reportService = {
   },
 
   async getCustomerServiceSection(
-    section: "reservations" | "delivered" | "cancelled",
+    section: "reservations" | "delivered" | "cancelled" | "studentOperations",
     params: Record<string, any> = {},
   ) {
     const path = CUSTOMER_SERVICE_SECTION_PATH[section];
     if (!path) {
       throw new Error(`Unsupported customer-service report section: ${section}`);
     }
-    return asData(
-      await apiFetch(`/reports/customer-service/${path}`, {
-        method: "GET",
-        params: withDefaultRange(params),
-      }),
-    );
+    const response = await apiFetch(`/reports/customer-service/${path}`, {
+      method: "GET",
+      params: withDefaultRange(params),
+    });
+
+    if (
+      response &&
+      typeof response === "object" &&
+      "pagination" in response &&
+      Array.isArray((response as any).data)
+    ) {
+      return response;
+    }
+    if (
+      response?.data &&
+      typeof response.data === "object" &&
+      "pagination" in response.data &&
+      Array.isArray(response.data.data)
+    ) {
+      return response.data;
+    }
+
+    return asData(response);
   },
 
   /** Role-scoped daily summary (branch | customer-service) */
@@ -158,7 +185,8 @@ export const reportService = {
       if (
         section !== "reservations" &&
         section !== "delivered" &&
-        section !== "cancelled"
+        section !== "cancelled" &&
+        section !== "studentOperations"
       ) {
         throw new Error(
           `Unsupported customer-service report section: ${section}`,
