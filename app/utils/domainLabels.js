@@ -70,9 +70,13 @@ export const TIMELINE_EVENT_LABELS = {
   PAYMENT_RESERVATION: "دفعة",
   DELIVERED: "تسليم المنتج",
   CANCELLED: "إلغاء الحجز",
-  REFUND: "استرداد المبلغ",
+  CANCELLED_WITH_REFUND: "إلغاء الحجز مع استرداد المبلغ",
+  REFUND: "استرداد المبلغ للطالب",
   EXCHANGE: "استبدال المنتج",
+  EXCHANGE_COLLECT: "استبدال مع تحصيل فرق السعر",
+  EXCHANGE_REFUND: "استبدال مع رد فرق السعر",
   RETURN: "مرتجع منتج",
+  RETURN_WITH_REFUND: "مرتجع منتج مع استرداد المبلغ",
   COMPLETED: "اكتمال العملية",
   COMPLETED_SALE: "تم الدفع والاستلام",
 };
@@ -200,13 +204,42 @@ export const getOperationStatusColor = (status) =>
 export const getStudentSaleLabel = (type) =>
   getLabel(STUDENT_SALE_LABELS, String(type || "").toUpperCase());
 
-export const getTimelineEventLabel = (eventType, operationType) => {
+export const getTimelineEventLabel = (eventType, operationType, data = {}) => {
   const type = String(eventType || "").toUpperCase();
   const op = String(operationType || "").toUpperCase();
   if (type === "CREATED" || type === "PAYMENT" || type === "COMPLETED") {
     const scoped = TIMELINE_EVENT_LABELS[`${type}_${op}`];
     if (scoped) return scoped;
   }
+
+  if (type === "RETURN") {
+    const amount = Number(data.amount);
+    if ((Number.isFinite(amount) && amount > 0) || data.method) {
+      return TIMELINE_EVENT_LABELS.RETURN_WITH_REFUND;
+    }
+    return TIMELINE_EVENT_LABELS.RETURN;
+  }
+
+  if (type === "EXCHANGE") {
+    const diff = Number(data.differenceAmount);
+    const refundAmount = Number(data.refundAmount);
+    if ((Number.isFinite(refundAmount) && refundAmount > 0) || diff < 0) {
+      return TIMELINE_EVENT_LABELS.EXCHANGE_REFUND;
+    }
+    if (Number.isFinite(diff) && diff > 0) {
+      return TIMELINE_EVENT_LABELS.EXCHANGE_COLLECT;
+    }
+    return TIMELINE_EVENT_LABELS.EXCHANGE;
+  }
+
+  if (type === "CANCELLED") {
+    const amount = Number(data.refundAmount ?? data.amount);
+    if ((Number.isFinite(amount) && amount > 0) || data.method) {
+      return TIMELINE_EVENT_LABELS.CANCELLED_WITH_REFUND;
+    }
+    return TIMELINE_EVENT_LABELS.CANCELLED;
+  }
+
   return getLabel(TIMELINE_EVENT_LABELS, type);
 };
 

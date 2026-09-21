@@ -3,29 +3,11 @@
     class="w-full min-w-0 overflow-hidden rounded-xl border border-white/10 bg-slate-900 p-4"
     dir="rtl"
   >
-    <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-      <div class="min-w-0">
-        <p class="font-bold text-white">سجل العمليات</p>
-        <p class="mt-1 text-xs text-slate-400">
-          بيع وحجز — افتح الصف لعرض سجل العملية
-        </p>
-      </div>
-
-      <div class="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-end">
-        <ReportOperationTypeFilter
-          v-model="selectedType"
-          :labels="typeLabels"
-          label="نوع العملية"
-          :disabled="loading"
-          @change="onTypeChange"
-        />
-        <ReportStatusFilter
-          v-model="selectedStatus"
-          :options="statusOptions"
-          :disabled="loading"
-          @change="onStatusChange"
-        />
-      </div>
+    <div class="mb-4 min-w-0">
+      <p class="font-bold text-white">سجل العمليات</p>
+      <p class="mt-1 text-xs text-slate-400">
+        بيع وحجز — افتح الصف لعرض سجل العملية
+      </p>
     </div>
 
     <div v-if="loading && !rows.length" class="space-y-2">
@@ -126,17 +108,13 @@ import ReportsSectionError from "~/components/dashboard/pages/reports/admin/Repo
 import ReportsSectionEmpty from "~/components/dashboard/pages/reports/admin/ReportsSectionEmpty/index.vue";
 import ProductCell from "~/components/shared/product-cell/index.vue";
 import AppDateTimeCell from "~/components/shared/app-datetime-cell/index.vue";
-import ReportOperationTypeFilter from "~/components/shared/report-operation-type-filter/index.vue";
-import ReportStatusFilter from "~/components/shared/report-status-filter/index.vue";
 import OperationTimelinePanel from "./partials/OperationTimelinePanel.vue";
 import { reportService } from "~/services/reportService";
 import { formatMoney } from "~/utils/format";
 import { getPaymentMethodLabel } from "~/utils/paymentMethods";
 import {
   DEFAULT_METRIC_COLOR,
-  OPERATION_STATUS_LABELS,
   STOCK_MOVEMENT_COLORS,
-  STUDENT_SALE_LABELS,
   getOperationStatusColor,
   getOperationStatusLabel,
   getStockMovementColor,
@@ -174,46 +152,18 @@ const props = defineProps({
   page: { type: Number, default: 1 },
   pageSize: { type: Number, default: 15 },
   totalRecords: { type: Number, default: 0 },
-  movementType: { type: String, default: null },
-  operationStatus: { type: String, default: null },
 });
 
-const emit = defineEmits([
-  "retry",
-  "update:page",
-  "update:movementType",
-  "update:operationStatus",
-]);
+const emit = defineEmits(["retry", "update:page"]);
 
-const selectedType = ref(props.movementType || null);
-const selectedStatus = ref(props.operationStatus || null);
 const expandedRows = ref({});
 const timelineState = reactive({});
 
 watch(
-  () => props.movementType,
-  (value) => {
-    selectedType.value = value || null;
-  },
-);
-
-watch(
-  () => props.operationStatus,
-  (value) => {
-    selectedStatus.value = value || null;
-  },
-);
-
-watch(
-  () => [props.page, props.movementType, props.operationStatus, props.rows],
+  () => [props.page, props.rows],
   () => {
     expandedRows.value = {};
   },
-);
-
-const typeLabels = STUDENT_SALE_LABELS;
-const statusOptions = Object.entries(OPERATION_STATUS_LABELS).map(
-  ([value, label]) => ({ value, label }),
 );
 
 const columns = [
@@ -328,6 +278,14 @@ const buildEventDetails = (event) => {
     }
   } else if (type === "CANCELLED") {
     if (data.reason) lines.push(`السبب: ${data.reason}`);
+    if (data.refundAmount != null || data.amount != null) {
+      lines.push(
+        `المبلغ المسترد: ${moneyOrDash(data.refundAmount ?? data.amount)}`,
+      );
+    }
+    if (data.method) {
+      lines.push(`طريقة الاسترداد: ${getPaymentMethodLabel(data.method)}`);
+    }
   } else if (type === "REFUND") {
     if (data.amount != null) {
       lines.push(`المبلغ المسترد: ${moneyOrDash(data.amount)}`);
@@ -377,7 +335,7 @@ const mapTimelineEvents = (payload) => {
     return {
       id: event.id,
       type,
-      title: getTimelineEventLabel(type, source),
+      title: getTimelineEventLabel(type, source, event?.data || {}),
       date: event.date,
       actorName: event.actor?.name || null,
       details: buildEventDetails(event),
@@ -419,14 +377,6 @@ const loadTimeline = async (operationId) => {
 const onRowExpand = (event) => {
   const operationId = event?.data?.id;
   if (operationId) loadTimeline(operationId);
-};
-
-const onTypeChange = (value) => {
-  emit("update:movementType", value || null);
-};
-
-const onStatusChange = (value) => {
-  emit("update:operationStatus", value || null);
 };
 
 const onPage = (event) => {

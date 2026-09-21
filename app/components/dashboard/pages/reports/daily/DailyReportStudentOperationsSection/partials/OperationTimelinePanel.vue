@@ -103,7 +103,7 @@ defineEmits(["retry"]);
 const EVENT_MARKERS = {
   CREATED: { icon: "pi pi-plus", color: "#38bdf8" },
   PAYMENT: { icon: "pi pi-wallet", color: "#10b981" },
-  DELIVERED: { icon: "pi pi-box", color: "#a78bfa" },
+  DELIVERED: { icon: "pi pi-check", color: "#34d399" },
   CANCELLED: { icon: "pi pi-times", color: "#fb7185" },
   REFUND: { icon: "pi pi-replay", color: "#f43f5e" },
   EXCHANGE: { icon: "pi pi-sync", color: "#8b5cf6" },
