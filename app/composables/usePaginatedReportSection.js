@@ -1,4 +1,5 @@
 import { useAppToast } from "~/composables/useAppToast";
+import { useAuthStore } from "~/store/auth.js";
 
 const extractRows = (payload) => {
   if (!payload) return [];
@@ -31,6 +32,7 @@ export const usePaginatedReportSection = (loader, options = {}) => {
   } = options;
 
   const { showError } = useAppToast();
+  const authStore = useAuthStore();
   const loading = ref(Boolean(immediate));
   const rows = ref([]);
   const error = ref("");
@@ -61,6 +63,11 @@ export const usePaginatedReportSection = (loader, options = {}) => {
   });
 
   const reload = async () => {
+    if (!authStore.isLoggedIn) {
+      setLoading(false);
+      return;
+    }
+
     const current = unref(params) || {};
     if (!current.from || !current.to) {
       setLoading(false);
@@ -88,7 +95,13 @@ export const usePaginatedReportSection = (loader, options = {}) => {
       rows.value = [];
       total.value = 0;
       error.value = err?.message || errorMessage;
-      if (toastOnError) showError(error.value);
+      if (
+        toastOnError &&
+        err?.code !== "SESSION_CLEARED" &&
+        err?.status !== 401
+      ) {
+        showError(error.value);
+      }
     } finally {
       if (gen === generation) setLoading(false);
     }

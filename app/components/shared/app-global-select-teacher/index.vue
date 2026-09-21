@@ -30,6 +30,7 @@ import { teacherService } from "~/services/teacherService";
 import { useAppToast } from "~/composables/useAppToast";
 import { useThrottledCallback } from "~/composables/useThrottledCallback";
 import { useAcademicYearId } from "~/composables/useAcademicYearId";
+import { useAuthStore } from "~/store/auth.js";
 
 defineOptions({ name: "AppGlobalSelectTeacher" });
 
@@ -109,6 +110,7 @@ const resolvedOptions = computed(() => {
 
 const loadTeachers = async (term = searchTerm.value) => {
   if (!props.autoLoad || Array.isArray(props.options)) return;
+  if (!useAuthStore().isLoggedIn) return;
 
   const currentRequest = ++requestId.value;
   internalLoading.value = true;
@@ -132,7 +134,9 @@ const loadTeachers = async (term = searchTerm.value) => {
   } catch (error) {
     if (currentRequest !== requestId.value) return;
     internalOptions.value = withSelectedOption([]);
-    showError(error?.message || "تعذر تحميل المدرسين.");
+    if (error?.code !== "SESSION_CLEARED" && error?.status !== 401) {
+      showError(error?.message || "تعذر تحميل المدرسين.");
+    }
   } finally {
     if (currentRequest === requestId.value) internalLoading.value = false;
   }
@@ -187,6 +191,7 @@ watch(
 );
 
 watch(currentAcademicYearId, () => {
+  if (!useAuthStore().isLoggedIn) return;
   if (props.modelValue) emit("update:modelValue", null);
   selectedOptionCache.value = null;
   loadTeachers(searchTerm.value);

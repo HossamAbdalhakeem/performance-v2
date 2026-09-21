@@ -30,6 +30,7 @@ import { storeToRefs } from "pinia";
 import PeriodDateFilter from "~/components/shared/period-date-filter/index.vue";
 import { useAcademicYearId } from "~/composables/useAcademicYearId";
 import { useAcademicYearStore } from "~/store/academicYear.js";
+import { useAuthStore } from "~/store/auth.js";
 
 defineOptions({ name: "DailyReportFilters" });
 
@@ -41,6 +42,7 @@ defineProps({
 
 const emit = defineEmits(["change", "refresh"]);
 
+const authStore = useAuthStore();
 const { academicYearId } = useAcademicYearId();
 const academicYearStore = useAcademicYearStore();
 const { years: academicYears } = storeToRefs(academicYearStore);
@@ -110,7 +112,7 @@ const onPeriodChange = ({ from: nextFrom, to: nextTo } = {}) => {
 };
 
 watch(academicYearId, () => {
-  if (!ready.value) return;
+  if (!ready.value || !authStore.isLoggedIn) return;
   if (academicYearRange.value) {
     from.value = academicYearRange.value.from;
     to.value = academicYearRange.value.to;
@@ -119,7 +121,9 @@ watch(academicYearId, () => {
 });
 
 onMounted(async () => {
+  if (!authStore.isLoggedIn) return;
   await academicYearStore.fetchYears().catch(() => {});
+  if (!authStore.isLoggedIn) return;
   ready.value = true;
   emitChange();
 });

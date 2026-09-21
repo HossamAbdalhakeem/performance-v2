@@ -1,4 +1,5 @@
 import { useAppToast } from "~/composables/useAppToast";
+import { useAuthStore } from "~/store/auth.js";
 
 /**
  * Self-contained admin report section loader.
@@ -17,6 +18,7 @@ export const useAdminReportSection = (loader, options = {}) => {
   } = options;
 
   const { showError } = useAppToast();
+  const authStore = useAuthStore();
   const loading = ref(Boolean(immediate));
   const data = ref(null);
   const error = ref(null);
@@ -41,6 +43,11 @@ export const useAdminReportSection = (loader, options = {}) => {
   });
 
   const reload = async () => {
+    if (!authStore.isLoggedIn) {
+      setLoading(false);
+      return;
+    }
+
     const current = unref(params) || {};
     if (!current.from || !current.to) {
       setLoading(false);
@@ -59,7 +66,11 @@ export const useAdminReportSection = (loader, options = {}) => {
       if (gen !== generation) return;
       data.value = null;
       error.value = err?.message || errorMessage;
-      if (toastOnError) {
+      if (
+        toastOnError &&
+        err?.code !== "SESSION_CLEARED" &&
+        err?.status !== 401
+      ) {
         showError(error.value);
       }
     } finally {

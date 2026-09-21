@@ -77,15 +77,17 @@ export const useAuthStore = defineStore("authStore", {
       useLocalStorage("dashboard_role").value = this.user?.role || "admin";
       useLocalStorage("dashboard_user").value = JSON.stringify(this.user);
     },
-    removeUser() {
+    removeUser({ clearAcademicYear = true } = {}) {
       this.user = {};
       this.token = null;
       this.loggedIn = false;
       useLocalStorage("token").value = null;
       useLocalStorage("dashboard_role").value = null;
       useLocalStorage("dashboard_user").value = null;
-      useLocalStorage("academicYearId").value = null;
 
+      if (!clearAcademicYear) return;
+
+      useLocalStorage("academicYearId").value = null;
       try {
         useAcademicYearStore().clear();
       } catch {
@@ -99,10 +101,13 @@ export const useAuthStore = defineStore("authStore", {
         console.error("Logout request failed", error);
       }
 
-      // Clear the full session before navigating so middleware cannot
-      // re-hydrate as logged-in without a token and remount dashboard APIs.
-      this.removeUser();
+      // Clear auth first so /login middleware allows the route.
+      // Clear academic year AFTER navigate — otherwise mounted branch/CS pages
+      // (teacher select, report filters) refetch and toast "Not authenticated"
+      // without any network call (apiFetch session guard).
+      this.removeUser({ clearAcademicYear: false });
       await navigateTo("/login");
+      this.removeUser({ clearAcademicYear: true });
     },
     hydrateFromStorage() {
       const dashboardRole = useLocalStorage("dashboard_role");

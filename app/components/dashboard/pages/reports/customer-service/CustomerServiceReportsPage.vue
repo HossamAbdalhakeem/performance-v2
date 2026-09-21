@@ -24,6 +24,7 @@
 import { buildCustomerServiceHeroChips } from "~/utils/dailyReportMetrics";
 import { reportService } from "~/services/reportService";
 import { useAppToast } from "~/composables/useAppToast";
+import { useAuthStore } from "~/store/auth.js";
 import DailyReportFilters from "~/components/dashboard/pages/reports/daily/DailyReportFilters/index.vue";
 
 defineOptions({ name: "CustomerServiceReportsPage" });
@@ -50,7 +51,7 @@ const heroChips = computed(() =>
 );
 
 const loadReport = async () => {
-  if (!filterParams.value) return;
+  if (!filterParams.value || !useAuthStore().isLoggedIn) return;
 
   const generation = ++loadGeneration;
   loading.value = true;
@@ -64,7 +65,9 @@ const loadReport = async () => {
   } catch (error) {
     if (generation !== loadGeneration) return;
     summary.value = {};
-    showError(error?.message || "تعذر تحميل التقرير.");
+    if (error?.code !== "SESSION_CLEARED" && error?.status !== 401) {
+      showError(error?.message || "تعذر تحميل التقرير.");
+    }
   } finally {
     if (generation === loadGeneration) loading.value = false;
   }

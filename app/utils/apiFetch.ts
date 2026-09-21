@@ -202,9 +202,9 @@ const request = async <T = any>(
     throw new ApiError("MISSING_API_BASE", "API base URL is not configured.");
   }
 
-  // Skip authenticated endpoints when there is no session (e.g. after logout).
+  // No token → fail locally (no network). Used after logout while UI is still mounted.
   if (!isPublicPath(path) && !getStoredToken()) {
-    throw new ApiError("UNAUTHORIZED", "Not authenticated.", 401);
+    throw new ApiError("SESSION_CLEARED", "Not authenticated.", 401);
   }
 
   try {

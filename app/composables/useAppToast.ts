@@ -1,9 +1,22 @@
 import { useToast } from "primevue/usetoast";
 
+const isSessionGoneMessage = (detail) => {
+  const text = String(detail || "").trim().toLowerCase();
+  return (
+    text === "not authenticated." ||
+    text === "not authenticated" ||
+    text === "session_cleared" ||
+    text.includes("not authenticated")
+  );
+};
+
 export const useAppToast = () => {
   const toast = useToast();
 
   const showError = (detail, summary = "خطأ") => {
+    // Ignore client-side session-cleared errors after logout (no API call).
+    if (isSessionGoneMessage(detail)) return;
+
     toast.add({
       severity: "error",
       summary,
